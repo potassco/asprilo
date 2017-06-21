@@ -1,0 +1,18 @@
+#+TITLE: ASPRILO Instance Generator and Referential Instances
+#+AUTHOR: Philipp Obermeier
+#+INCLUDE: "./conf.org"
+
+* About
+
+  This is the user manual of the instance generator of [[file:index.org][ASPRILO]].
+
+
+* Invocation
+
+  The script ~./generator/ig.py~ provides an instance generator with various option, for
+  a detailed list invoke
+  #+BEGIN_SRC shell
+    python ./generator/ig.py -h
+  #+END_SRC
+
+  TODO: Detailed Readme

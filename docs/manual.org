@@ -1,0 +1,51 @@
+#+TITLE: ASPRILO Manual
+#+AUTHOR: Philipp Obermeier
+#+INCLUDE: "./conf.org"
+
+* About
+
+  This is the user manual of *ASPRILO*, a robotic intra-logistics benchmark suite for answer set programming.
+  In the following, we will primarily
+   - describe the problem from a conceptual as well as technical perspective
+   - introduce a referential set of benchmark instances
+   - introduce various tools such as an instance generator, solution checker and visualizer
+
+  # - For a general description of the problem, see [[#cid:75192d41-bc59-476b-a0ac-4bb680aa5984][Problem Specification]]
+  # - For technical details on encodings and benchmarking, see [[id:60883964-d923-43c5-962b-aab0780f7639][Encoding and Benchmarking]]
+  # - For a brief overview of local resources and external references, see [[id:4f383ee0-fe94-4d6b-8dea-9b303431904e][Resources]]
+
+  
+* Problem Specification
+  :PROPERTIES:
+  :CUSTOM_ID: cid:ba431013-ed5d-452a-9215-beb12b0399bd
+  :END:
+  
+  #+INCLUDE: "./specification.org" :lines "6-" :minlevel 2
+
+
+* Instance Generator
+  :PROPERTIES:
+  :CUSTOM_ID: cid:c66ba478-f621-4b18-acb1-3ea2e4bf7110
+  :END:
+
+  #+INCLUDE: "./generator.org" :lines "6-" :minlevel 2
+
+
+* Referential Benchmark Sets
+
+  #+INCLUDE: "./benchmarkset.org" :lines "6-" :minlevel 2
+
+
+* Solution Checker
+
+  #+INCLUDE: "./checker.org" :lines "6-" :minlevel 2
+
+
+* Visualizer
+
+  #+INCLUDE: "./checker.org" :lines "6-" :minlevel 2
+
+
+* References
+  
+  #+INCLUDE: "./references.org" :lines "6-" :minlevel 2 

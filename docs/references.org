@@ -1,0 +1,9 @@
+#+TITLE: ASPRILO References
+#+AUTHOR: Philipp Obermeier
+#+INCLUDE: "./conf.org"
+
+* About
+
+  This is the collection of literal references of ASPRILO.
+
+#+BIBLIOGRAPHY: ./lit.bib plain

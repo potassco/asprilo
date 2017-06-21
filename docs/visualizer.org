@@ -1,0 +1,18 @@
+#+TITLE: ASPRILO Visualizer
+#+AUTHOR: Philipp Obermeier
+#+INCLUDE: "./conf.org"
+
+* About
+
+  This is the user manual of the visualizer of [[file:index.org][ASPRILO]].
+
+
+* Invocation
+
+  The script ~./visualizer/scripts/visualizer~ provides an visualizer with various option, for
+  a detailed list invoke
+  #+BEGIN_SRC shell
+    ./visualizer/scripts/visualizer -h
+  #+END_SRC
+
+  TODO: Detailed Readme
