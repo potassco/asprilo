@@ -125,7 +125,7 @@ class InstanceGenerator(object):
         #     print "Used args for solving: " + str(self._args)
 
         self._control = clingo.Control(self._solve_opts)
-        self._control.load("ig.lp")
+        self._control.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ig.lp'))
         for template in self._args.template:
             self._control.load(template)
             self._control.ground([("base", [])])
