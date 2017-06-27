@@ -3,7 +3,7 @@ import select
 import socket
 import clingo
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 
 class Network(object):
     def __init__(self):
@@ -44,22 +44,25 @@ class Network(object):
 
     def receive(self, time_out):
         if self._connection is None:
-            return ''
-        if self.is_ready_to_read(4.0):
-            while True:
-                new_data = self._connection.recv(2048)
-                if not new_data or new_data == '':
-                    self.close()
-                    return ''
-                self._raw_data += new_data
-                if not new_data.find('\n') == -1:
-                    self.on_raw_data(self._raw_data)
-                    return
+            return -1
+        try:
+            if self.is_ready_to_read(4.0):
+                while True:
+                    new_data = self._connection.recv(2048)
+                    if not new_data or new_data == '':
+                        self.close()
+                        return 1
+                    self._raw_data += new_data
+                    if not new_data.find('\n') == -1:
+                        self.on_raw_data(self._raw_data)
+                        return 0
+            else:
+                return 0
 
-        elif self._raw_data is not '': 
-            return self._raw_data 
-        else:
-            return None
+        except socket.error as error:
+            self._close()
+            print error
+            return -1
 
     def send(self, data):
         if self._connection is None:
@@ -93,13 +96,14 @@ class Network(object):
             self._socket = None
 
     def run(self):
+        print 'Start ' + self._name 
         self.connect()
         while(True):
-            if self.receive(1.0) is '':
+            if self.receive(1.0) != 0:
                 return
 
     def on_control_symbol(self, symbol):
-        if symbol.name == 'RESET':
+        if symbol.name == 'reset':
             self._reset = True
             self._to_send = {}
             self._data = []

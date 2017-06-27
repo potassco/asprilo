@@ -45,6 +45,7 @@
 #const imin   = 0.
 #const imax   = 50. 
 
+#include <incmode>.
 #program base.
 
 %%	ACTIONS
@@ -202,3 +203,4 @@ goal(t) :- not holds(request(_,_,_,_),t).
 %--------------------------------------------------%
 
 #show occurs/3.
+#show init/2.
