@@ -41,7 +41,7 @@ class VisualizerSocket(object):
             self._timer.stop()
         self._timer = QTimer()
         self._timer.timeout.connect(self.receive)
-        self._timer.start(1000)       
+        self._timer.start(1000)
 
     def connect(self, host = None, port = None):
         if self.is_connected() and host == self._host and port == self._port:
@@ -50,8 +50,8 @@ class VisualizerSocket(object):
             self._host = host
         if port is not None:
             self._port = port
-        print 'Connect with '+ self._socket_name
         self.close()
+        print 'Try connection with '+ self._socket_name
         self._s = socket.socket()
         connected = False
         tryCount = 0
@@ -68,6 +68,7 @@ class VisualizerSocket(object):
                 print 'Failed to connect with ' + self._socket_name + ' \nRetrying in 2 sek'
                 time.sleep(2)
             tryCount += 1
+        print 'Connect with '+ self._socket_name
         return 0
 
     def send(self, msg):
@@ -78,15 +79,18 @@ class VisualizerSocket(object):
     def _receive_data(self):
         breakLoop = False                                  
         data = ''
-        ready = select.select([self._s], [], [], 0.1)
-        while (not breakLoop) and ready[0]:
-            new_data = self._s.recv(2048)
-            if not new_data.find('\n') == -1 or new_data == '':
-                breakLoop = True
-            data += new_data
-        if ready[0] and new_data == '':
-            self.close()
-            return None       
+        try:
+            ready = select.select([self._s], [], [], 0.1)
+            while (not breakLoop) and ready[0]:
+                new_data = self._s.recv(2048)
+                if not new_data.find('\n') == -1 or new_data == '':
+                    breakLoop = True
+                data += new_data
+            if ready[0] and new_data == '':
+                self.close()
+                return None
+        except socket.error as err:
+            print err
         return data
 
     def receive(self):
@@ -141,6 +145,8 @@ class SolverSocket(VisualizerSocket):
             if len(str_atom) != 0 and not (len(str_atom) == 1 and str_atom[0] == '\n'):
                 if str_atom == '%$RESET':
                     self._parser.clear_model_actions(True)
+                elif str_atom[0] == '\n':
+                    pass
                 else:
                     self._parser.on_atom(clingo.parse_term(str_atom))
         self._model.update_windows()
@@ -149,6 +155,8 @@ class SolverSocket(VisualizerSocket):
         if self._s == None or self._model == None: return -1
         self._s.send('%$RESET.')
         self._model.set_editable(False)
+        self._model.clear_actions()
+        self._model.restart()
         for atom in self._model.to_init_str():        #send instance
             self._s.send(str(atom))
         self._s.send('\n')

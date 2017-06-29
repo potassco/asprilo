@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 from solver import *
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 
 class Incremental_Solver(Solver):
     def __init__(self):
@@ -22,7 +22,7 @@ class Incremental_Solver(Solver):
             self._control.assign_external(clingo.Function('query', [step]), True)
 
             print 'solve: ' + str(step)
-            solve_future = self._control.solve_async(self.on_model)
+            solve_future = self._control.solve(on_model = self.on_model, async = True)
             while(True):
                 if self.is_ready_to_read():
                     solve_future.cancel()

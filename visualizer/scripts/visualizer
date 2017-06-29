@@ -13,7 +13,7 @@ from visualizer.network import *
 from visualizer.gui import *
 from visualizer.configuration import *
 
-VERSION = '0.10.2'
+VERSION = '0.10.3'
 
 class VisualizerWindow(QMainWindow):
     def __init__(self):
@@ -22,7 +22,7 @@ class VisualizerWindow(QMainWindow):
         self._argument_parser = argparse.ArgumentParser()
         self._argument_parser.add_argument('-d', '--directory', 
                                     help='directory to load all instances from',
-                                    type=str, default = '/')
+                                    type=str)
         self._argument_parser.add_argument('-t', '--templates',
                                     help='loads files at the start',
                                     nargs='+', 
@@ -37,7 +37,7 @@ class VisualizerWindow(QMainWindow):
                                     type=str, default = '')
         self._argument_parser.add_argument('-m', '--mode',
                                     help='loads a preset of low level settings',
-                                    choices=['gtapf','aspilro'], 
+                                    choices=['gtapf','asprilo'],
                                     type=str, default = '')
         self._argument_parser.add_argument('-s', '--start_solver',
                                     help='starts the default solver in the init file',
@@ -65,17 +65,28 @@ class VisualizerWindow(QMainWindow):
         self._init_gui()
 
         self._asp_parser.set_model_view(self._model_view)
-        self.read_input()
+
+        self._input_timer = QTimer()
+        self._input_timer.timeout.connect(self.read_input)
+        self._input_timer.start(1000)
 
     def _init_gui(self):
         self._splitter = QSplitter()
         self.setCentralWidget(self._splitter)
 
-        self._instance_file_browser = InstanceFileBrowser(self._args.directory)
+        directory = self._args.directory
+        if directory is None:
+            directory= os.getcwd()
+
+        self._instance_file_browser = InstanceFileBrowser(directory)
         self._instance_file_browser.set_parser(self._asp_parser)
         self._splitter.addWidget(self._instance_file_browser)
-        if self._args.directory == '/':
+        if self._args.directory is None:
             self._instance_file_browser.setVisible(False)
+
+        self._file_dialog = QFileDialog(self, 'Open file',
+                                        directory,
+                                        'Lp files (*.lp);; All files (*)')
 
         self._model_view = ModelView()
         self._model_view.set_model(self._model)
@@ -132,13 +143,6 @@ class VisualizerWindow(QMainWindow):
         self.move(0,0)
         self.show()
 
-        directory = self._args.directory
-        if directory == '/':
-            directory= os.getcwd()
-        self._file_dialog = QFileDialog(self, 'Open file',
-                                        directory,
-                                        'Lp files (*.lp);; All files (*)')
-
         if self._args.start_solver:
             self._init_solver_dialog.on_ok(None)
 
@@ -175,9 +179,9 @@ class VisualizerWindow(QMainWindow):
         menu_file.addAction(action)
         self.addAction(action)
 
-        action = QAction('Visualize answer', self)
+        action = QAction('Load plan', self)
         action.setShortcut('Ctrl+V')
-        action.setStatusTip('Load an answer file')
+        action.setStatusTip('Load a plan file')
         action.triggered.connect(lambda: 
                         (self.open_file_dialog(QFileDialog.AcceptOpen, 
                          self.load_answer)))
@@ -190,13 +194,12 @@ class VisualizerWindow(QMainWindow):
         action.triggered.connect(lambda: 
                         (self.open_file_dialog(QFileDialog.AcceptSave, 
                          self.save_instance)))
-        action.triggered.connect(self.save_instance)
         menu_file.addAction(action)
         self.addAction(action)
 
-        action = QAction('Save answer', self)
+        action = QAction('Save plan', self)
         action.setShortcut('Ctrl+A')
-        action.setStatusTip('Saves the current answer to a file')
+        action.setStatusTip('Saves the current plan to a file')
         action.triggered.connect(lambda: 
                         (self.open_file_dialog(QFileDialog.AcceptSave, 
                          self.save_answer)))
@@ -311,10 +314,34 @@ class VisualizerWindow(QMainWindow):
         self.addAction(action)
 
     def read_input(self):
-        if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
-            for line in sys.stdin:
-                self._asp_parser.add_program('input', line)
-            self._asp_parser.parse()
+        answer = False
+        found_answer = False
+        lines = []
+        try:
+            if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+                for line in sys.stdin.readlines():
+                    lines.append(line)
+                    if answer and not found_answer:
+                        self._asp_parser.add_program('input', line.replace(' ', '.'))
+                        if line[len(line) - 1] == '\n':
+                            answer = False
+                            found_answer = True
+                            self._asp_parser.add_program('input', '.')
+                            self._asp_parser.parse()
+                    if line.lower().find('answer') != -1:
+                        print 'satisfiable'
+                        answer = True
+                    if line.lower().find('unsatisfiable') != -1:
+                        print 'unsatisfiable'
+                        anser = True
+                        found_answer = True
+                if found_answer == False and len(lines) > 0:
+                    for line in lines:
+                        self._asp_parser.add_program('input', line)
+                    self._asp_parser.parse()
+        except Exception as error:
+            print error
+            print 'Failed to read from stdin'
 
     def open_file_dialog(self, mode, function):
         self._file_dialog.setAcceptMode(mode)
@@ -352,7 +379,7 @@ class VisualizerWindow(QMainWindow):
         for file_name in os.listdir(directory):
             full_file_name = directory + '/' + file_name
             if file_name.endswith('.lp'): 
-                self._asp_parser.load_instance(full_file_name)
+                self._asp_parser.load_instance(full_file_name, create_png = True)
             elif os.path.isdir(full_file_name):
                 self.create_pictures_in_directory(full_file_name)
 

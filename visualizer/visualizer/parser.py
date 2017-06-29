@@ -234,13 +234,13 @@ class AspParser(object):
             return -2
         return 0
 
-    def load_instance(self, file_name):
+    def load_instance(self, file_name, create_png = False):
         result = self.parse_file(file_name, clear = True)
         if result < 0:
             return result
 
         if (self._model_view is not None 
-            and configuration.config.get('visualizer', 'create_pngs')):
+            and (configuration.config.get('visualizer', 'create_pngs') or create_png)):
 
             rect = self._model_view.sceneRect()
             position  = self._model_view.mapFromScene(QPoint(rect.x(), rect.y()))
