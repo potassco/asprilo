@@ -1,12 +1,45 @@
-#+TITLE: ASPRILO Solution Checker
+#+TITLE: ASPRILO Checker
 #+AUTHOR: Philipp Obermeier
 #+INCLUDE: "./conf.org"
 
 * About
+  :PROPERTIES:
+  :CUSTOM_ID: checker_about
+  :END:
 
-  This is the user manual of the solution checker of ASPRILO.
+   This is the user manual of the solution checker of [[file:index.org][ASPRILO]].
 
+* Encoding Architecture
 
-* Invocation
+  The encoding for verification is compartmentalized into several categories reflecting
 
-  TODO
+  1. the problem domain
+
+     - stored in =./checker/encodings/<domain>/= .e.g.
+       =./checker/encodings/default/= for the default domain
+
+  2. the types of laws used for planning, that is,
+
+     1. /action executability/: possible actions based on preconditions
+
+        - stored in =./checker/encodings/<domain>/actions=
+
+     2. /action effects/: effects after an action execution and the state
+        of the environment
+
+        - stored in =./checker/encodings/<domain>/effects=
+
+     3. /static laws/: state constraints and transitions solely based on
+        the current state of the environment (fluents)
+
+        - stored in=./checker/encodings/<domain>/states=
+
+* How To Use
+  :PROPERTIES:
+  :CUSTOM_ID: checker_how-to-use
+  :END:
+
+* Example Invocations
+  :PROPERTIES:
+  :CUSTOM_ID: checker_example-invocations
+  :END:

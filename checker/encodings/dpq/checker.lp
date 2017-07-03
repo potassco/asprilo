@@ -4,7 +4,7 @@
 %
 %   Sets up inital state, horizon and general inertia axiom
 
-#include "init.lp".
+#include "../default/init.lp".
 
 
 % - Checks and Book-Keeping Entailments Per Action -----------------------------
@@ -13,16 +13,16 @@
 %   - checks for preconditions
 %   - "book-keeping" entailments for effects and related inertial abnormalities
 
-#include "action-move.lp".
-#include "action-pickup.lp".
-#include "action-putdown.lp".
+#include "../default/action-move.lp".
+#include "../default/action-pickup.lp".
+#include "../default/action-putdown.lp".
 #include "action-deliver.lp".
 
 
 % - Checks for Static Law Violations -------------------------------------------
 
-#include "static.lp".
+#include "../default/static.lp".
 
 % - Goal condition -------------------------------------------------------------
 
-#include "goal.lp".
+#include "../default/goal.lp".
