@@ -11,14 +11,14 @@ action(move, (-1,0)).
 % - Checks: Preconditions ------------------------------------------------------
 
 % Target node non-existent
-err(move_node, R, T)   :-     occurs(object(robot, R), action(move, (DX,    DY)),  T  );
-                              holds( object(robot, R), value(at,    (X,      Y)),  T-1);
-                          not holds( object(node,  _), value(at,    (X+DX, Y+DY)), T  ).
+err(move, node, (R, T))   :-     occurs(object(robot, R), action(move, (DX,    DY)),  T  );
+                                 holds( object(robot, R), value(at,    (X,      Y)),  T-1);
+                             not holds( object(node,  _), value(at,    (X+DX, Y+DY)), T  ).
 
 % Movement domain violated
-err(move_domain, R, T) :-     occurs(object(robot, R), action(move, (DX,    DY)),  T  );
-                              holds( object(robot, R), value(at,    (X,      Y)),  T-1);
-                          not action(move, (DX, DY)).
+err(move, domain, (R, T)) :-     occurs(object(robot, R), action(move, (DX,    DY)),  T  );
+                                 holds( object(robot, R), value(at,    (X,      Y)),  T-1);
+                             not action(move, (DX, DY)).
 
 
 
