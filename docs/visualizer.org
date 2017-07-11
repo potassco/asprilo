@@ -4,7 +4,7 @@
 
 * About
 
-  This is the user manual of the visualizer of [[file:index.org][ASPRILO]].
+  This is the user manual of the instance and plan visualizer of [[file:index.org][ASPRILO]].
 
 
 * Invocation
