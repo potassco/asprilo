@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 from solver_inc import *
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 
 class Interactive_Solver(Incremental_Solver):
     def __init__(self):

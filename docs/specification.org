@@ -96,7 +96,7 @@
   can be further divided up into aspects related to the instance's warehouse and set of orders,
   respectively. Moreover, instance characteristics depend on the scope of the problem domain, and
   the order set properties also depend on the warehouse characteristics.  In the following, we list
-  our instance characteristics for the core problem, and later expand on those in connection with
+  our instance characteristics for the default problem, and later expand on those in connection with
   [[id:92b7c4e1-1ce2-429d-9764-2e828551a683][problem domain modifications]].
 
 ** Warehouse Characteristics
@@ -441,7 +441,7 @@
   3. [[id:119945ff-c477-4214-98fd-a3078f9bf457][order set characteristics]] (in context of the problem scope and warehouse characteristics)
   in descending order, also illustrated in Fig. [[fig:classification]].
 
-  #+BEGIN_SRC dot :file dot_classification.png :cmdline -Kdot -Tpng
+  #+BEGIN_SRC dot :file img/dot_classification.png :cmdline -Kdot -Tpng
     digraph {
 	    subgraph clusterA {label="1. Problem Scope\n(e.g. Default Domain + DPQ)"
 		    subgraph clusterB {label="2. Warehouse Characteristics\n(e.g. 10x10 grid, 20 shelves, 2 picking stations, 5 robots, default interiors layout)"
@@ -454,7 +454,7 @@
   #+CAPTION: Hierarchical classification of instances.
   #+LABEL: fig:classification
   #+RESULTS:
-  [[file:dot_classification.png]]
+  [[file:img/dot_classification.png]]
 
 
 
@@ -479,7 +479,7 @@
     /objects-types/ relevant to the problem. Specifically, an object-type represents a subset of the
     objects in the problem domain. Additionally, it defines a set of /attributes/ common to its
     objects. Further, applicable object-types and attributes may vary depending on the problem
-    scope. For example, we determine the following object-types for the core problem:
+    scope. For example, we determine the following object-types for the default problem:
 
     - ~grid-node~ with attribute ~at~
     - ~robot~ with attribute ~at~
@@ -918,7 +918,7 @@
   This is an example rooted in the [[#cid:b0f981f8-3202-42c0-a46e-aa6f1a52629b][default problem domain]]. All files related to this example can be
   found in =./examples/default=.
 
-** Instance (=./examples/core/instance.asp=)
+** Instance (=./examples/default/instance.asp=)
 
    #+BEGIN_SRC prolog
      %
@@ -1054,12 +1054,12 @@
 
    Visualization of the instance below (robots are depicted as single colored squares, shelves as
    circles, picking stations as yellow and black striped squares, and highway nodes as gray fields):
-   #+CAPTION: Visualization of instance =./examples/core/instance.asp=
+   #+CAPTION: Visualization of instance =./examples/default/instance.asp=
    #+LABEL: fig:example-inst
-   [[../examples/core/instance.png]]
+   [[file:img/example_inst.png]]
 
 
-** Possible Plan (=./examples/core/outcome.txt=)
+** Possible Plan (=./examples/default/outcome.txt=)
 
    #+BEGIN_SRC prolog
      occurs(object(robot,1),action(move,(0,-1)),1).

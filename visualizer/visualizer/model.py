@@ -1,5 +1,6 @@
 from visualizerItem import *
 from visualizerGraphicItem import *
+from modelView import ModelView
 
 class Model(object):
     def __init__(self):
@@ -24,6 +25,9 @@ class Model(object):
         self._displayed_steps = -1
 
     def clear(self):
+        for window in self._windows:
+            if isinstance(window, ModelView):
+                window.clear()
         self._items = {}
         self._graphic_items = {}
         self._new_items = {}
@@ -35,7 +39,6 @@ class Model(object):
         self._highways = []             #pairs of x and y
 
         self._inits = []                #list of unhandled inits
-
         self._num_steps = 0
         self._current_step = 0
         self._displayed_steps = -1

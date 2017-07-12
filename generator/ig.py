@@ -125,7 +125,7 @@ class InstanceGenerator(object):
         #     print "Used args for solving: " + str(self._args)
 
         self._control = clingo.Control(self._solve_opts)
-        self._control.load("ig.lp")
+        self._control.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ig.lp'))
         for template in self._args.template:
             self._control.load(template)
             self._control.ground([("base", [])])
@@ -202,7 +202,7 @@ class InstanceGenerator(object):
         # solve_future.cancel()
         # solve_result = solve_future.get()
 
-        solve_result = self._control.solve(self.on_model)
+        solve_result = self._control.solve(on_model=self.on_model)
 
         if not self._args.quiet:
             print "Parallel mode: " + str(self._control.configuration.solve.parallel_mode)
@@ -371,9 +371,9 @@ class Runner(object):
         layout_args.add_argument("-B", "--beltway-layout", action="store_true",
                                  help="""a beltway in form of highway
                                  nodes along the edges of the warehouse""")
-        layout_args.add_argument("-X", "--cluster-x", type=int,
+        layout_args.add_argument("-X", "--cluster-x", type=int, default=2,
                                  help="the size of one rectangular shelf cluster in x-direction")
-        layout_args.add_argument("-Y", "--cluster-y", type=int,
+        layout_args.add_argument("-Y", "--cluster-y", type=int, default=2,
                                  help="the size of one rectangular shelf cluster in y-direction")
         project_args = parser.add_argument_group('projection and template options')
         project_args.add_argument("-T", "--template", nargs='*', type=str, default=[],
@@ -406,12 +406,11 @@ class Runner(object):
 
         signal.signal(signal.SIGINT, sig_handler)
         signal.signal(signal.SIGALRM, sig_handler)
-        # igen = InstanceGenerator(cl_args)
-
+        igen = InstanceGenerator(self._cl_args)
         try:
-            igen = InstanceGenerator(self._cl_args)
             signal.alarm(self._cl_args.wait)
             igen.solve()
+            return igen.dest_dirs
         except Exception as exc:
             if sig_handled[0]:
                 pass
@@ -419,8 +418,6 @@ class Runner(object):
                 print type(exc).__name__ + ":\n" + str(exc)
         finally:
             igen.interrupt()
-
-        return igen.dest_dirs
 
     def split_up_instances(self):
         num_wh_inst, num_order_inst = self._cl_args.split
