@@ -211,7 +211,9 @@ class LLConfiguration(Configuration):
 
     def init_defaults(self, args = None):
         if args is None:
-            self._file_name = os.path.dirname(sys.argv[0]) + '/config/mdefault.cfg'
+            return
+        elif args.mode == 'complete':
+            self._file_name = os.path.dirname(sys.argv[0]) + '/config/mcomplete.cfg'
             self._values = {
                         ('features', 'orders') : ConfigEntry(self._read_bool_from_config, True, str, 'orders'),
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, True, str, 'products'),
