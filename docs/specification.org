@@ -10,7 +10,7 @@
   - provide a example instance and plan
 
 
-* Default Problem Domain
+* Default Problem Domain (DEF)
   :PROPERTIES:
   :ID:       4b70ec8c-54b2-454c-a1ce-a476550c2124
   :CUSTOM_ID: cid:b0f981f8-3202-42c0-a46e-aa6f1a52629b
@@ -205,12 +205,17 @@
   :CUSTOM_ID: cid:bbacc203-29c4-489f-8661-95cf4b599fdd
   :END:
 
-  Based on the [[#cid:b0f981f8-3202-42c0-a46e-aa6f1a52629b][default problem domain]], we can envision various additional modifications. For each
-  modification, we will subsequently describe it and enumerate the additional and changed instance
-  characteristics in comparison to the default problem. Besides, we will also point out if a
-  modification changes the overall goal of the problem.
+  Based on the [[#cid:b0f981f8-3202-42c0-a46e-aa6f1a52629b][default problem domain]], we can envision various additional modifications. For each,
+  we will subsequently describe it and enumerate the additional and changed instance characteristics
+  in comparison to the default problem. Besides, we will also point out if a modification changes
+  the overall goal of the problem.
 
-** Disregard of Product Quantities (DPQ)
+  In the heading of a paragraph that describes a modification, its acronym is given in parentheses.
+  Further, if the modification represents a simplification of the default domain, it is additionally
+  labelled as such within the parentheses too.
+
+
+** Disregard of Product Quantities (DPQ/Simplification)
    :PROPERTIES:
    :CUSTOM_ID: cid:49448523-5e9b-4ed2-ac1a-6754d838b85c
    :END:
@@ -227,6 +232,30 @@
 **** Ratio Between the Number of Ordered and Overall Products
 
      Not applicable here.
+
+
+** Instant Concurrent Deliveries (ICD/Simplification)
+   :PROPERTIES:
+   :CUSTOM_ID: cid:f8d8f6b9-771a-4b1d-a20d-1ce03f96086b
+   :END:
+
+   This is a simplification of the default domain in the sense that for a robot at a picking
+   station, all deliveries can be processed in parallel and within a single time step.
+
+** Movements Only (MOO/Simplification)
+   :PROPERTIES:
+   :CUSTOM_ID: cid:8dcd778b-8504-449d-9811-39ec61c50cbb
+   :END:
+
+   This is a simplification of the default domain in the sense the only action that robots can
+   perform is move, i.e., there are no pickup, putdown or delivery actions in plans.  With that, we
+   need to define when a robot /implicitly/ picks up or puts down a shelf as well as delivers items at
+   a picking station: specifically, a robot
+   - picks up a shelf as soon as he is beneath one and not carrying it already;
+   - when at a picking station and carrying a shelf, all possible (with respect to unfilled order
+     lines and available quantities on the shelf) deliveries are concurrently executed in a single
+     time step
+   - when carrying a shelf, can only put it down at the same node where it was originally picked-up.
 
 
 ** Product Capacity for Robots and Shelves Based on Quantity (CAQ)
@@ -410,25 +439,40 @@
 
 * Supported Combinations of Modifications
 
-  In table below, we illustrate combinations of two problem modifications that we (plan to)
-  support by our tools.
+  In the table below, we list all (planned to be) supported combinations of modifications.  Further,
+  our supported combinations are chosen such that they represent a well-ordered set
 
-  #+CAPTION: Supported pairwise combinations of problem modifications.
-  |     | DPQ        | CAQ        | CAW        | CAV        | EMA        | REP        | OEX        | OPS        | OOP        |
-  |-----+------------+------------+------------+------------+------------+------------+------------+------------+------------|
-  | /   | <          |            |            |            |            |            |            |            | >          |
-  | DPQ |            |            |            |            | \checkmark |            | \checkmark | \checkmark | \checkmark |
-  | CAQ |            |            |            |            | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |
-  | CAW |            |            |            | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |
-  | CAV |            |            | \checkmark |            | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |
-  | EMA | \checkmark | \checkmark | \checkmark | \checkmark |            | \checkmark | \checkmark | \checkmark | \checkmark |
-  | REP |            | \checkmark | \checkmark | \checkmark | \checkmark |            | \checkmark | \checkmark | \checkmark |
-  | OEX | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |            | \checkmark | \checkmark |
-  | OPS | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |            | \checkmark |
-  | OOP | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |            |
+  #+CAPTION: Supported combinations of problem modifications
+  | "Distance" to DEF | Combinations          |
+  |-------------------+-----------------------|
+  |                 / | <>                    |
+  |                 0 | DEF                   |
+  |                -1 | DEF + DPQ             |
+  |                -2 | DEF + DPQ + ICD       |
+  |          - \infty | DEF + DPQ + ICD + MOO |
 
-  A combination of more than two modifications is supported if there is a supported pairwise
-  combination for all modifications in question.
+
+** Principally Possible Combinations
+
+   In table below, we illustrate pair-wise combinations of problem modifications that we consider
+   possible in principle but not necessarily (planned to be) supported by our tools.
+
+   #+CAPTION: Principally possible pairwise combinations of problem modifications.
+   |     | DPQ        | CAQ        | CAW        | CAV        | EMA        | REP        | OEX        | OPS        | OOP        |
+   |-----+------------+------------+------------+------------+------------+------------+------------+------------+------------|
+   | /   | <          |            |            |            |            |            |            |            | >          |
+   | DPQ |            |            |            |            | \checkmark |            | \checkmark | \checkmark | \checkmark |
+   | CAQ |            |            |            |            | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |
+   | CAW |            |            |            | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |
+   | CAV |            |            | \checkmark |            | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |
+   | EMA | \checkmark | \checkmark | \checkmark | \checkmark |            | \checkmark | \checkmark | \checkmark | \checkmark |
+   | REP |            | \checkmark | \checkmark | \checkmark | \checkmark |            | \checkmark | \checkmark | \checkmark |
+   | OEX | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |            | \checkmark | \checkmark |
+   | OPS | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |            | \checkmark |
+   | OOP | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark | \checkmark |            |
+
+   A combination of more than two modifications is possible if there is a possible pairwise
+   combination for all modifications in question.
 
 
 * Classification of Instances
@@ -443,11 +487,11 @@
 
   #+BEGIN_SRC dot :file img/dot_classification.png :cmdline -Kdot -Tpng
     digraph {
-	    subgraph clusterA {label="1. Problem Scope\n(e.g. Default Domain + DPQ)"
-		    subgraph clusterB {label="2. Warehouse Characteristics\n(e.g. 10x10 grid, 20 shelves, 2 picking stations, 5 robots, default interiors layout)"
-			    node [shape=box] "3. Order Set Characteristics\n(e.g. 10 orders, 2 order lines in avg, 40% of available products ordered)";
-		    }
-	    }
+            subgraph clusterA {label="1. Problem Scope\n(e.g. Default Domain + DPQ)"
+                    subgraph clusterB {label="2. Warehouse Characteristics\n(e.g. 10x10 grid, 20 shelves, 2 picking stations, 5 robots, default interiors layout)"
+                            node [shape=box] "3. Order Set Characteristics\n(e.g. 10 orders, 2 order lines in avg, 40% of available products ordered)";
+                    }
+            }
     }
   #+END_SRC
 
@@ -505,7 +549,7 @@
       ~<object-id>~, e.g. ~object(robot, 34)~ for a robot with ID 34
     - function ~value~ specifies that the object's attribute ~<attribute>~ has value ~<value>~ e.g.
       #+BEGIN_SRC prolog
-	init(object(robot, 34), value(at, (2,3))).
+        init(object(robot, 34), value(at, (2,3))).
       #+END_SRC
       states that the robot 34 is at x/y-location (2,3).
 
@@ -532,14 +576,14 @@
     - function ~value~ specifies that the subtype's attribute ~<attribute>~ has value ~<value>~,
       e.g.for a given object-type ~robot~
       #+BEGIN_SRC prolog
-	init(subtype(robot, 3), value(maxEnergy, 250)).
+        init(subtype(robot, 3), value(maxEnergy, 250)).
       #+END_SRC
       states that robots of object-subtype 3 have a battery with maximum energy capacity of 250.
 
     To declare that an object-type belongs to a object-subtype the attribute ~subtype~ is
     used, e.g.
     #+BEGIN_SRC prolog
-	init(object(robot, 34), value(subtype, 3)).
+        init(object(robot, 34), value(subtype, 3)).
     #+END_SRC
     states that robot 34 is of object-subtype 3 and hence "inherits" the maximum energy capacity of
     250.
@@ -565,8 +609,8 @@
        occupied by robots and shelves, it suffices to state the grid's x,y-dimension via attribute
        ~xsize~ and ~ysize~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(grid,1), value(xsize, 45)).
-	 init(object(grid,1), value(ysize, 35)).
+         init(object(grid,1), value(xsize, 45)).
+         init(object(grid,1), value(ysize, 35)).
        #+END_SRC
        states that the x,y-dimensions are 45 and 35.
 
@@ -575,8 +619,8 @@
        of a warehouse grid can be occupied by robots and shelves, each of those nodes has to be
        explicitly stated via attribute ~at~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(node, 1), value(at, (1,5))).
-	 init(object(node, 2), value(at, (2,5))).
+         init(object(node, 1), value(at, (1,5))).
+         init(object(node, 2), value(at, (2,5))).
        #+END_SRC
        states that there exist grid nodes 1 and 2 at coordinates (1,5) and (2,5), resp.
      - Remark: in the problem encoding, ~node~ facts can be seen as generalization of ~grid~ in the
@@ -597,12 +641,12 @@
 
      - The grid position of a robot is indicated by attribute ~at~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(robot, 1), value(at, (2,3))).
+         init(object(robot, 1), value(at, (2,3))).
        #+END_SRC
        states that robot 1 is at location (2,3).
      - A situation where a robot initially carries a shelf is indicated by attribute ~carries, e.g.
        #+BEGIN_SRC prolog
-	 init(object(robot, 2), value(carries, 5)).
+         init(object(robot, 2), value(carries, 5)).
        #+END_SRC
        states that robot 2 is carrying shelf 5.
 
@@ -611,12 +655,12 @@
 
      - The battery level of a robot is indicated by attribute ~energy~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(robot, 1), value(energy, 23)).
+         init(object(robot, 1), value(energy, 23)).
        #+END_SRC
        states that robot 1 has battery level 23.
      - The maximum energy capacity of robot's battery is indicated by attribute ~maxEnergy~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(robot, 1), value(maxEnergy, 250)).
+         init(object(robot, 1), value(maxEnergy, 250)).
        #+END_SRC
        states that robots 1 has a battery with maximum energy capacity of 250.
 
@@ -626,7 +670,7 @@
      - The maximum number of product units a robot can carry is indicated by attribute ~maxQuantity~,
        e.g.
        #+BEGIN_SRC prolog
-	 init(object(robot, 1), value(maxQuantity, 20)).
+         init(object(robot, 1), value(maxQuantity, 20)).
        #+END_SRC
        states that robots 1 can carry up to 20 product units.
 
@@ -635,7 +679,7 @@
 
      - The maximum weight a robot can carry is indicated by attribute ~maxWeight~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(robot, 1), value(maxWeight, 500)).
+         init(object(robot, 1), value(maxWeight, 500)).
        #+END_SRC
        states that robots 1 can carry a payload weight of up to 500.
 
@@ -644,7 +688,7 @@
 
      - The maximum volume a robot can carry is indicated by attribute ~maxVolume~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(robot, 1), value(maxVolume, 267)).
+         init(object(robot, 1), value(maxVolume, 267)).
        #+END_SRC
        states that robots 1 can carry a payload volume of up to 267.
 
@@ -670,7 +714,7 @@
 
      - The grid position of a shelf is indicated by attribute ~at~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(shelf, 1), value(at, (2,3))).
+         init(object(shelf, 1), value(at, (2,3))).
        #+END_SRC
        states that shelf 1 is at location (2,3).
 
@@ -680,7 +724,7 @@
      - The quantitative capacity of a shelf is indicated by attribute
        ~maxQuantity~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(shelf, 1), value(maxQuantity, 20)).
+         init(object(shelf, 1), value(maxQuantity, 20)).
        #+END_SRC
        states that shelf 1 has a maximum quantitative capacity of 20.
 
@@ -690,7 +734,7 @@
      - The weight-based capacity of a shelf is indicated by attribute
        ~maxWeight~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(shelf, 1), value(maxWeight, 23)).
+         init(object(shelf, 1), value(maxWeight, 23)).
        #+END_SRC
        states that shelf 1 has a maximum weight capacity of 23.
 
@@ -700,7 +744,7 @@
      - The volume-based capacity of a shelf is indicated by attribute
        ~maxVolume~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(shelf, 1), value(maxVolume, 267)).
+         init(object(shelf, 1), value(maxVolume, 267)).
        #+END_SRC
        states that shelf 1 has a maximum volume capacity of 267.
 
@@ -726,7 +770,7 @@
 
      - A shelf on which a product is stored on is indicated by attribute ~on~, e.g.,
        #+BEGIN_SRC prolog
-	 init(object(product, 45), value(on, (5, 280)).
+         init(object(product, 45), value(on, (5, 280)).
        #+END_SRC
        states that 280 units of product 45 are on shelf 5.
 
@@ -736,7 +780,7 @@
      - In case product quantities are ignored, the value of ~on~ is a single integer indicating the
        shelf, e.g.
        #+BEGIN_SRC prolog
-	 init(object(product, 45), value(on, 5).
+         init(object(product, 45), value(on, 5).
        #+END_SRC
        states that product 45 is on shelf 5 in unlimited quantity.
 
@@ -745,7 +789,7 @@
 
      - The weight of a product is indicated by attribute ~weight~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(product, 1), value(weight, 4)).
+         init(object(product, 1), value(weight, 4)).
        #+END_SRC
        states that product 1 has weight 4.
 
@@ -754,7 +798,7 @@
 
      - The volume of a product is indicated by attribute ~volume~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(product, 1), value(volume, 15)).
+         init(object(product, 1), value(volume, 15)).
        #+END_SRC
        states that product 1 has a volume 15.
 
@@ -781,8 +825,8 @@
      - Lines of an order, i.e., requests of products in a certain quantity, are indicated by
        attribute ~line~, e.g.,
        #+BEGIN_SRC prolog
-	 init(object(order, 7), value(line, (467, 2))).
-	 init(object(order, 7), value(line, (77, 12))).
+         init(object(order, 7), value(line, (467, 2))).
+         init(object(order, 7), value(line, (77, 12))).
        #+END_SRC
        states that order 7 requests 2 units of product 467, and 12 units of product 77.
 
@@ -790,7 +834,7 @@
 
      - The picking station of an order is indicated by attribute ~pickingStation~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(order, 7), value(pickingStation, 4).
+         init(object(order, 7), value(pickingStation, 4).
        #+END_SRC
        states that order 7 is assigned to picking station 4.
 
@@ -798,7 +842,7 @@
 
      - The expiration timeout of an order is indicated by attribute ~expirationTimeOut~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(order, 7), value(expirationTimeOut, 20).
+         init(object(order, 7), value(expirationTimeOut, 20).
        #+END_SRC
        states that order 7 expires 20 time steps after the time step of its arrival.
 
@@ -823,7 +867,7 @@
 
     - The grid position of a picking station is indicated by attribute ~at~, e.g.
       #+BEGIN_SRC prolog
-	init(object(pickingStation, 1), value(at, (2,3))).
+        init(object(pickingStation, 1), value(at, (2,3))).
       #+END_SRC
       states that pickingStation 1 is at location (2,3).
 
@@ -836,28 +880,28 @@
 
      - The grid position of a charging station is indicated by attribute ~at~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(chargingStation, 1), value(at, (2,3))).
+         init(object(chargingStation, 1), value(at, (2,3))).
        #+END_SRC
        states that chargingStation 1 is at location (2,3).
 
      - The charge rate of a charging station is indicated by attribute ~chargeRate~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(chargingStation, 1), value(chargeRate, (5,2))).
+         init(object(chargingStation, 1), value(chargeRate, (5,2))).
        #+END_SRC
        states that chargingStation 1 charges 5 battery levels in 2 time steps.
 
 **** Example
 
       #+BEGIN_SRC prolog
-	init(object(chargingStation, 1), value(at, (2, 3))).
-	init(object(chargingStation, 1), value(subtype, 2).
-	init(object(subtype(charginStation), 2), value(chargeRate, (5, 2)).
+        init(object(chargingStation, 1), value(at, (2, 3))).
+        init(object(chargingStation, 1), value(subtype, 2).
+        init(object(subtype(charginStation), 2), value(chargeRate, (5, 2)).
      #+END_SRC
      states that
      1) charging station 1 is located at (2,3).
      2) charging station 1 is of object-subtype 2.
      3) charging stations of object-subtype 2 have a charge rate of 5 battery levels in 2 time
-	steps.
+        steps.
 
 
 *** Restocking Station (Introduced by [[#cid:d84e72a4-2202-4331-8636-b56dd264c641][Replenishment]])
@@ -868,7 +912,7 @@
 
      - The grid position of a restocking station is indicated by attribute ~at~, e.g.
        #+BEGIN_SRC prolog
-	 init(object(restockingStation, 1), value(at, (2,3))).
+         init(object(restockingStation, 1), value(at, (2,3))).
        #+END_SRC
        states that restockingStation 1 is at location (2,3).
 
@@ -888,8 +932,8 @@
     + ~move~
       * tells the robot to move in a cardinal direction to an adjacent grid node
       * takes a binary ~<action-args>~ tuple with the domain ~(-1,0), (1,0), (0,-1), (0,1)~ that
-	indicates the four possible movement directions 'West, East, South, North' in relation to
-	the robot's current location
+        indicates the four possible movement directions 'West, East, South, North' in relation to
+        the robot's current location
     + ~pickup~
       * tells the robot to pick up the shelf at its current location
       * takes an empty ~<action-args>~ tuple
@@ -898,18 +942,18 @@
       * takes an empty ~<action-args>~ tuple
     + ~deliver~
       * for the [[#cid:b0f981f8-3202-42c0-a46e-aa6f1a52629b][default domain]] (i.e. plans that consider product quantities):
-	+ tells the robot to deliver a certain amount of units of a product to (partially) fill a specific order
-	+ is only applicable if robot is at a picking station
-	+ takes as ~<action-args>~ a triple comprised by
-	  1. the object ID of the order
-	  2. the object ID by the Product
-	  3. the number of product units
+        + tells the robot to deliver a certain amount of units of a product to (partially) fill a specific order
+        + is only applicable if robot is at a picking station
+        + takes as ~<action-args>~ a triple comprised by
+          1. the object ID of the order
+          2. the object ID by the Product
+          3. the number of product units
       * in case [[#cid:49448523-5e9b-4ed2-ac1a-6754d838b85c][product quantities are ignored]]:
-	+ tells the robot to deliver a product to fill a specific order
-	+ is only applicable if robot is at a picking station
-	+ takes as ~<action-args>~ a tuple comprised by
-	  1. the object ID of the order
-	  2. the object ID by the Product
+        + tells the robot to deliver a product to fill a specific order
+        + is only applicable if robot is at a picking station
+        + takes as ~<action-args>~ a tuple comprised by
+          1. the object ID of the order
+          2. the object ID by the Product
   - ~<time step>~ is an integer constant equal to the time step when the action should be performed
 
 
