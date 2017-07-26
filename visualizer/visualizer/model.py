@@ -276,20 +276,20 @@ class Model(object):
             iterator = iter(self._sockets)
             value = iterator.next()
             value.done_step(self._current_step)
-            self.notify_sockets(iterator, value)
+            self.notify_sockets(iterator, value, self._current_step)
 
         self._current_step += 1
         self.update_windows()
         return self._current_step
 
-    def notify_sockets(self, iterator, value):
+    def notify_sockets(self, iterator, value, step):
         if value.is_waiting():
             if self._notifier is not None:
                 self._notifier.stop()
 
             self._notifier = QTimer()
             self._notifier.setSingleShot(True)
-            self._notifier.timeout.connect(lambda: self.notify_sockets(iterator, value))
+            self._notifier.timeout.connect(lambda: self.notify_sockets(iterator, value, step))
             self._notifier.start(100)
             return
         else:
@@ -297,8 +297,8 @@ class Model(object):
                 value = iterator.next()
             except StopIteration:
                 return
-            value.done_step(self._current_step)
-            self.notify_sockets(iterator, value)
+            value.done_step(step)
+            self.notify_sockets(iterator, value, step)
 
     def undo(self):
         if self._current_step == 0:
