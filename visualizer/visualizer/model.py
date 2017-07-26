@@ -24,6 +24,8 @@ class Model(object):
         self._current_step = 0
         self._displayed_steps = -1
 
+        self._notifier = None
+
     def clear(self):
         for window in self._windows:
             if isinstance(window, ModelView):
@@ -86,9 +88,9 @@ class Model(object):
             self._add_item2(item)
         for socket in self._sockets:
             for item in add_items:
-                socket.send(item.to_init_str())
+                socket.model_expanded(item.to_init_str())
             if len(add_items) > 0:
-                socket.send('\n')
+                socket.model_expanded('\n')
 
     def discard_new_items(self, item_kinds = None):
         if item_kinds == None:
@@ -262,16 +264,41 @@ class Model(object):
     def update(self):
         if self._current_step > self._num_steps or self._num_steps == 0:
             return self._current_step
+        for socket in self._sockets:
+            if socket.is_waiting():
+                return self._current_step
         for items_dic in self._graphic_items.itervalues():
             for item in items_dic.itervalues():
                 item.do_action(self._current_step)
-        if self._displayed_steps < self._current_step:
+
+        if self._displayed_steps < self._current_step and len(self._sockets) > 0:
             self._displayed_steps = self._current_step
-            for socket in self._sockets:
-                socket.send('%$done(' + str(self._current_step) + ').\n')
+            iterator = iter(self._sockets)
+            value = iterator.next()
+            value.done_step(self._current_step)
+            self.notify_sockets(iterator, value)
+
         self._current_step += 1
         self.update_windows()
         return self._current_step
+
+    def notify_sockets(self, iterator, value):
+        if value.is_waiting():
+            if self._notifier is not None:
+                self._notifier.stop()
+
+            self._notifier = QTimer()
+            self._notifier.setSingleShot(True)
+            self._notifier.timeout.connect(lambda: self.notify_sockets(iterator, value))
+            self._notifier.start(100)
+            return
+        else:
+            try:
+                value = iterator.next()
+            except StopIteration:
+                return
+            value.done_step(self._current_step)
+            self.notify_sockets(iterator, value)
 
     def undo(self):
         if self._current_step == 0:

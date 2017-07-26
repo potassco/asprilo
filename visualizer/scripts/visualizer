@@ -54,11 +54,13 @@ class VisualizerWindow(QMainWindow):
     
         self._asp_parser = AspParser()
         self._model = self._asp_parser.get_model()
-        self._solver_socket = SolverSocket()
-        self._simulator_socket = SimulatorSocket()
-        self._asp_parser.set_solver(self._solver_socket)
 
+        self._simulator_socket = SimulatorSocket()
+        self._model.add_socket(self._simulator_socket)
         self._simulator_socket.set_parser(self._asp_parser)
+
+        self._solver_socket = SolverSocket()
+        self._asp_parser.set_solver(self._solver_socket)
         self._solver_socket.set_parser(self._asp_parser)
         self._solver_socket.set_model(self._model)
 

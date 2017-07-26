@@ -98,7 +98,7 @@ class AspParser(object):
 
                 value_name = str(value.arguments[0])
                 value_value = value.arguments[1]
-                item = self._model.get_item(kind, ID, True, True)
+                item = self._model.get_item(kind, ID, True, self._model.get_editable())
                 if item is not None:
                     result = item.parse_init_value(value_name,
                                                     value_value)
@@ -131,6 +131,7 @@ class AspParser(object):
             print ('invalid init: init(' + str(obj) + ', ' + str(value) + ')')
 
     def done_instance(self):
+        self._model.accept_new_items()
         self._model.update_windows()
         if (self._solver is not None
             and configuration.config.get('visualizer', 'auto_solve')):

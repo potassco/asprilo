@@ -2,7 +2,7 @@
 from network import *
 import clingo
 
-VERSION = '0.1.0'
+VERSION = '0.1.2'
 
 class Simulator(Network):
     def __init__(self):
@@ -27,15 +27,21 @@ class Simulator(Network):
         self._control.solve(on_model = self.on_model)
 
     def on_connect(self):
+        self.send('%$RESET.')
         self.send_step(0)
 
     def on_model(self, model):
         for atom in model.symbols(atoms=True):
-            print atom
             if (atom.name == 'init' 
-                and len(atom.arguments) == 3 
-                and atom.arguments[0].name == 'object' 
+                and len(atom.arguments) == 3
+                and atom.arguments[0].name == 'object'
                 and atom.arguments[1].name == 'value'):
+                step = 0
+                try:
+                    step = int(atom.arguments[2].number)
+                except Exception as error:
+                    print error
+                    continue
                 if step not in self._to_send:
                     self._to_send[step] = []
                 self._to_send[step].append('init(' + str(atom.arguments[0]) + ',' 
