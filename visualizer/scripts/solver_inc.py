@@ -26,6 +26,7 @@ class Incremental_Solver(Solver):
             while(True):
                 if self.is_ready_to_read():
                     solve_future.cancel()
+                    print 'solving interrupted'
                     return -1
                 finished = solve_future.wait(5.0)
                 if finished:

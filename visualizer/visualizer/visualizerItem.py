@@ -65,6 +65,8 @@ class Order(VisualizerItem):
         for temp_request in self._requests: 
             if str(temp_request.product_id) == str(product_id):
                 self._requests.remove(temp_request)
+                if len(self._requests) == 0:
+                    self._model.remove_item(self)
                 return
 
     def add_request(self, product_id, requested_amount):

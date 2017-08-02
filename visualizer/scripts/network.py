@@ -46,7 +46,7 @@ class Network(object):
         if self._connection is None:
             return -1
         try:
-            if self.is_ready_to_read(4.0):
+            if self.is_ready_to_read(time_out):
                 while True:
                     new_data = self._connection.recv(2048)
                     if not new_data or new_data == '':
@@ -60,7 +60,7 @@ class Network(object):
                 return 0
 
         except socket.error as error:
-            self._close()
+            self.close()
             print error
             return -1
 
@@ -87,11 +87,19 @@ class Network(object):
 
     def close(self):
         if self._connection is not None:
+            try:
+                self._connection.shutdown(socket.SHUT_RDWR)
+            except socket.error:
+                pass
             self._connection.close()
             self._connection = None
             print 'close ' + self._name
 
         if self._socket is not None:
+            try:
+                self._socket.shutdown(socket.SHUT_RDWR)
+            except socket.error:
+                pass
             self._socket.close()
             self._socket = None
 

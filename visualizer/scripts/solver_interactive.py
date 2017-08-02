@@ -22,7 +22,7 @@ class Interactive_Solver(Incremental_Solver):
 
         for atom in self._inits:
             self._control.add('base', [], atom + '.')
-        for ii in xrange(0, self._sended):
+        for ii in xrange(0, self._sended + 1):
             if ii in self._to_send:
                 for atom in self._to_send[ii]:
                     self._control.add('base', [], str(atom) + '.')
