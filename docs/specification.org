@@ -12,8 +12,7 @@
 
 * Default Problem Domain (DEF)
   :PROPERTIES:
-  :ID:       4b70ec8c-54b2-454c-a1ce-a476550c2124
-  :CUSTOM_ID: cid:b0f981f8-3202-42c0-a46e-aa6f1a52629b
+  :CUSTOM_ID: cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b
   :END:
 
   ASPRILO's benchmark scenario is inspired by intra-logistics and warehouse automation systems based
@@ -31,7 +30,7 @@
 
 ** Warehouse Floor Layout
    :PROPERTIES:
-   :CUSTOM_ID: cid:7e4e0e03-fa41-4809-8f83-b8e6a19986d7
+   :CUSTOM_ID: cid-7e4e0e03-fa41-4809-8f83-b8e6a19986d7
    :END:
 
    The warehouse floor is typically laid out as a /grid/, i.e.,
@@ -92,16 +91,16 @@
 
   Here, we present the characteristics (without any claim of completeness) that we consider relevant
   to distinguish problem instances. This is a preliminary step for our subsequent problem
-  classification which is, in turn, implemented by our [[file:manual.org::#cid:c66ba478-f621-4b18-acb1-3ea2e4bf7110][instance generator]]. Instance characteristics
+  classification which is, in turn, implemented by our [[file:manual.org::#cid-c66ba478-f621-4b18-acb1-3ea2e4bf7110][instance generator]]. Instance characteristics
   can be further divided up into aspects related to the instance's warehouse and set of orders,
   respectively. Moreover, instance characteristics depend on the scope of the problem domain, and
   the order set properties also depend on the warehouse characteristics.  In the following, we list
   our instance characteristics for the default problem, and later expand on those in connection with
-  [[id:92b7c4e1-1ce2-429d-9764-2e828551a683][problem domain modifications]].
+  [[#cid-bbacc203-29c4-489f-8661-95cf4b599fdd][problem domain modifications]].
 
 ** Warehouse Characteristics
    :PROPERTIES:
-   :ID:       1ff2ac2f-a6f1-4ddd-b0f0-5e3d2af2d4d0
+   :CUSTOM_ID: cid-1ff2ac2f-a6f1-4ddd-b0f0-5e3d2af2d4d0
    :END:
 
    Besides the problem scope, the key aspects of the warehouse boil down to its floor plan
@@ -109,7 +108,7 @@
 
 *** Floor Topology Type
     :PROPERTIES:
-    :CUSTOM_ID: cid:b3c44568-d34b-4c4d-bac0-a1483b4a99e8
+    :CUSTOM_ID: cid-b3c44568-d34b-4c4d-bac0-a1483b4a99e8
     :END:
 
     For the floor topology, we distinguish between two basic graph types:
@@ -119,7 +118,7 @@
 
 *** Floor Topology Layout
 
-    In case the [[#cid:b3c44568-d34b-4c4d-bac0-a1483b4a99e8][floor topology type]] is a grid, the topology layout is a rectangular grid graph by
+    In case the [[#cid-b3c44568-d34b-4c4d-bac0-a1483b4a99e8][floor topology type]] is a grid, the topology layout is a rectangular grid graph by
     default. Further, we can consider more complex grid shapes, e.g. several rectangles connected by
     smaller corridors, a cross-shaped grid, a T-shaped grid, etc.
 
@@ -128,7 +127,7 @@
 
 *** Interiors Layout: Placement of Highway Nodes, Shelves and Picking Stations
     :PROPERTIES:
-    :ID:       d70674e1-8273-4abb-8ebf-b05f261c621a
+    :CUSTOM_ID: cid-d70674e1-8273-4abb-8ebf-b05f261c621a
     :END:
 
     Here, we distinguish whether highway nodes, shelves and picking stations are placed randomly on
@@ -167,7 +166,7 @@
 
 *** Dimensions of Shelf Clusters
 
-    In conjunction with the [[id:d70674e1-8273-4abb-8ebf-b05f261c621a][interiors layout]], we consider the dimension of rectangular shelf cluster
+    In conjunction with the [[#cid-d70674e1-8273-4abb-8ebf-b05f261c621a][interiors layout]], we consider the dimension of rectangular shelf cluster
     in x- and y-directions.
 
 
@@ -180,7 +179,7 @@
 
 ** Order Set Characteristics
    :PROPERTIES:
-   :ID:       119945ff-c477-4214-98fd-a3078f9bf457
+   :CUSTOM_ID: cid-119945ff-c477-4214-98fd-a3078f9bf457
    :END:
 
    For order sets, we identified the following key aspects.
@@ -201,11 +200,10 @@
 
 * Problem Domain Modifications
   :PROPERTIES:
-  :ID:       92b7c4e1-1ce2-429d-9764-2e828551a683
-  :CUSTOM_ID: cid:bbacc203-29c4-489f-8661-95cf4b599fdd
+  :CUSTOM_ID: cid-bbacc203-29c4-489f-8661-95cf4b599fdd
   :END:
 
-  Based on the [[#cid:b0f981f8-3202-42c0-a46e-aa6f1a52629b][default problem domain]], we can envision various additional modifications. For each,
+  Based on the [[#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b][default problem domain]], we can envision various additional modifications. For each,
   we will subsequently describe it and enumerate the additional and changed instance characteristics
   in comparison to the default problem. Besides, we will also point out if a modification changes
   the overall goal of the problem.
@@ -217,7 +215,7 @@
 
 ** Disregard of Product Quantities (DPQ/Simplification)
    :PROPERTIES:
-   :CUSTOM_ID: cid:49448523-5e9b-4ed2-ac1a-6754d838b85c
+   :CUSTOM_ID: cid-49448523-5e9b-4ed2-ac1a-6754d838b85c
    :END:
 
    This is a simplification of the default domain in sense that we completely ignore product
@@ -236,7 +234,7 @@
 
 ** Instant Concurrent Deliveries (ICD/Simplification)
    :PROPERTIES:
-   :CUSTOM_ID: cid:f8d8f6b9-771a-4b1d-a20d-1ce03f96086b
+   :CUSTOM_ID: cid-f8d8f6b9-771a-4b1d-a20d-1ce03f96086b
    :END:
 
    This is a simplification of the default domain in the sense that for a robot at a picking
@@ -244,7 +242,7 @@
 
 ** Movements Only (MOO/Simplification)
    :PROPERTIES:
-   :CUSTOM_ID: cid:8dcd778b-8504-449d-9811-39ec61c50cbb
+   :CUSTOM_ID: cid-8dcd778b-8504-449d-9811-39ec61c50cbb
    :END:
 
    This is a simplification of the default domain in the sense the only action that robots can
@@ -260,7 +258,7 @@
 
 ** Product Capacity for Robots and Shelves Based on Quantity (CAQ)
    :PROPERTIES:
-   :CUSTOM_ID: cid:9828decd-6d59-4ccc-94c2-847b3a6b7a08
+   :CUSTOM_ID: cid-9828decd-6d59-4ccc-94c2-847b3a6b7a08
    :END:
 
    Robots and Shelves have a maximum quantity of products they can carry.
@@ -279,7 +277,7 @@
 
 ** Product Capacity for Robots and Shelves Based on Weight (CAW)
    :PROPERTIES:
-   :CUSTOM_ID: cid:87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe
+   :CUSTOM_ID: cid-87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe
    :END:
 
    Products have specifics weights, and robots and shelves have a maximum weight capacity they can carry.
@@ -300,7 +298,7 @@
 
 ** Product Capacity for Robots and Shelves Based on Volume (CAV)
    :PROPERTIES:
-   :CUSTOM_ID: cid:8c423d59-0c08-422f-b94d-720a0b6908e2
+   :CUSTOM_ID: cid-8c423d59-0c08-422f-b94d-720a0b6908e2
    :END:
 
    Products have specific volumes (i.e., the amount of enclosed space), and robots and shelves have a
@@ -322,7 +320,7 @@
 
 ** Energy Management (EMA)
    :PROPERTIES:
-   :CUSTOM_ID: cid:d8cd3118-7e68-4f20-8c1e-d868d32a96a3
+   :CUSTOM_ID: cid-d8cd3118-7e68-4f20-8c1e-d868d32a96a3
    :END:
 
    Robots have electrical batteries and a consume energy for each action. Before a robot runs out of
@@ -374,7 +372,7 @@
 
 ** Replenishment (REP)
    :PROPERTIES:
-   :CUSTOM_ID: cid:d84e72a4-2202-4331-8636-b56dd264c641
+   :CUSTOM_ID: cid-d84e72a4-2202-4331-8636-b56dd264c641
    :END:
 
    The warehouse, i.e., its shelf are periodically replenished by suppliers. To that end the
@@ -395,7 +393,7 @@
 
 ** Orders Expire After Timeout (OEX)
    :PROPERTIES:
-   :CUSTOM_ID: cid:88ef4c01-95a6-45f6-9d2c-b3b3c493964e
+   :CUSTOM_ID: cid-88ef4c01-95a6-45f6-9d2c-b3b3c493964e
    :END:
 
    Each order expires after a specific timeout, i.e., number of time steps. The countdown starts
@@ -410,7 +408,7 @@
 
 ** Orders Assigned To Picking Stations (OPS)
    :PROPERTIES:
-   :CUSTOM_ID: cid:58b1d9d1-786b-4f92-b233-ddeb1e29dbb9
+   :CUSTOM_ID: cid-58b1d9d1-786b-4f92-b233-ddeb1e29dbb9
    :END:
 
    Each order is assigned to a specific picking stations to which its order lines have to be
@@ -419,11 +417,11 @@
 
 ** Online Processing of Orders, Orders Expire After Timeout (OOP)
    :PROPERTIES:
-   :CUSTOM_ID: cid:1610eaee-45fb-476f-8184-403d386311b9
+   :CUSTOM_ID: cid-1610eaee-45fb-476f-8184-403d386311b9
    :END:
 
    The set of orders is streamed in over time where each time step corresponds to an amount of
-   seconds. Further, we assume that [[#cid:88ef4c01-95a6-45f6-9d2c-b3b3c493964e][orders expire as described before]] and hence the planning system
+   seconds. Further, we assume that [[#cid-88ef4c01-95a6-45f6-9d2c-b3b3c493964e][orders expire as described before]] and hence the planning system
    has to process them online.
 
 *** Additional Order Set Characteristics
@@ -480,9 +478,9 @@
   Having a clear notion of the problem's domain and key characteristics, we are now ready to
   systematically categorize its instances. In particular, we hierarchically classify sub-problems
   and their instances based on their
-  1. problem scope ([[#cid:b0f981f8-3202-42c0-a46e-aa6f1a52629b][default domain]] and [[#cid:bbacc203-29c4-489f-8661-95cf4b599fdd][potential modifications]])
-  2. [[id:1ff2ac2f-a6f1-4ddd-b0f0-5e3d2af2d4d0][warehouse characteristics]] (in context of the problem scope)
-  3. [[id:119945ff-c477-4214-98fd-a3078f9bf457][order set characteristics]] (in context of the problem scope and warehouse characteristics)
+  1. problem scope ([[#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b][default domain]] and [[#cid-bbacc203-29c4-489f-8661-95cf4b599fdd][potential modifications]])
+  2. [[#cid-1ff2ac2f-a6f1-4ddd-b0f0-5e3d2af2d4d0][warehouse characteristics]] (in context of the problem scope)
+  3. [[#cid-119945ff-c477-4214-98fd-a3078f9bf457][order set characteristics]] (in context of the problem scope and warehouse characteristics)
   in descending order, also illustrated in Fig. [[fig:classification]].
 
   #+BEGIN_SRC dot :file img/dot_classification.png :cmdline -Kdot -Tpng
@@ -496,7 +494,7 @@
   #+END_SRC
 
   #+CAPTION: Hierarchical classification of instances.
-  #+LABEL: fig:classification
+  #+NAME: fig:classification
   #+RESULTS:
   [[file:img/dot_classification.png]]
 
@@ -506,17 +504,17 @@
 
 ** General Concepts: Object-Types and Attributes
    :PROPERTIES:
-   :CUSTOM_ID: cid:f23fad45-7955-4f07-87ff-5370456e374b
+   :CUSTOM_ID: cid-f23fad45-7955-4f07-87ff-5370456e374b
    :END:
 
    At first, we need to agree on a general encoding schema for instances. In particular, we
    introduce
-   - [[#cid:c06c73df-12c0-4fd6-977a-8f1ad64309be][object types]] which are all predetermined by the domain; as well as
-   - concrete [[#cid:045df828-ed63-4a81-aa62-eba5c612e9f1][object]] and [[#cid:5c23775c-79b1-4b09-a7a8-fdd84a3afcb9][object-subtype]] definitions which are both specified by instances.
+   - [[#cid-c06c73df-12c0-4fd6-977a-8f1ad64309be][object types]] which are all predetermined by the domain; as well as
+   - concrete [[#cid-045df828-ed63-4a81-aa62-eba5c612e9f1][object]] and [[#cid-035d4a73-f8d3-482b-b091-6dddef6d65ae][object-subtype]] definitions which are both specified by instances.
 
 *** Object-Types
     :PROPERTIES:
-    :CUSTOM_ID: cid:c06c73df-12c0-4fd6-977a-8f1ad64309be
+    :CUSTOM_ID: cid-c06c73df-12c0-4fd6-977a-8f1ad64309be
     :END:
 
     For the technical specification of problem instances, we first need to identify the
@@ -532,12 +530,12 @@
     - ~order~ with attributes ~line~ and ~pickingStation~
     - ~pickingStation~ with attribute ~at~
 
-    The complete list of [[#cid:c279ce9c-c2ab-4e3f-9ec3-df2dd3a38188][expected object types and their attributes]] is given below.
+    The complete list of [[#cid-c279ce9c-c2ab-4e3f-9ec3-df2dd3a38188][expected object types and their attributes]] is given below.
 
 
 *** Object Definitions
     :PROPERTIES:
-    :CUSTOM_ID: cid:045df828-ed63-4a81-aa62-eba5c612e9f1
+    :CUSTOM_ID: cid-045df828-ed63-4a81-aa62-eba5c612e9f1
     :END:
 
     All instance data (except object-subtypes) is represented as ~init/2~ facts of the format
@@ -556,8 +554,7 @@
 
 *** Object-Subtype Definitions
     :PROPERTIES:
-    :ID:       035d4a73-f8d3-482b-b091-6dddef6d65ae
-    :CUSTOM_ID: cid:5c23775c-79b1-4b09-a7a8-fdd84a3afcb9
+    :CUSTOM_ID: cid-035d4a73-f8d3-482b-b091-6dddef6d65ae
     :END:
 
     #+BEGIN_SRC prolog
@@ -596,12 +593,12 @@
 
 ** Expected Object Types and Attributes
    :PROPERTIES:
-   :CUSTOM_ID: cid:c279ce9c-c2ab-4e3f-9ec3-df2dd3a38188
+   :CUSTOM_ID: cid-c279ce9c-c2ab-4e3f-9ec3-df2dd3a38188
    :END:
 
 *** Warehouse Floor (Grid Topology)
 
-    In case the [[#cid:b3c44568-d34b-4c4d-bac0-a1483b4a99e8][floor topology type]] is a grid, the [[file:specification.org::#cid:7e4e0e03-fa41-4809-8f83-b8e6a19986d7][warehouse floor]] uses exclusively *either*
+    In case the [[#cid-b3c44568-d34b-4c4d-bac0-a1483b4a99e8][floor topology type]] is a grid, the [[file:specification.org::#cid-7e4e0e03-fa41-4809-8f83-b8e6a19986d7][warehouse floor]] uses exclusively *either*
     object-type ~grid~ or objec-type ~node~ for its specification.
 
 **** Specified by Dimensions (~grid~)
@@ -637,7 +634,7 @@
     [[*Robots][Robots]] use object-type ~robot~ for their specification. Their attributes are defined depending
     on the problem domain scope as follows:
 
-**** Attributes Related to [[id:4b70ec8c-54b2-454c-a1ce-a476550c2124][Default Domain]]
+**** Attributes Related to [[#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b][Default Domain]]
 
      - The grid position of a robot is indicated by attribute ~at~, e.g.
        #+BEGIN_SRC prolog
@@ -651,7 +648,7 @@
        states that robot 2 is carrying shelf 5.
 
 
-**** Attributes Related to [[#cid:d8cd3118-7e68-4f20-8c1e-d868d32a96a3][Energy-Management]]
+**** Attributes Related to [[#cid-d8cd3118-7e68-4f20-8c1e-d868d32a96a3][Energy-Management]]
 
      - The battery level of a robot is indicated by attribute ~energy~, e.g.
        #+BEGIN_SRC prolog
@@ -665,7 +662,7 @@
        states that robots 1 has a battery with maximum energy capacity of 250.
 
 
-**** Attributes Related to [[#cid:9828decd-6d59-4ccc-94c2-847b3a6b7a08][Quantity-Based Product Capacities]]
+**** Attributes Related to [[#cid-9828decd-6d59-4ccc-94c2-847b3a6b7a08][Quantity-Based Product Capacities]]
 
      - The maximum number of product units a robot can carry is indicated by attribute ~maxQuantity~,
        e.g.
@@ -675,7 +672,7 @@
        states that robots 1 can carry up to 20 product units.
 
 
-**** Attributes Related to [[#cid:87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe][Weight-Based Product Capacities]]
+**** Attributes Related to [[#cid-87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe][Weight-Based Product Capacities]]
 
      - The maximum weight a robot can carry is indicated by attribute ~maxWeight~, e.g.
        #+BEGIN_SRC prolog
@@ -684,7 +681,7 @@
        states that robots 1 can carry a payload weight of up to 500.
 
 
-**** Attributes Related to [[#cid:8c423d59-0c08-422f-b94d-720a0b6908e2][Volume-Based Product Capacities]]
+**** Attributes Related to [[#cid-8c423d59-0c08-422f-b94d-720a0b6908e2][Volume-Based Product Capacities]]
 
      - The maximum volume a robot can carry is indicated by attribute ~maxVolume~, e.g.
        #+BEGIN_SRC prolog
@@ -702,7 +699,7 @@
      #+END_SRC
      states that
      1) robots 1 has a battery with maximum energy capacity of 250
-     2) robot 1 is of object-subtype 3 (as explained in [[id:035d4a73-f8d3-482b-b091-6dddef6d65ae][Object-Subtypes]])
+     2) robot 1 is of object-subtype 3 (as explained in [[#cid-035d4a73-f8d3-482b-b091-6dddef6d65ae][Object-Subtypes]])
      3) robots of object-subtype 3 can carry a payload of up to 500 weight
 
 
@@ -710,7 +707,7 @@
 
     [[*Shelves][Shelves]] use object-type ~shelf~ for their specification.
 
-**** Attributes Related to [[id:4b70ec8c-54b2-454c-a1ce-a476550c2124][Default Domain]]
+**** Attributes Related to [[#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b][Default Domain]]
 
      - The grid position of a shelf is indicated by attribute ~at~, e.g.
        #+BEGIN_SRC prolog
@@ -719,7 +716,7 @@
        states that shelf 1 is at location (2,3).
 
 
-**** Attributes Related to [[#cid:9828decd-6d59-4ccc-94c2-847b3a6b7a08][Quantity-Based Product Capacities]]
+**** Attributes Related to [[#cid-9828decd-6d59-4ccc-94c2-847b3a6b7a08][Quantity-Based Product Capacities]]
 
      - The quantitative capacity of a shelf is indicated by attribute
        ~maxQuantity~, e.g.
@@ -729,7 +726,7 @@
        states that shelf 1 has a maximum quantitative capacity of 20.
 
 
-**** Attributes Related to [[#cid:87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe][Weight-Based Product Capacities]]
+**** Attributes Related to [[#cid-87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe][Weight-Based Product Capacities]]
 
      - The weight-based capacity of a shelf is indicated by attribute
        ~maxWeight~, e.g.
@@ -739,7 +736,7 @@
        states that shelf 1 has a maximum weight capacity of 23.
 
 
-**** Attributes Related to [[#cid:8c423d59-0c08-422f-b94d-720a0b6908e2][Volume-Based Product Capacities]]
+**** Attributes Related to [[#cid-8c423d59-0c08-422f-b94d-720a0b6908e2][Volume-Based Product Capacities]]
 
      - The volume-based capacity of a shelf is indicated by attribute
        ~maxVolume~, e.g.
@@ -758,7 +755,7 @@
      #+END_SRC
      states that
      1) shelf 3 has a maximum volume capacity of 200.
-     2) shelf 3 is of object-subtype 1 (as explained in Sec. [[id:035d4a73-f8d3-482b-b091-6dddef6d65ae][Object-Subtypes]])
+     2) shelf 3 is of object-subtype 1 (as explained in Sec. [[#cid-035d4a73-f8d3-482b-b091-6dddef6d65ae][Object-Subtypes]])
      3) shelves of object-subtype 1 have a maximum weight capacity of 23.
 
 
@@ -766,7 +763,7 @@
 
     [[*Products][Products]] use object-type ~product~ for their specification.
 
-**** Attributes Related to [[id:4b70ec8c-54b2-454c-a1ce-a476550c2124][Default Domain]]
+**** Attributes Related to [[#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b][Default Domain]]
 
      - A shelf on which a product is stored on is indicated by attribute ~on~, e.g.,
        #+BEGIN_SRC prolog
@@ -775,7 +772,7 @@
        states that 280 units of product 45 are on shelf 5.
 
 
-**** Attributes Related to [[#cid:49448523-5e9b-4ed2-ac1a-6754d838b85c][Disregard of Product Quantities]]
+**** Attributes Related to [[#cid-49448523-5e9b-4ed2-ac1a-6754d838b85c][Disregard of Product Quantities]]
 
      - In case product quantities are ignored, the value of ~on~ is a single integer indicating the
        shelf, e.g.
@@ -785,7 +782,7 @@
        states that product 45 is on shelf 5 in unlimited quantity.
 
 
-**** Attributes Related to [[#cid:87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe][Weight-Based Product Capacities]]
+**** Attributes Related to [[#cid-87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe][Weight-Based Product Capacities]]
 
      - The weight of a product is indicated by attribute ~weight~, e.g.
        #+BEGIN_SRC prolog
@@ -794,7 +791,7 @@
        states that product 1 has weight 4.
 
 
-**** Attributes Related to [[#cid:8c423d59-0c08-422f-b94d-720a0b6908e2][Volume-Based Product Capacities]]
+**** Attributes Related to [[#cid-8c423d59-0c08-422f-b94d-720a0b6908e2][Volume-Based Product Capacities]]
 
      - The volume of a product is indicated by attribute ~volume~, e.g.
        #+BEGIN_SRC prolog
@@ -812,7 +809,7 @@
      #+END_SRC
      states that
      1) product 1 has volume 5
-     2) products 1 is of object-subtype 3 (as explained in Sec. [[id:035d4a73-f8d3-482b-b091-6dddef6d65ae][Object-Subtypes]])
+     2) products 1 is of object-subtype 3 (as explained in Sec. [[#cid-035d4a73-f8d3-482b-b091-6dddef6d65ae][Object-Subtypes]])
      3) products of object-subtype 3 have a weight of 10.
 
 
@@ -820,7 +817,7 @@
 
      [[*Orders][Orders]] use object-type ~order~ for their specification.
 
-**** Attributes Related to [[id:4b70ec8c-54b2-454c-a1ce-a476550c2124][Default Domain]]
+**** Attributes Related to [[#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b][Default Domain]]
 
      - Lines of an order, i.e., requests of products in a certain quantity, are indicated by
        attribute ~line~, e.g.,
@@ -830,7 +827,7 @@
        #+END_SRC
        states that order 7 requests 2 units of product 467, and 12 units of product 77.
 
-**** Attributes Related to [[#cid:58b1d9d1-786b-4f92-b233-ddeb1e29dbb9][Order Assignment to Picking Stations]]
+**** Attributes Related to [[#cid-58b1d9d1-786b-4f92-b233-ddeb1e29dbb9][Order Assignment to Picking Stations]]
 
      - The picking station of an order is indicated by attribute ~pickingStation~, e.g.
        #+BEGIN_SRC prolog
@@ -838,7 +835,7 @@
        #+END_SRC
        states that order 7 is assigned to picking station 4.
 
-**** Attributes Related to [[#cid:88ef4c01-95a6-45f6-9d2c-b3b3c493964e][Expiring Orders]]
+**** Attributes Related to [[#cid-88ef4c01-95a6-45f6-9d2c-b3b3c493964e][Expiring Orders]]
 
      - The expiration timeout of an order is indicated by attribute ~expirationTimeOut~, e.g.
        #+BEGIN_SRC prolog
@@ -863,7 +860,7 @@
 
     [[*Picking Stations][Picking stations]] use object-type ~pickingStation~ for their specification.
 
-**** Attributes Related to [[id:4b70ec8c-54b2-454c-a1ce-a476550c2124][Default Domain]]
+**** Attributes Related to [[#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b][Default Domain]]
 
     - The grid position of a picking station is indicated by attribute ~at~, e.g.
       #+BEGIN_SRC prolog
@@ -872,11 +869,11 @@
       states that pickingStation 1 is at location (2,3).
 
 
-*** Charging Stations (Introduced by [[#cid:d8cd3118-7e68-4f20-8c1e-d868d32a96a3][Energy Management]])
+*** Charging Stations (Introduced by [[#cid-d8cd3118-7e68-4f20-8c1e-d868d32a96a3][Energy Management]])
 
     Charging stations use object-type ~chargingStation~ for their specification.
 
-**** Attributes Related to [[#cid:d8cd3118-7e68-4f20-8c1e-d868d32a96a3][Energy Management]]
+**** Attributes Related to [[#cid-d8cd3118-7e68-4f20-8c1e-d868d32a96a3][Energy Management]]
 
      - The grid position of a charging station is indicated by attribute ~at~, e.g.
        #+BEGIN_SRC prolog
@@ -904,11 +901,11 @@
         steps.
 
 
-*** Restocking Station (Introduced by [[#cid:d84e72a4-2202-4331-8636-b56dd264c641][Replenishment]])
+*** Restocking Station (Introduced by [[#cid-d84e72a4-2202-4331-8636-b56dd264c641][Replenishment]])
 
     Restocking stations use object-type ~restockingStation~ for their specification.
 
-**** Attributes Related to [[#cid:d84e72a4-2202-4331-8636-b56dd264c641][Replenishment]]
+**** Attributes Related to [[#cid-d84e72a4-2202-4331-8636-b56dd264c641][Replenishment]]
 
      - The grid position of a restocking station is indicated by attribute ~at~, e.g.
        #+BEGIN_SRC prolog
@@ -941,14 +938,14 @@
       * tells the robot to put down the shelf at its current location
       * takes an empty ~<action-args>~ tuple
     + ~deliver~
-      * for the [[#cid:b0f981f8-3202-42c0-a46e-aa6f1a52629b][default domain]] (i.e. plans that consider product quantities):
+      * for the [[#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b][default domain]] (i.e. plans that consider product quantities):
         + tells the robot to deliver a certain amount of units of a product to (partially) fill a specific order
         + is only applicable if robot is at a picking station
         + takes as ~<action-args>~ a triple comprised by
           1. the object ID of the order
           2. the object ID by the Product
           3. the number of product units
-      * in case [[#cid:49448523-5e9b-4ed2-ac1a-6754d838b85c][product quantities are ignored]]:
+      * in case [[#cid-49448523-5e9b-4ed2-ac1a-6754d838b85c][product quantities are ignored]]:
         + tells the robot to deliver a product to fill a specific order
         + is only applicable if robot is at a picking station
         + takes as ~<action-args>~ a tuple comprised by
@@ -959,7 +956,7 @@
 
 * Example Instance and Plan
 
-  This is an example rooted in the [[#cid:b0f981f8-3202-42c0-a46e-aa6f1a52629b][default problem domain]]. All files related to this example can be
+  This is an example rooted in the [[#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b][default problem domain]]. All files related to this example can be
   found in =./examples/default=.
 
 ** Instance (=./examples/default/instance.asp=)
@@ -1099,7 +1096,7 @@
    Visualization of the instance below (robots are depicted as single colored squares, shelves as
    circles, picking stations as yellow and black striped squares, and highway nodes as gray fields):
    #+CAPTION: Visualization of instance =./examples/default/instance.asp=
-   #+LABEL: fig:example-inst
+   #+NAME: fig:example-inst
    [[file:img/example_inst.png]]
 
 
@@ -1133,7 +1130,7 @@
 
 * Alternative Problem Domain: GTAPF
 
-  In place of the [[#cid:b0f981f8-3202-42c0-a46e-aa6f1a52629b][default problem domain]], we can use /General Task Assignment and Path Finding
+  In place of the [[#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b][default problem domain]], we can use /General Task Assignment and Path Finding
   (GTAPF)/ [[cite:ngobsoscye17a]] as an alternative. Above all, GTAPF portrays a strong simplification
   of the default problem domain and hence offers a great starting point to address scalability
   issues.
