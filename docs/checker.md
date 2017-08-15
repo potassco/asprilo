@@ -1,3 +1,13 @@
+---
+layout: page
+title: checker
+output:
+    html_document:
+        toc: true
+        toc_depth: 3
+        toc_float: true
+---
+
 # About
 
 This is the user manual of the solution checker of [ASPRILO](index.md).
@@ -20,12 +30,12 @@ The checker&rsquo;s encoding is compartmentalized into several parts with respec
         `./checker/encodings/DOMAIN/ACTION` for each action type `ACTION`, e.g. for the default
         domain&rsquo;s action types `move`, `pickup`, `putdown` and `deliver`, the respective
         encodings are
-        
+
             ./checker/encodings/default/action-move.lp
             ./checker/encodings/default/action-pickup.lp
             ./checker/encodings/default/action-putdown.lp
             ./checker/encodings/default/action-deliver.lp
-    
+
     -   *static laws* stored in `./checker/encodings/DOMAIN/static.lp`,
         e.g. `./checker/encodings/default/static.lp` for the default domain
 
@@ -42,10 +52,10 @@ for the default domain.
 At present we support the following problem domains:
 
 -   the [default domain](file:///home/phil/logistics/ASPRILO/public/asprilo/docs/specification.md)
-    -   checker encodings at `./checker/encodings/default/`
+    - checker encodings at `./checker/encodings/default/`
 -   the default domain in conjunction with the ['disregard of product quantities'
     (DPQ)](file:///home/phil/logistics/ASPRILO/public/asprilo/docs/specification.md) modification
-    -   checker encodings at `./checker/encodings/dpq`
+    - checker encodings at `./checker/encodings/dpq`
 
 
 # How To Use
@@ -62,9 +72,9 @@ in the [checker's encoding files](#-encoding-structure). Moreover, `err/3` facts
 
 where
 
-1.  `FileID` indicates the encoding file in which the yielded `err/3` atom is defined
-2.  `CheckID` indicates the specific &rsquo;check&rsquo;, i.e., a rule that defines the `err/3` atom
-3.  `Parameters` the relevant term parameters in the body of the rule
+1. `FileID` indicates the encoding file in which the yielded `err/3` atom is defined
+2. `CheckID` indicates the specific &rsquo;check&rsquo;, i.e., a rule that defines the `err/3` atom
+3. `Parameters` the relevant term parameters in the body of the rule
 
 E.g., for the default domain and instance `./examples/default/instance.asp`, the (invalid) plan
 `./examples/default/wrong_outcome.txt` can be checked via
@@ -84,8 +94,7 @@ Those `err/3` facts are defined in `./checker/encodings/default/goal` by rule
 
 that indicates, that there are still unfulfilled orders at the end of the plan. Specifically,
 
--   `err(goal,unfilledOrder,(3,3,1,11))` indicates that order `O = 3` still requires `Q = 1` units of
-    product `P = 3`.
--   `err(goal,unfilledOrder,(3,2,1,11))` indicates that order `O = 3` still requires `Q = 1` units of
-    product `P = 2`.
-
+- `err(goal,unfilledOrder,(3,3,1,11))` indicates that order `O = 3` still requires `Q = 1` units of
+  product `P = 3`.
+- `err(goal,unfilledOrder,(3,2,1,11))` indicates that order `O = 3` still requires `Q = 1` units of
+  product `P = 2`.
