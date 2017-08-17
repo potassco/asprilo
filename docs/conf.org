@@ -1,6 +1,0 @@
-#+SETUPFILE: ~/tools/emacs/org-html-themes/setup/theme-readtheorg.setup
-# #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="http://gongzhitaao.org/orgcss/org.css"/>
-#+LANGUAGE: en
-#+OPTIONS: ':t
-#+OPTIONS: tex:t
-#+EXCLUDE_TAGS: noexport
