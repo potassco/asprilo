@@ -1,0 +1,249 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Instance Generator Core."""
+
+import sys
+import os
+import random
+import time
+import argparse
+from math import fabs
+import copy
+import glob
+import threading, time
+import signal
+import clingo
+
+
+class InstanceGenerator(object):
+
+    def __init__(self, args):
+
+        self._args = args
+        self._prg = None
+        self._solve_opts = ["-t {0}".format(self._args.threads),
+                            "--project",
+                            # "--opt-mode=optN",
+                            "-n {0}".format(self._args.num)]
+        self._inits = None
+        self._object_counters = {}
+        self._instance_count = 0
+        self.dest_dirs = []
+
+        if self._args.cluster_x is None:
+            self._cluster_x = int((self._args.grid_x - 2 + 0.5) / 2)
+        else:
+            self._cluster_x = self._args.cluster_x
+        if self._args.cluster_y is None:
+            self._cluster_y = int((self._args.grid_y - 4 + 0.5) / 2)
+        else:
+            self._cluster_y = self._args.cluster_y
+
+    def on_model(self, m):
+        self._instance_count += 1
+        self._inits = []
+        if self._args.console:
+            print "\n"
+        if self._args.console and not self._args.quiet:
+            print str(self._instance_count) + ". instance:"
+        atoms_list = m.symbols(terms=True)
+        if self._args.debug:
+            print '******DEBUG MODE: Found Model:'
+            for atm in m.symbols(atoms=True):
+                print atm
+        for atm in [atm for atm in atoms_list if atm.name == "init"]:
+            self._inits.append(atm)
+        self._update_object_counter(atoms_list)
+        print self._object_counters
+        self.save()
+
+    def _update_object_counter(self, atoms_list):
+        '''Count objects in atom list.'''
+        self._object_counters = {"x" : 0, "y" : 0, "node" : 0, "robot" : 0, "shelf" : 0,
+                                 "pickingStation" : 0, "product" : 0, "order" : 0, "units" : 0}
+        objects = []
+        for atm in [atm for atm in atoms_list if atm.name == "init"]:
+            args = atm.arguments
+            if len(args) == 2 and args[0].name == "object":
+                obj = args[0]
+                object_name = obj.arguments[0].name
+                if obj not in objects:
+                    objects.append(obj)
+                    if object_name not in self._object_counters:
+                        self._object_counters[object_name] = 1
+                    else:
+                        self._object_counters[object_name] += 1
+                    if args[1].name == "value" and len(args[1].arguments) == 2:
+                        value_type = args[1].arguments[0].name
+                        value_value = args[1].arguments[1]
+                        if object_name == "node" and value_type == "at":
+                            self._object_counters["x"] = max(self._object_counters["x"],
+                                                             value_value.arguments[0].number)
+                            self._object_counters["y"] = max(self._object_counters["y"],
+                                                             value_value.arguments[1].number)
+                if (object_name == "product" and args[1].name == "value" and
+                        len(args[1].arguments) == 2):
+                    value_type = args[1].arguments[0].name
+                    value_value = args[1].arguments[1]
+                    if value_type == "on" and len(value_value.arguments) == 2:
+                        self._object_counters["units"] = (self._object_counters["units"] +
+                                                          value_value.arguments[1].number)
+
+    def solve(self):
+        # if not self._args.quiet:
+        #     print "Used args for solving: " + str(self._args)
+
+        self._prg = clingo.Control(self._solve_opts)
+        self._prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../encodings/ig.lp'))
+        for template in self._args.template:
+            self._prg.load(template)
+            self._prg.ground([("base", [])])
+            self._prg.ground([("template_stub", [])])
+
+        if not self._args.quiet:
+            print "ground..."
+
+        # nodes
+        if not (self._args.grid_x is None or self._args.grid_y is None):
+            if self._args.nodes is None:
+                self._prg.ground([("nodes", [self._args.grid_x, self._args.grid_y,
+                                                 self._args.grid_x * self._args.grid_y])])
+            else:
+                self._prg.ground([("nodes", [self._args.grid_x, self._args.grid_y,
+                                                 self._args.nodes])])
+        # object IDs
+        if self._args.robots:
+            self._prg.ground([("robots", [self._args.robots, self._args.robots])])
+        if self._args.shelves:
+            self._prg.ground([("shelves", [self._args.shelves, self._args.shelves])])
+        if self._args.picking_stations:
+            self._prg.ground([("picking_stations",
+                                   [self._args.picking_stations, self._args.picking_stations])])
+        if self._args.products:
+            self._prg.ground([("products", [self._args.products, self._args.products])])
+        if self._args.orders:
+            self._prg.ground([("orders", [self._args.orders])])
+
+        # layouts
+        if self._args.beltway_layout:
+            self._prg.ground([("beltway_layout", [self._cluster_x, self._cluster_y])])
+        else:
+            self._prg.ground([("random_layout", [])])
+
+        # object inits
+        self._prg.ground([("robots_init", [])])
+        self._prg.ground([("shelves_init", [])])
+        self._prg.ground([("picking_stations_init", [])])
+        if self._args.product_units_total:
+            self._prg.ground([("product_units", [self._args.product_units_total,
+                                                     self._args.product_units_total,
+                                                     self._args.product_units_per_product_shelf])])
+        self._prg.ground([("orders_init", [self._args.order_min_lines, self._args.order_max_lines])])
+
+        #layouts cont;
+        # TODO: simplify grounding order of layouts, constraints, object inits program parts
+        # - use init/2 instead of poss/2 in layout constraints above
+        if self._args.reachable_layout:
+            self._prg.ground([("reachable_layout", [])])
+
+
+        # order constraints & optimizations
+        if self._args.order_all_products:
+            self._prg.ground([("order_all_products", [])])
+        # self._prg.ground([("orders_different", [])])
+
+        # general rules
+        self._prg.ground([("base", [])])
+
+        # projection to subsets of init/2
+        if self._args.prj_orders:
+            self._prg.ground([("project_orders", [])])
+        elif self._args.prj_warehouse:
+            self._prg.ground([("project_warehouse", [])])
+        else:
+            self._prg.ground([("project_all", [])])
+
+        if not self._args.quiet:
+            print "solve..."
+
+        # solve_future = self._prg.solve_async(self.on_model)
+        # solve_future.wait(self._args.wait)
+        # solve_future.cancel()
+        # solve_result = solve_future.get()
+
+        solve_result = self._prg.solve(on_model=self.on_model)
+
+        if not self._args.quiet:
+            print "Parallel mode: " + str(self._prg.configuration.solve.parallel_mode)
+            print "Generated instances: " + str(self._instance_count)
+            print "Solve result: " + str(solve_result)
+            print "Search finished: " + str(not solve_result.interrupted)
+            print "Search space exhausted: " + str(solve_result.exhausted)
+
+
+    def save(self):
+        self._inits.sort()
+        file_name = ''
+        if not self._args.console:
+            if self._args.instance_count:
+                instance_count = self._args.instance_count
+            else:
+                instance_count = self._instance_count
+            local_name = (self._args.name_prefix +
+                          "_".join(["x" + str(self._object_counters["x"]),
+                                    "y" + str(self._object_counters["y"]),
+                                    "n" + str(self._object_counters["node"]),
+                                    "r" + str(self._object_counters["robot"]),
+                                    "s" + str(self._object_counters["shelf"]),
+                                    "ps" + str(self._object_counters["pickingStation"]),
+                                    "pr" + str(self._object_counters["product"]),
+                                    "u" + str(self._object_counters["units"]),
+                                    "o" + str(self._object_counters["order"]),
+                                    "N" + str(instance_count)]))
+            if self._args.instance_dir:
+                dir_suffix = local_name
+            else:
+                dir_suffix = ''
+            if self._args.instance_dir_suffix:
+                dir_suffix += self._args.instance_dir_suffix
+            dest_dir = self._args.directory + dir_suffix
+            self.dest_dirs.append(dest_dir)
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir)
+            file_name = (dest_dir + "/" + local_name + ".lp")
+        else:
+            file_name = "/dev/stdout"
+        ofile = open(file_name, "w")
+        try:
+            #head
+            ofile.write("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+            ofile.write("\n% Grid Size X:                      " + str(self._object_counters["x"]))
+            ofile.write("\n% Grid Size Y:                      " + str(self._object_counters["y"]))
+            ofile.write("\n% Number of Nodes:                  " + str(self._object_counters["node"]))
+            ofile.write("\n% Number of Robots:                 " + str(self._object_counters["robot"]))
+            ofile.write("\n% Number of Shelves:                " + str(self._object_counters["shelf"]))
+            ofile.write("\n% Number of picking stations:       " + str(self._object_counters["pickingStation"]))
+            ofile.write("\n% Number of products:               " + str(self._object_counters["product"]))
+            ofile.write("\n% Number of product units in total: " + str(self._object_counters["units"]))
+            ofile.write("\n% Number of orders:                 " + str(self._object_counters["order"]))
+            ofile.write("\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+
+            #body
+            ofile.write("#program base.\n\n")
+            # if not (self._args.grid_x is None or self._args.grid_y is None):
+            #     ofile.write("timelimit("+ str(int(self._args.grid_x * self._args.grid_y * 1.5))
+            #                 + ").\n\n")
+
+            ofile.write("% init\n")
+            for obj in self._inits:
+                ofile.write(str(obj) + ".\n")
+
+        except IOError:
+            ofile.close()
+            return
+        ofile.close()
+        return
+
+    def interrupt(self):
+        '''Kill all solve call threads.'''
+        self._prg.interrupt()
