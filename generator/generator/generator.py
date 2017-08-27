@@ -116,6 +116,8 @@ class InstanceGenerator(object):
             self._prg.ground([("robots", [self._args.robots, self._args.robots])])
         if self._args.shelves:
             self._prg.ground([("shelves", [self._args.shelves, self._args.shelves])])
+        if self._args.shelf_coverage:
+            self._prg.ground([("shelf_coverage", [self._args.shelf_coverage])])
         if self._args.picking_stations:
             self._prg.ground([("picking_stations",
                                    [self._args.picking_stations, self._args.picking_stations])])
