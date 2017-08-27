@@ -106,8 +106,8 @@ poss(robot, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 poss(shelf, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 
 
-% * Beltway Layout *********************************************************************************
-#program beltway_layout(x, y).
+% * Highway Layout *********************************************************************************
+#program highway_layout(x, y).
 sizeX(X) :- init(object(node, _), value(at, (X, _))), not init(object(node, _), value(at, (X + 1, _))).
 sizeY(Y) :- init(object(node, _), value(at, (_, Y))), not init(object(node, _), value(at, (_, Y + 1))).
 highway(1, Y) :- init(object(node, _), value(at, (1, Y))).

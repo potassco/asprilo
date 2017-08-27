@@ -125,8 +125,8 @@ class InstanceGenerator(object):
             self._prg.ground([("orders", [self._args.orders])])
 
         # layouts
-        if self._args.beltway_layout:
-            self._prg.ground([("beltway_layout", [self._cluster_x, self._cluster_y])])
+        if self._args.highway_layout:
+            self._prg.ground([("highway_layout", [self._cluster_x, self._cluster_y])])
         else:
             self._prg.ground([("random_layout", [])])
 

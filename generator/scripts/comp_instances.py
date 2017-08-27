@@ -16,15 +16,15 @@ def define_cases():
 
     # 10x10 grid, 5 robots, 16 shelves, 4 stations, 4 products, 32 product units total,
     # 8 orders, 2-4 order lines, all products ordered at least once
-    _cases.append("tiny -x 7 -y 7 -r 2 -s 6 -p 1 -P 3 -u 12 -o 3 --olmin 1 --olmax 2 --oap -R -B")
-    _cases.append("small -x 8 -y 8 -r 3 -s 10 -p 2 -P 4 -u 16 -o 4 --olmin 2 --olmax 4 --oap -R -B")
-    _cases.append("medium -x 10 -y 10 -r 5 -s 16 -p 4 -P 6 -u 24 -o 6 --olmin 2 --olmax 4 --oap -R -B")
-    # _cases.append("medium -x 10 -y 10 -r 5 -s 16 -p 4 -P 8 -u 32 -o 6 --olmin 2 --olmax 4 --oap -R -B")
-    # _cases.append("medium -x 10 -y 10 -r 5 -s 16 -p 4 -P 8 -u 32 -o 8 --olmin 2 --olmax 4 --oap -R -B")
-    _cases.append("large -x 12 -y 12 -r 7 -s 32 -p 6 -P 18 -u 96 -o 12 --olmin 2 --olmax 4 --oap -R -B")
-    # _cases.append("huge -x 16 -y 16 -r 10 -s 64 -p 8 -P 24 -u 128 -o 16 --olmin 2 --olmax 4 --oap -R -B")
+    _cases.append("tiny -x 7 -y 7 -r 2 -s 6 -p 1 -P 3 -u 12 -o 3 --olmin 1 --olmax 2 --oap -R -H")
+    _cases.append("small -x 8 -y 8 -r 3 -s 10 -p 2 -P 4 -u 16 -o 4 --olmin 2 --olmax 4 --oap -R -H")
+    _cases.append("medium -x 10 -y 10 -r 5 -s 16 -p 4 -P 6 -u 24 -o 6 --olmin 2 --olmax 4 --oap -R -H")
+    # _cases.append("medium -x 10 -y 10 -r 5 -s 16 -p 4 -P 8 -u 32 -o 6 --olmin 2 --olmax 4 --oap -R -H")
+    # _cases.append("medium -x 10 -y 10 -r 5 -s 16 -p 4 -P 8 -u 32 -o 8 --olmin 2 --olmax 4 --oap -R -H")
+    _cases.append("large -x 12 -y 12 -r 7 -s 32 -p 6 -P 18 -u 96 -o 12 --olmin 2 --olmax 4 --oap -R -H")
+    # _cases.append("huge -x 16 -y 16 -r 10 -s 64 -p 8 -P 24 -u 128 -o 16 --olmin 2 --olmax 4 --oap -R -H")
 
-    ## 'Non-Standard' Cases, i.e., Standard Cases w/o Reachability and Beltway
+    ## 'Non-Standard' Cases, i.e., Standard Cases w/o Reachability and Highway
     _cases = cases["nonstandard_cases"] = []
     _cases.append("tiny -x 7 -y 7 -r 2 -s 6 -p 1 -P 3 -u 12 -o 3 --olmin 1 --olmax 2 --oap")
     _cases.append("small -x 8 -y 8 -r 3 -s 10 -p 2 -P 4 -u 16 -o 4 --olmin 2 --olmax 4 --oap")
@@ -34,27 +34,27 @@ def define_cases():
 
     ## Shelves vs products
     _cases = cases["shelves_product_scaling"] = []
-    _cases.append("many_shelves_few_products -x 10 -y 10 -r 5 -s 32 -p 4 -P 4 -u 16 -o 8 --olmin 2 --olmax 4 --oap -R -B")
-    _cases.append("many_shelves_many_products -x 10 -y 10 -r 5 -s 32 -p 4 -P 12 -u 48 -o 8 --olmin 2 --olmax 4 --oap -R -B")
-    _cases.append("few_shelves_many_products -x 10 -y 10 -r 5 -s 8 -p 4 -P 12 -u 48 -o 8 --olmin 2 --olmax 4 --oap -R -B")
+    _cases.append("many_shelves_few_products -x 10 -y 10 -r 5 -s 32 -p 4 -P 4 -u 16 -o 8 --olmin 2 --olmax 4 --oap -R -H")
+    _cases.append("many_shelves_many_products -x 10 -y 10 -r 5 -s 32 -p 4 -P 12 -u 48 -o 8 --olmin 2 --olmax 4 --oap -R -H")
+    _cases.append("few_shelves_many_products -x 10 -y 10 -r 5 -s 8 -p 4 -P 12 -u 48 -o 8 --olmin 2 --olmax 4 --oap -R -H")
 
     ## Picking Stations Scaling
     _cases = cases["pickingstations_scaling"] = []
     # one picking station, medium standard case
-    _cases.append("one -x 10 -y 10 -r 5 -s 16 -p 1 -P 4 -u 32 -o 8 --olmin 2 --olmax 4 --oap -R -B")
+    _cases.append("one -x 10 -y 10 -r 5 -s 16 -p 1 -P 4 -u 32 -o 8 --olmin 2 --olmax 4 --oap -R -H")
     # few picking stations, huge standard case
-    _cases.append("few -x 20 -y 20 -r 20 -s 128 -p 2 -P 24 -u 256 -o 32 --olmin 2 --olmax 4 --oap -R -B")
+    _cases.append("few -x 20 -y 20 -r 20 -s 128 -p 2 -P 24 -u 256 -o 32 --olmin 2 --olmax 4 --oap -R -H")
 
     ## Product Unis vs Orders - Scaling
     _cases = cases["products-units-orders_scaling"] = []
     # many rare units
-    _cases.append("many_rare -x 10 -y 10 -r 5 -s 16 -p 4 -P 64 -u 64 -o 8 -R -B --oap")
+    _cases.append("many_rare -x 10 -y 10 -r 5 -s 16 -p 4 -P 64 -u 64 -o 8 -R -H --oap")
 
     # many orders
-    _cases.append("many_orders -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 32 -R -B --oap")
+    _cases.append("many_orders -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 32 -R -H --oap")
 
     # many orders + many rare units
-    _cases.append("many_both -x 10 -y 10 -r 5 -s 16 -p 4 -P 64 -u 64 -o 32 -R -B --oap")
+    _cases.append("many_both -x 10 -y 10 -r 5 -s 16 -p 4 -P 64 -u 64 -o 32 -R -H --oap")
 
 
     return cases
