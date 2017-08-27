@@ -57,6 +57,10 @@ class Control(object):
                             help="the number of robots")
         parser.add_argument("-s", "--shelves", type=Control.check_positive,
                             help="the number of shelves")
+        parser.add_argument("-c", "--shelf-coverage", type=Control.check_positive,
+                            help="""the percentage of storage nodes covered by shelves; storage
+                            nodes are those nodes that are not a highway node nor occupied by
+                            a robot or station""")
         parser.add_argument("-p", "--picking-stations", type=Control.check_positive,
                             help="the number of picking stations")
         parser.add_argument("-u", "--product-units-total", type=Control.check_positive,
@@ -78,7 +82,7 @@ class Control(object):
                             \'<DIRECTORY> <INSTANCE-NAME> <SUFFIX>\'""")
         parser.add_argument("--instance-count", type=str,
                             help="""each instance gets the given value as running number instead
-                            of using its rank in the enumeration of clasp.""")
+                            of using its rank in the enumeration of clasp""")
         parser.add_argument("-f", "--name-prefix", type=str, default="",
                             help="the name prefix that eyery file name will contain")
         parser.add_argument("-v", "--version", help="show the current version", action="version",
@@ -88,7 +92,7 @@ class Control(object):
         parser.add_argument("-w", "--wait", type=Control.check_positive, default=300,
                             help="""time to wait in seconds before
                             solving is aborted if not finished yet""")
-        parser.add_argument("-D", "--debug", action="store_true", help="Debug output")
+        parser.add_argument("-D", "--debug", action="store_true", help="debug output")
 
         product_args = parser.add_argument_group('product constraints')
         product_args.add_argument("-P", "--products", type=Control.check_positive,
