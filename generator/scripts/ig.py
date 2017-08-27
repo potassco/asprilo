@@ -117,9 +117,8 @@ class Control(object):
         layout_args.add_argument("-R", "--reachable-layout",
                                  help="""all shelves are reachable from all picking stations
                                  w/o moving other shelves""", action="store_true")
-        layout_args.add_argument("-B", "--beltway-layout", action="store_true",
-                                 help="""a beltway in form of highway nodes along the edges of the
-                                 warehouse""")
+        layout_args.add_argument("-H", "--highway-layout", action="store_true",
+                                 help="Manhattan-style street grid using highway-nodes")
         layout_args.add_argument("-X", "--cluster-x", type=Control.check_positive, default=2,
                                  help="the size of one rectangular shelf cluster in x-direction")
         layout_args.add_argument("-Y", "--cluster-y", type=Control.check_positive, default=2,

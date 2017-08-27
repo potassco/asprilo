@@ -15,34 +15,34 @@ def define_cases():
     _cases = cases["standard_cases"] = []
 
     # 10x10 grid, 5 robots, 16 shelves, 4 stations, 4 products,  32 product units total, 8 orders
-    _cases.append("1 -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("1 -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 8 -R -H --oap")
 
     #
     _cases.append("2 -x 5 -y 5 -r 3 -s 8 -p 1 -P 2 -u 8 -o 4 -R --oap")
 
     #
-    _cases.append("3 -x 12 -y 12 -r 6 -s 16 -p 5 -P 5 -u 32 -o 8 -R -B --oap")
+    _cases.append("3 -x 12 -y 12 -r 6 -s 16 -p 5 -P 5 -u 32 -o 8 -R -H --oap")
 
     #
-    _cases.append("4 -x 10 -y 10 -r 4 -s 12 -p 3 -P 3 -u 20 -o 5 -R -B --oap")
+    _cases.append("4 -x 10 -y 10 -r 4 -s 12 -p 3 -P 3 -u 20 -o 5 -R -H --oap")
 
     #
-    _cases.append("5 -x 8 -y 8 -r 4 -s 10 -p 2 -P 3 -u 16 -o 4 -R -B --oap")
+    _cases.append("5 -x 8 -y 8 -r 4 -s 10 -p 2 -P 3 -u 16 -o 4 -R -H --oap")
 
     #
-    _cases.append("6 -x 14 -y 14 -r 7 -s 20 -p 6 -P 5 -u 48 -o 12 -R -B --oap")
+    _cases.append("6 -x 14 -y 14 -r 7 -s 20 -p 6 -P 5 -u 48 -o 12 -R -H --oap")
 
     #
-    _cases.append("7 -x 9 -y 9 -r 4 -s 14 -p 4 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("7 -x 9 -y 9 -r 4 -s 14 -p 4 -P 4 -u 32 -o 8 -R -H --oap")
 
     #
-    _cases.append("8 -x 10 -y 10 -r 4 -s 15 -p 3 -P 5 -u 24 -o 6 -R -B --oap")
+    _cases.append("8 -x 10 -y 10 -r 4 -s 15 -p 3 -P 5 -u 24 -o 6 -R -H --oap")
 
     #
-    _cases.append("9 -x 10 -y 10 -r 5 -s 20 -p 5 -P 5 -u 48 -o 6 -R -B --oap")
+    _cases.append("9 -x 10 -y 10 -r 5 -s 20 -p 5 -P 5 -u 48 -o 6 -R -H --oap")
 
     #
-    _cases.append("10 -x 10 -y 10 -r 5 -s 20 -p 6 -P 5 -u 10 -o 5 -R -B --oap")
+    _cases.append("10 -x 10 -y 10 -r 5 -s 20 -p 6 -P 5 -u 10 -o 5 -R -H --oap")
 
     ## Tiny Tests
     _cases = cases["tiny_cases"] = []
@@ -68,13 +68,13 @@ def define_cases():
     _cases = cases["grid_scaling"] = []
 
     # extreme
-    # _cases.append("extreme -x 48 -y 48 -r 16 -s 64 -p 12 -P 8 -u 128 -o 32 -R -B --oap")
+    # _cases.append("extreme -x 48 -y 48 -r 16 -s 64 -p 12 -P 8 -u 128 -o 32 -R -H --oap")
 
     # huge
-    _cases.append("huge  -x 26 -y 26 -r 5 -s 16 -p 4 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("huge  -x 26 -y 26 -r 5 -s 16 -p 4 -P 4 -u 32 -o 8 -R -H --oap")
 
     # wide
-    _cases.append("wide -x 8 -y 30 -r 5 -s 16 -p 4 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("wide -x 8 -y 30 -r 5 -s 16 -p 4 -P 4 -u 32 -o 8 -R -H --oap")
 
     # small
     _cases.append("small -x 3 -y 3 -r 1 -s 2 -p 1 -P 2 -u 2 -o 2")
@@ -87,38 +87,38 @@ def define_cases():
     _cases = cases["robots_scaling"] = []
 
     # extreme
-    # _cases.append("extreme -x 28 -y 28 -r 48 -s 64 -p 12 -P 8 -u 128 -o 32 -R -B --oap")
+    # _cases.append("extreme -x 28 -y 28 -r 48 -s 64 -p 12 -P 8 -u 128 -o 32 -R -H --oap")
 
     # many
-    _cases.append("many -x 10 -y 10 -r 16 -s 16 -p 4 -P 4 -u 32 -o 16 -R -B --oap")
+    _cases.append("many -x 10 -y 10 -r 16 -s 16 -p 4 -P 4 -u 32 -o 16 -R -H --oap")
 
     # overwhelmed
     _cases.append("overwhelmed -x 10 -y 10 -r 8 -s 16 -p 1 -P 1 -u 16 -o 16 -R --oap")
 
     # medium
-    _cases.append("medium -x 10 -y 10 -r 8 -s 16 -p 4 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("medium -x 10 -y 10 -r 8 -s 16 -p 4 -P 4 -u 32 -o 8 -R -H --oap")
 
     # few
-    _cases.append("few -x 10 -y 10 -r 2 -s 16 -p 4 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("few -x 10 -y 10 -r 2 -s 16 -p 4 -P 4 -u 32 -o 8 -R -H --oap")
 
 
     ## Shelves
     _cases = cases["shelves_scaling"] = []
 
     # eXtreme
-    # _cases.append("eXtreme -x 28 -y 28 -r 16 -s 128 -p 12 -P 8 -u 128 -o 32 -R -B --oap")
+    # _cases.append("eXtreme -x 28 -y 28 -r 16 -s 128 -p 12 -P 8 -u 128 -o 32 -R -H --oap")
 
     # many
-    _cases.append("many -x 10 -y 10 -r 5 -s 32 -p 4 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("many -x 10 -y 10 -r 5 -s 32 -p 4 -P 4 -u 32 -o 8 -R -H --oap")
 
     # medium
-    _cases.append("medium -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("medium -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 8 -R -H --oap")
 
     # stuck
     # _cases.append("stuck -x 5 -y 5 -r 5 -s 25 -p 2 -P 5 -u 25 -o 8 -R --oap")
 
     # few
-    _cases.append("few -x 10 -y 10 -r 5 -s 8 -p 4 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("few -x 10 -y 10 -r 5 -s 8 -p 4 -P 4 -u 32 -o 8 -R -H --oap")
 
     # one
     _cases.append("one -x 5 -y 5 -r 5 -s 1 -p 15 -P 5 -u 25 -o 8 -R --oap")
@@ -128,41 +128,41 @@ def define_cases():
     _cases = cases["pickingstations_scaling"] = []
 
     # eXtreme
-    # _cases.append("eXtreme -x 28 -y 28 -r 16 -s 64 -p 56 -P 8 -u 128 -o 32 -R -B --oap")
+    # _cases.append("eXtreme -x 28 -y 28 -r 16 -s 64 -p 56 -P 8 -u 128 -o 32 -R -H --oap")
 
     # many
-    _cases.append("many -x 10 -y 10 -r 5 -s 16 -p 8 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("many -x 10 -y 10 -r 5 -s 16 -p 8 -P 4 -u 32 -o 8 -R -H --oap")
 
     # few
-    _cases.append("few -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("few -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 8 -R -H --oap")
 
     # one
-    _cases.append("one -x 10 -y 10 -r 5 -s 16 -p 1 -P 4 -u 32 -o 8 -R -B --oap")
+    _cases.append("one -x 10 -y 10 -r 5 -s 16 -p 1 -P 4 -u 32 -o 8 -R -H --oap")
 
 
     ## Products
     _cases = cases["products-units-orders_scaling"] = []
 
     # eXtreme
-    # _cases.append("eXtreme -x 28 -y 28 -r 16 -s 64 -p 12 -P 128 -u 256 -o 64 -R -B --oap")
+    # _cases.append("eXtreme -x 28 -y 28 -r 16 -s 64 -p 12 -P 128 -u 256 -o 64 -R -H --oap")
 
     # many units
-    _cases.append("many -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 64 -o 8 -R -B --oap")
+    _cases.append("many -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 64 -o 8 -R -H --oap")
 
     # few units
-    _cases.append("few -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 4 -o 8 -R -B --oap")
+    _cases.append("few -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 4 -o 8 -R -H --oap")
 
     # many common units
-    _cases.append("many_common -x 10 -y 10 -r 5 -s 16 -p 4 -P 1 -u 64 -o 8 -R -B --oap")
+    _cases.append("many_common -x 10 -y 10 -r 5 -s 16 -p 4 -P 1 -u 64 -o 8 -R -H --oap")
 
     # many rare units
-    _cases.append("many_rare -x 10 -y 10 -r 5 -s 16 -p 4 -P 64 -u 64 -o 8 -R -B --oap")
+    _cases.append("many_rare -x 10 -y 10 -r 5 -s 16 -p 4 -P 64 -u 64 -o 8 -R -H --oap")
 
     # all units ordered
-    _cases.append("all_ordered -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 32 -R -B --oap")
+    _cases.append("all_ordered -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 32 -R -H --oap")
 
     # few units ordered
-    _cases.append("few_ordered -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 4 -R -B --oap")
+    _cases.append("few_ordered -x 10 -y 10 -r 5 -s 16 -p 4 -P 4 -u 32 -o 4 -R -H --oap")
 
     return cases
 
