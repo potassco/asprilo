@@ -42,12 +42,17 @@ object(robot, 1..N) : robotNum(N).
 1 { shelfNum(N) : N = min..max } 1.
 object(shelf, 1..N) : shelfNum(N).
 
-% or alternatively, via coverage percentag of storage (i.e., non-higway) nodes
+% or alternatively, via shelf coverage rate of "storage nodes", i.e.,
+% nodes that are neither higway/parking/picking-station nodes
 #program shelf_coverage(pct).
-storage_node(ID) :- init(object(node, ID), value(at, (X, Y))); % **** FIXME!!!!!
-                    not init(object(pickingStation, _), value(at, (X, Y)));
-                    not init(object(highway, _), value(at, (X, Y))).
-%% 1 { shelfNum(N) : N =  } 1.
+% # stoarge nodes = ...
+storageNodeNum(N-H-S-P) :- N = #count{ ID : init(object(node, ID),_) }; % # nodes -
+                           H = #count{ X, Y : highway(X, Y) };          % # highwaynodes -
+                           pickingStationNum(S);                        % # picking-stations -
+                           robotNum(P).                                 % # robot-parking-nodes
+
+shelfNum(N) :-  N = M * pct / 100; storageNodeNum(M). % percentage-based shelf coverage
+object(shelf, 1..N) : shelfNum(N).
 
 % ~~ Init atoms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #program shelves_init.
@@ -182,13 +187,13 @@ dist_pickingStations(X) : X = SX / PN, sizeX(SX), pickingStationNum(PN). % dista
 % * Shelves Reachability ***************************************************************************
 #program reachable_layout().
 reachable(object(shelf, ID), node(X, Y)) :- reachable(object(shelf, ID), node(X-1, Y)), init(object(node, _), value(at, (X, Y))),
-					   not init(object(shelf, _), value(at, (X, Y))).
+                                           not init(object(shelf, _), value(at, (X, Y))).
 reachable(object(shelf, ID), node(X, Y)) :- reachable(object(shelf, ID), node(X+1, Y)), init(object(node, _), value(at, (X, Y))),
-					   not init(object(shelf, _), value(at, (X, Y))).
+                                           not init(object(shelf, _), value(at, (X, Y))).
 reachable(object(shelf, ID), node(X, Y)) :- reachable(object(shelf, ID), node(X, Y-1)), init(object(node, _), value(at, (X, Y))),
-					   not init(object(shelf, _), value(at, (X, Y))).
+                                           not init(object(shelf, _), value(at, (X, Y))).
 reachable(object(shelf, ID), node(X,  Y)) :- reachable(object(shelf, ID), node(X, Y+1)), init(object(node, _), value(at, (X, Y))),
-					   not init(object(shelf, _), value(at, (X, Y))).
+                                           not init(object(shelf, _), value(at, (X, Y))).
 reachable(object(shelf, ID), node(X, Y)) :- init(object(shelf, ID), value(at, (X, Y))).
 
 :- init(object(pickingStation, StationID), value(at, (X,Y))), not reachable(object(shelf, ShelfID), node(X, Y)), object(shelf, ShelfID).
@@ -211,7 +216,7 @@ reachable(object(shelf, ID), node(X, Y)) :- init(object(shelf, ID), value(at, (X
 % * Orders Contain As Many Different Products As Possible ******************************************
 #program orders_different.
 #minimize{ PID, OID, OID2 : init(object(order, OID), value(line, (PID, _))),
-			    init(object(order, OID2), value(line, (PID, _))) }.
+                            init(object(order, OID2), value(line, (PID, _))) }.
 
 
 
@@ -219,7 +224,7 @@ reachable(object(shelf, ID), node(X, Y)) :- init(object(shelf, ID), value(at, (X
 
 
 % * All inits **************************************************************************************
-#program project_all. 
+#program project_all.
 #show.
 #show init(O, V): init(O, V).
 
@@ -231,6 +236,6 @@ reachable(object(shelf, ID), node(X, Y)) :- init(object(shelf, ID), value(at, (X
 
 
 % * All Warehouse Objects Except Orders ************************************************************
-#program project_warehouse. 
+#program project_warehouse.
 #show.
 #show init(object(O, ID) ,V) : init(object(O, ID), V), not O == order.

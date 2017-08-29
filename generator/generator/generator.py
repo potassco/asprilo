@@ -111,13 +111,11 @@ class InstanceGenerator(object):
             else:
                 self._prg.ground([("nodes", [self._args.grid_x, self._args.grid_y,
                                                  self._args.nodes])])
-        # object IDs
+        # object quantities and IDs
         if self._args.robots:
             self._prg.ground([("robots", [self._args.robots, self._args.robots])])
         if self._args.shelves:
             self._prg.ground([("shelves", [self._args.shelves, self._args.shelves])])
-        if self._args.shelf_coverage:
-            self._prg.ground([("shelf_coverage", [self._args.shelf_coverage])])
         if self._args.picking_stations:
             self._prg.ground([("picking_stations",
                                    [self._args.picking_stations, self._args.picking_stations])])
@@ -132,6 +130,10 @@ class InstanceGenerator(object):
         else:
             self._prg.ground([("random_layout", [])])
 
+        # object quantities and IDs contd.: depending on layout definitions
+        if self._args.shelf_coverage:
+            self._prg.ground([("shelf_coverage", [self._args.shelf_coverage])])
+
         # object inits
         self._prg.ground([("robots_init", [])])
         self._prg.ground([("shelves_init", [])])
@@ -142,7 +144,7 @@ class InstanceGenerator(object):
                                                      self._args.product_units_per_product_shelf])])
         self._prg.ground([("orders_init", [self._args.order_min_lines, self._args.order_max_lines])])
 
-        # layout contd.: constraints related to interior object placement
+        # layouts contd.: constraints related to interior object placement
         # TODO: simplify grounding order of layouts, constraints, object inits program parts
         # - use init/2 instead of poss/2 in layout constraints above
         if self._args.reachable_layout:
