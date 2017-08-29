@@ -57,10 +57,11 @@ class Control(object):
                             help="the number of robots")
         parser.add_argument("-s", "--shelves", type=Control.check_positive,
                             help="the number of shelves")
-        parser.add_argument("-c", "--shelf-coverage", type=Control.check_positive,
+        parser.add_argument("--sc", "--shelf-coverage", type=Control.check_positive,
                             help="""the percentage of storage nodes covered by shelves; storage
-                            nodes are those nodes that are not a highway node nor occupied by
-                            a robot or station""")
+                            nodes are those nodes that are not a highway node nor occupied by a
+                            robot or station""",
+                            dest='shelf_coverage')
         parser.add_argument("-p", "--picking-stations", type=Control.check_positive,
                             help="the number of picking stations")
         parser.add_argument("-u", "--product-units-total", type=Control.check_positive,
@@ -152,13 +153,15 @@ class Control(object):
 
     def _check_related_cl_args(self):
         """Checks consistency wrt. related command line args."""
+        if self._cl_args.shelves and self._cl_args.shelf_coverage:
+            raise ValueError("""Number of shelves specified by both quantity (-s) and
+            coverage rate (--sc)""")
         if self._cl_args.products and self._cl_args.product_units_total:
             if self._cl_args.products > self._cl_args.product_units_total:
-                raise ValueError("product_units_total must be smaller or equal to products")
+                raise ValueError("Product_units_total must be smaller or equal to products")
         if self._cl_args.threads > 1 and self._cl_args.split:
-            raise ValueError(
-                """only single threaded execution (-t 1) possible when splitting up (--split)
-                instances""")
+            raise ValueError("""Only single threaded execution (-t 1) possible when splitting
+            up (--split) instances""")
 
     def run_once(self):
         """Regular execution."""
