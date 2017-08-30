@@ -125,9 +125,15 @@ class Control(object):
         layout_args.add_argument("-H", "--highway-layout", action="store_true",
                                  help="Manhattan-style street grid using highway-nodes")
         layout_args.add_argument("-X", "--cluster-x", type=Control.check_positive, default=2,
-                                 help="the size of one rectangular shelf cluster in x-direction")
+                                 help="""for highway-layout: the size of one rectangular shelf
+                                 cluster in x-direction""")
         layout_args.add_argument("-Y", "--cluster-y", type=Control.check_positive, default=2,
-                                 help="the size of one rectangular shelf cluster in y-direction")
+                                 help="""for highway-layout: the size of one rectangular shelf
+                                 cluster in y-direction""")
+        layout_args.add_argument("-B", "--beltway-width", type=Control.check_positive, default=1,
+                                 help="""for highway layout: the width of the beltway surrounding
+                                 all shelf clusters""")
+
         project_args = parser.add_argument_group('projection and template options')
         project_args.add_argument("-T", "--template", nargs='*', type=str, default=[],
                                   help="""every created instance will contain all atoms of the
