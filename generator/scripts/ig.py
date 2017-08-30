@@ -66,7 +66,7 @@ class Control(object):
                             help="the number of picking stations")
         parser.add_argument("-u", "--product-units-total", type=Control.check_positive,
                             help="the total number of product units stored in the warehouse")
-        parser.add_argument("-N", "--num", type=Control.check_positive, default=1,
+        parser.add_argument("-N", "--num", type=int, default=1,
                             help="the number of instances to create")
         parser.add_argument("-C", "--console",
                             help="prints the instances to the console", action="store_true")
