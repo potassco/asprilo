@@ -59,8 +59,8 @@ class InstanceGenerator(object):
 
     def _update_object_counter(self, atoms_list):
         '''Count objects in atom list.'''
-        self._object_counters = {"x" : 0, "y" : 0, "node" : 0, "robot" : 0, "shelf" : 0,
-                                 "pickingStation" : 0, "product" : 0, "order" : 0, "units" : 0}
+        self._object_counters = {"x" : 0, "y" : 0, "node" : 0, "highway" :0, "robot" : 0, "shelf" :
+                                 0, "pickingStation" : 0, "product" : 0, "order" : 0, "units" : 0}
         objects = []
         for atm in [atm for atm in atoms_list if atm.name == "init"]:
             args = atm.arguments
@@ -94,7 +94,8 @@ class InstanceGenerator(object):
         #     print "Used args for solving: " + str(self._args)
 
         self._prg = clingo.Control(self._solve_opts)
-        self._prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../encodings/ig.lp'))
+        self._prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                    '../encodings/ig.lp'))
         for template in self._args.template:
             self._prg.load(template)
             self._prg.ground([("base", [])])
@@ -107,10 +108,10 @@ class InstanceGenerator(object):
         if not (self._args.grid_x is None or self._args.grid_y is None):
             if self._args.nodes is None:
                 self._prg.ground([("nodes", [self._args.grid_x, self._args.grid_y,
-                                                 self._args.grid_x * self._args.grid_y])])
+                                             self._args.grid_x * self._args.grid_y])])
             else:
                 self._prg.ground([("nodes", [self._args.grid_x, self._args.grid_y,
-                                                 self._args.nodes])])
+                                             self._args.nodes])])
         # object quantities and IDs
         if self._args.robots:
             self._prg.ground([("robots", [self._args.robots, self._args.robots])])
@@ -118,7 +119,7 @@ class InstanceGenerator(object):
             self._prg.ground([("shelves", [self._args.shelves, self._args.shelves])])
         if self._args.picking_stations:
             self._prg.ground([("picking_stations",
-                                   [self._args.picking_stations, self._args.picking_stations])])
+                               [self._args.picking_stations, self._args.picking_stations])])
         if self._args.products:
             self._prg.ground([("products", [self._args.products, self._args.products])])
         if self._args.orders:
@@ -126,7 +127,8 @@ class InstanceGenerator(object):
 
         # layouts
         if self._args.highway_layout:
-            self._prg.ground([("highway_layout", [self._cluster_x, self._cluster_y])])
+            self._prg.ground([("highway_layout", [self._cluster_x, self._cluster_y,
+                                                  self._args.beltway_width])])
         else:
             self._prg.ground([("random_layout", [])])
 
@@ -140,9 +142,10 @@ class InstanceGenerator(object):
         self._prg.ground([("picking_stations_init", [])])
         if self._args.product_units_total:
             self._prg.ground([("product_units", [self._args.product_units_total,
-                                                     self._args.product_units_total,
-                                                     self._args.product_units_per_product_shelf])])
-        self._prg.ground([("orders_init", [self._args.order_min_lines, self._args.order_max_lines])])
+                                                 self._args.product_units_total,
+                                                 self._args.product_units_per_product_shelf])])
+        self._prg.ground([("orders_init", [self._args.order_min_lines,
+                                           self._args.order_max_lines])])
 
         # layouts contd.: constraints related to interior object placement
         # TODO: simplify grounding order of layouts, constraints, object inits program parts
@@ -224,12 +227,13 @@ class InstanceGenerator(object):
             ofile.write("\n% Grid Size X:                      " + str(self._object_counters["x"]))
             ofile.write("\n% Grid Size Y:                      " + str(self._object_counters["y"]))
             ofile.write("\n% Number of Nodes:                  " + str(self._object_counters["node"]))
+            ofile.write("\n% Number of Highway Nodes:          " + str(self._object_counters["highway"]))
             ofile.write("\n% Number of Robots:                 " + str(self._object_counters["robot"]))
             ofile.write("\n% Number of Shelves:                " + str(self._object_counters["shelf"]))
-            ofile.write("\n% Number of picking stations:       " + str(self._object_counters["pickingStation"]))
-            ofile.write("\n% Number of products:               " + str(self._object_counters["product"]))
-            ofile.write("\n% Number of product units in total: " + str(self._object_counters["units"]))
-            ofile.write("\n% Number of orders:                 " + str(self._object_counters["order"]))
+            ofile.write("\n% Number of Picking Stations:       " + str(self._object_counters["pickingStation"]))
+            ofile.write("\n% Number of Products:               " + str(self._object_counters["product"]))
+            ofile.write("\n% Number of Product Units in Total: " + str(self._object_counters["units"]))
+            ofile.write("\n% Number of Orders:                 " + str(self._object_counters["order"]))
             ofile.write("\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
 
             #body
