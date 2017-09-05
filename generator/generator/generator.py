@@ -130,7 +130,7 @@ class InstanceGenerator(object):
             self._prg.ground([("highway_layout", [self._cluster_x, self._cluster_y,
                                                   self._args.beltway_width])])
         else:
-            self._prg.ground([("random_layout", [])])
+            self._prg.ground([("random_layout", [self._args.gap_size])])
 
         # object quantities and IDs contd.: depending on layout definitions
         if self._args.shelf_coverage:

@@ -122,6 +122,10 @@ class Control(object):
         layout_args.add_argument("-R", "--reachable-layout",
                                  help="""all shelves are reachable from all picking stations
                                  w/o moving other shelves""", action="store_true")
+        layout_args.add_argument("--gs", "--gap-size", type=Control.check_positive, dest="gap_size",
+                                 default=2,
+                                 help="""the maximum size of "gaps" (i.e., blocked node components)
+                                 in the floor grid.""")
         layout_args.add_argument("-H", "--highway-layout", action="store_true",
                                  help="Manhattan-style street grid using highway-nodes")
         layout_args.add_argument("-X", "--cluster-x", type=Control.check_positive, default=2,
