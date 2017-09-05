@@ -18,6 +18,7 @@ import clingo
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from generator.generator import InstanceGenerator
+from generator.aux import check_positive, SmartFormatter
 
 VERSION = "0.1"
 
@@ -46,71 +47,76 @@ class Control(object):
             self.run_once()
 
     def parse_cl_args(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument("-x", "--grid-x", type=Control.check_positive,
-                            help="the grid size in x-direction")
-        parser.add_argument("-y", "--grid-y", type=Control.check_positive,
-                            help="the grid size in y-direction")
-        parser.add_argument("-n", "--nodes", type=Control.check_positive,
-                            help="the number of nodes")
-        parser.add_argument("-r", "--robots", type=Control.check_positive,
-                            help="the number of robots")
-        parser.add_argument("-s", "--shelves", type=Control.check_positive,
-                            help="the number of shelves")
-        parser.add_argument("--sc", "--shelf-coverage", type=Control.check_positive,
-                            help="""the percentage of storage nodes covered by shelves; storage
-                            nodes are those nodes that are not a highway node nor occupied by a
-                            robot or station""",
-                            dest='shelf_coverage')
-        parser.add_argument("-p", "--picking-stations", type=Control.check_positive,
-                            help="the number of picking stations")
-        parser.add_argument("-u", "--product-units-total", type=Control.check_positive,
-                            help="the total number of product units stored in the warehouse")
-        parser.add_argument("-N", "--num", type=int, default=1,
-                            help="the number of instances to create")
-        parser.add_argument("-C", "--console",
-                            help="prints the instances to the console", action="store_true")
-        parser.add_argument("-q", "--quiet",
-                            help="prints nothing to the console", action="store_true")
-        parser.add_argument("-d", "--directory", type=str, default="generatedInstances",
-                            help="the directory to safe the files")
-        parser.add_argument("--instance-dir", action="store_true",
-                            help="""each instance is stored in unique directory where the
-                            path is the concatenation of \'<DIRECTORY> <INSTANCE-NAME>/\'""")
-        parser.add_argument("--instance-dir-suffix", type=str, default='',
-                            help="""additional instance dir suffix, i.e., each instance is
-                            stored in unique directory where the path is the concatenation of
-                            \'<DIRECTORY> <INSTANCE-NAME> <SUFFIX>\'""")
-        parser.add_argument("--instance-count", type=str,
-                            help="""each instance gets the given value as running number instead
-                            of using its rank in the enumeration of clasp""")
-        parser.add_argument("-f", "--name-prefix", type=str, default="",
-                            help="the name prefix that eyery file name will contain")
-        parser.add_argument("-v", "--version", help="show the current version", action="version",
-                            version=VERSION)
-        parser.add_argument("-t", "--threads", type=Control.check_positive, default=1,
-                            help="run clingo with THREADS threads")
-        parser.add_argument("-w", "--wait", type=Control.check_positive, default=300,
-                            help="""time to wait in seconds before
-                            solving is aborted if not finished yet""")
-        parser.add_argument("-D", "--debug", action="store_true", help="debug output")
+        parser = argparse.ArgumentParser(prog='ig',
+                                         formatter_class=SmartFormatter,
+                                         add_help=False)
+        basic_args = parser.add_argument_group("Basic options")
+        basic_args.add_argument("-h", "--help", action="help",
+                                help="Show this help message and exit")
+        basic_args.add_argument("-x", "--grid-x", type=check_positive,
+                                help="the grid size in x-direction")
+        basic_args.add_argument("-y", "--grid-y", type=check_positive,
+                                help="the grid size in y-direction")
+        basic_args.add_argument("-n", "--nodes", type=check_positive,
+                                help="the number of nodes")
+        basic_args.add_argument("-r", "--robots", type=check_positive,
+                                help="the number of robots")
+        basic_args.add_argument("-s", "--shelves", type=check_positive,
+                                help="the number of shelves")
+        basic_args.add_argument("--sc", "--shelf-coverage", type=check_positive,
+                                help="""the percentage of storage nodes covered by shelves; storage
+                                nodes are those nodes that are not a highway node nor occupied by a
+                                robot or station""",
+                                dest='shelf_coverage')
+        basic_args.add_argument("-p", "--picking-stations", type=check_positive,
+                                help="the number of picking stations")
+        basic_args.add_argument("-u", "--product-units-total", type=check_positive,
+                                help="the total number of product units stored in the warehouse")
+        basic_args.add_argument("-N", "--num", type=int, default=1,
+                                help="the number of instances to create")
+        basic_args.add_argument("-C", "--console",
+                                help="prints the instances to the console", action="store_true")
+        basic_args.add_argument("-q", "--quiet",
+                                help="prints nothing to the console", action="store_true")
+        basic_args.add_argument("-d", "--directory", type=str, default="generatedInstances",
+                                help="the directory to safe the files")
+        basic_args.add_argument("--instance-dir", action="store_true",
+                                help="""each instance is stored in unique directory where the
+                                path is the concatenation of \'<DIRECTORY> <INSTANCE-NAME>/\'""")
+        basic_args.add_argument("--instance-dir-suffix", type=str, default='',
+                                help="""additional instance dir suffix, i.e., each instance is
+                                stored in unique directory where the path is the concatenation of
+                                \'<DIRECTORY> <INSTANCE-NAME> <SUFFIX>\'""")
+        basic_args.add_argument("--instance-count", type=str,
+                                help="""each instance gets the given value as running number instead
+                                of using its rank in the enumeration of clasp""")
+        basic_args.add_argument("-f", "--name-prefix", type=str, default="",
+                                help="the name prefix that eyery file name will contain")
+        basic_args.add_argument("-v", "--version", help="show the current version",
+                                action="version", version=VERSION)
+        basic_args.add_argument("-t", "--threads", type=check_positive, default=1,
+                                help="run clingo with THREADS threads")
+        basic_args.add_argument("-w", "--wait", type=check_positive, default=300,
+                                help="""time to wait in seconds before
+                                solving is aborted if not finished yet""")
+        basic_args.add_argument("-D", "--debug", action="store_true", help="debug output")
 
-        product_args = parser.add_argument_group('product constraints')
-        product_args.add_argument("-P", "--products", type=Control.check_positive,
+        product_args = parser.add_argument_group("Product constraints")
+        product_args.add_argument("-P", "--products", type=check_positive,
                                   help="the number of product kinds")
         product_args.add_argument("--Pus", "--product-units-per-product-shelf",
-                                  type=Control.check_positive, default=20,
+                                  type=check_positive, default=20,
                                   help="the number of each product's units per shelf",
                                   dest="product_units_per_product_shelf")
 
-        order_args = parser.add_argument_group('order constraints')
-        order_args.add_argument("-o", "--orders", type=Control.check_positive,
+        order_args = parser.add_argument_group("Order constraints")
+        order_args.add_argument("-o", "--orders", type=check_positive,
                                 help="the number of orders")
-        order_args.add_argument("--olmin", "--order-min-lines", type=Control.check_positive,
+        order_args.add_argument("--olmin", "--order-min-lines", type=check_positive,
                                 default=1,
                                 help="Specifies minimum of lines per order.",
                                 dest="order_min_lines")
-        order_args.add_argument("--olmax", "--order-max-lines", type=Control.check_positive,
+        order_args.add_argument("--olmax", "--order-max-lines", type=check_positive,
                                 default=1,
                                 help="Specifies maximum of lines per order.",
                                 dest="order_max_lines")
@@ -118,27 +124,34 @@ class Control(object):
                                 help="Each product should at least be ordered once.",
                                 dest="order_all_products")
 
-        layout_args = parser.add_argument_group('layout constraints')
-        layout_args.add_argument("-R", "--reachable-layout",
-                                 help="""all shelves are reachable from all picking stations
-                                 w/o moving other shelves""", action="store_true")
-        layout_args.add_argument("--gs", "--gap-size", type=Control.check_positive, dest="gap_size",
-                                 default=2,
-                                 help="""the maximum size of "gaps" (i.e., blocked node components)
-                                 in the floor grid.""")
-        layout_args.add_argument("-H", "--highway-layout", action="store_true",
-                                 help="Manhattan-style street grid using highway-nodes")
-        layout_args.add_argument("-X", "--cluster-x", type=Control.check_positive, default=2,
-                                 help="""for highway-layout: the size of one rectangular shelf
-                                 cluster in x-direction""")
-        layout_args.add_argument("-Y", "--cluster-y", type=Control.check_positive, default=2,
-                                 help="""for highway-layout: the size of one rectangular shelf
-                                 cluster in y-direction""")
-        layout_args.add_argument("-B", "--beltway-width", type=Control.check_positive, default=1,
-                                 help="""for highway layout: the width of the beltway surrounding
-                                 all shelf clusters""")
+        layout_all_args = parser.add_argument_group(
+            "Layout constrains",
+            """There are two major layout categories: *random* as default, or *highway* via the -H
+            flag. Depending on the major layout type, there are further customization options
+            available as follows.\n\n""")
+        layout_ge_args = parser.add_argument_group("* General layout constraints")
+        layout_ge_args.add_argument("-R", "--reachable-layout",
+                                    help="""all shelves are reachable from all picking stations
+                                    w/o moving other shelves""", action="store_true")
+        layout_rd_args = parser.add_argument_group("* Constraints for the *random* layout")
+        layout_rd_args.add_argument("--gs", "--gap-size", type=check_positive,
+                                    dest="gap_size", default=2,
+                                    help="""the maximum size of "gaps" (i.e., blocked node
+                                    components) in the floor grid.""")
+        layout_hw_args = parser.add_argument_group("* Constraints for the *highway* layout")
+        layout_hw_args.add_argument("-H", "--highway-layout", action="store_true",
+                                    help="Manhattan-style street grid using highway-nodes")
+        layout_hw_args.add_argument("-X", "--cluster-x", type=check_positive, default=2,
+                                    help="""for highway-layout: the size of one rectangular shelf
+                                    cluster in x-direction""")
+        layout_hw_args.add_argument("-Y", "--cluster-y", type=check_positive, default=2,
+                                    help="""for highway-layout: the size of one rectangular shelf
+                                    cluster in y-direction""")
+        layout_hw_args.add_argument("-B", "--beltway-width", type=check_positive, default=1,
+                                    help="""for highway layout: the width of the beltway surrounding
+                                    all shelf clusters""")
 
-        project_args = parser.add_argument_group('projection and template options')
+        project_args = parser.add_argument_group("Projection and template options")
         project_args.add_argument("-T", "--template", nargs='*', type=str, default=[],
                                   help="""every created instance will contain all atoms of the
                                   template(s) (defined in #program base)""")
@@ -146,20 +159,11 @@ class Control(object):
                                   help='project enumeration to order-related init/2 atoms')
         project_args.add_argument("--prj-warehouse", action="store_true",
                                   help='project enumeration to warehouse-related init/2 atoms')
-        project_args.add_argument("--split", nargs=2, action='store', type=Control.check_positive,
+        project_args.add_argument("--split", nargs=2, action='store', type=check_positive,
                                   help="""splits instances into warehouse and order-related facts;
                                   takes as arguments 1.) the number of warehouses and 2.) the orders
                                   per warehouse to create, resp.""")
         return parser, parser.parse_args()
-
-
-    @staticmethod
-    def check_positive(value):
-        """Positive int check for argparse."""
-        ivalue = int(value)
-        if ivalue <= 0:
-            raise argparse.ArgumentTypeError("%s is not a positive int value!" % value)
-        return ivalue
 
     def _check_related_cl_args(self):
         """Checks consistency wrt. related command line args."""
