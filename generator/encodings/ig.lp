@@ -15,6 +15,7 @@ object(Type, ID) :- init(object(Type, ID), value(_, _)).
 #program nodes(x, y, n).
 sizeX(x).
 sizeY(y).
+nodes(n).
 poss(object(node), value(at, (X, Y))) :- X = 1..x, Y = 1..y.
 n { init(object(node, x * (Y-1) + X), value(at, (X, Y))) : poss(object(node), value(at, (X, Y)))} n.
 reachableNode(1).
@@ -86,8 +87,10 @@ object(product, 1..N) : productNum(N).
 % * Product Units **********************************************************************************
 
 % ~~ Number and init atoms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#program product_units(min, max, maxps). %  min and max of overall total number of product units,
-                                         %  and max number of a product's unit per shelf
+#program product_units(min, max, maxps).
+%  Arguments:
+%    min, max -- minimum and maximum of overall total number of product units
+%    maps     -- maximum number of a product's unit per shelf
 1 { poss(object(product, PID), value(on, (SID, NUM))) : NUM=1..maxps } 1 :- object(shelf, SID),  object(product, PID).
 { init(object(product, PID), value(on, (SID, NUM))) : poss(object(product, PID), value(on, (SID, NUM))) }.
 :- object(product, PID), not init(object(product, PID), value(on, (_, _))).
@@ -131,41 +134,26 @@ ordered(PID, C) :- C = #sum{ NUM, OID : init(object(order, OID), value(line, (PI
 
 
 % * Random Layout **********************************************************************************
-#program random_layout().
+#program random_layout(g).
+% Arguments:
+%   g -- the maximum gaps component size
 poss(pickingStation, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 poss(robot, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 poss(shelf, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 
 % ~~ Evenly spread out gaps ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-% Max x-,y-coordinates
-%% sizeX(X) :- init(object(node, _), value(at, (X, _))), not init(object(node, _), value(at, (X + 1, _))).
-%% sizeY(Y) :- init(object(node, _), value(at, (_, Y))), not init(object(node, _), value(at, (_, Y + 1))).
 gap(SX * (Y-1) + X, X, Y) :- not init(object(node, _), value(at, (X, Y))), X=1..SX, Y=1..SY, sizeX(SX), sizeY(SY).
-gap_edge(ID1, ID2) :- gap(ID1, X-1, Y), gap(ID2, X, Y).
-gap_edge(ID1, ID2) :- gap(ID1, X, Y-1), gap(ID2, X, Y).
-gap_edge(ID1, ID2) :- gap(ID1, X-1, Y-1), gap(ID2, X, Y).
+gap_edge(ID1, ID2)  :- gap(ID1, X-1, Y),   gap(ID2, X, Y).
+gap_edge(ID1, ID2)  :- gap(ID1, X, Y-1),   gap(ID2, X, Y).
+gap_edge(ID1, ID2)  :- gap(ID1, X-1, Y-1), gap(ID2, X, Y).
+gap_edge(ID1, ID2)  :- gap(ID1, X-1, Y),   gap(ID2, X, Y-1).
+gap_edge(ID1, ID2)  :- gap_edge(ID2, ID1).
 gap_reach(ID1, ID2) :- gap_edge(ID1, ID2).
-gap_reach(ID1, ID3):- gap_reach(ID1, ID2), gap_reach(ID2, ID3).
-:- gap(ID, _, _), 1 { gap_reach(ID,_) }.
-
-%% :- gap(_,1).
-%% :- gap(1,_).
-%% :- gap(_,Y), sizeY(Y).
-%% :- gap(X,_), sizeX(X).
-%:- gap(X,Y), gap(X, Y+1).
-
-%% gap_reach(X, Y, X, Y) :- gap(X, Y).
-%% gap_reach(X1,Y, X2, Y2) :- gap_reach(X1, Y), gap_reach(Y+1, X2).
-%% dist(|X1-X2| + |Y1-Y2|, X1, Y1, X2, Y2) :- 2 {gap(X1,Y1); gap(X2,Y2)} 2, X1=1..SX, Y1=1..SY, X2=1..SX, Y2=1..SY,
-%%                                            sizeX(SX), sizeY(SY).
-%% :- DS = #sum {D, X1, Y1 , X2 , Y2 : dist(D, X1, Y1, X2, Y2)}, GS = #count { X, Y : gap(X, Y) }, (DS + 1) / (GS + 1) < 5.
-%% %% (DS + 1) / (GS + 1) >= 4 :- DS = #sum{ D : dist(D) }; GS = #count { X, Y : gap(X, Y) }, DS=0..100, GS=0..100.
-%% dsgs(DS, GS) :- DS = #sum{ D, X1, Y1 , X2 , Y2 : dist(D, X1, Y1, X2, Y2) }; GS = #count { X, Y : gap(X, Y) }, DS=0..100, GS=0..100.
-
-%:- dist(D), D < (x * y / (x * y - n) ).
-
-
-
+gap_reach(ID1, ID3) :- gap_reach(ID1, ID2), gap_reach(ID2, ID3).
+% limit gap size and only allow 1/2 of all gap nodes to form a maximum size component
+:- gap(ID, _, _), g < { gap_reach(ID, _) }.
+gap_max(ID)         :- g { gap_reach(ID, _) } g, gap(ID, _, _).
+:- M = #count { ID : gap_max(ID) }, M > (SX * SY - N) / 2, nodes(N), sizeX(SX), sizeY(SY).
 
 % * Highway Layout *********************************************************************************
 #program highway_layout(x, y, beltway). % x/y storage cluster dimension; beltway-width
