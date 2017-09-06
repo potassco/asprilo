@@ -150,8 +150,8 @@ class InstanceGenerator(object):
         # layouts contd.: constraints related to interior object placement
         # TODO: simplify grounding order of layouts, constraints, object inits program parts
         # - use init/2 instead of poss/2 in layout constraints above
-        if self._args.reachable_layout:
-            self._prg.ground([("reachable_layout", [])])
+        if self._args.reachable_shelves:
+            self._prg.ground([("reachable_shelves", [])])
 
 
         # order constraints & optimizations

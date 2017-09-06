@@ -11,13 +11,14 @@ object(Type, ID) :- init(object(Type, ID), value(_, _)).
 
 % * Floor Nodes ************************************************************************************
 
-% ~~ Number and Inits ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% ~~ Number, IDs and Init Facts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #program nodes(x, y, n).
 sizeX(x).
 sizeY(y).
 nodes(n).
 poss(object(node), value(at, (X, Y))) :- X = 1..x, Y = 1..y.
 n { init(object(node, x * (Y-1) + X), value(at, (X, Y))) : poss(object(node), value(at, (X, Y)))} n.
+% All nodes must be in one component (pairwise reachable)
 reachableNode(1).
 reachableNode(N2) :- reachableNode(N), init(object(node, N), value(at, (X, Y))), init(object(node, N2), value(at, (X + 1, Y))).
 reachableNode(N2) :- reachableNode(N), init(object(node, N), value(at, (X, Y))), init(object(node, N2), value(at, (X - 1, Y))).
@@ -28,19 +29,19 @@ reachableNode(N2) :- reachableNode(N), init(object(node, N), value(at, (X, Y))),
 
 % * Robots *****************************************************************************************
 
-% ~~ Number ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% ~~ Number and IDs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #program robots(min, max).
 1 { robotNum(N) : N = min..max } 1.
 object(robot, 1..N) : robotNum(N).
 
-% ~~ Init atoms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% ~~ Init Facts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #program robots_init.
 1 { init(object(robot, ID), value(at, (X,Y))) : poss(robot, at(X,Y)) } 1 :- object(robot, ID).
 
 
 % * Shelves ****************************************************************************************
 
-% ~~ Number ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% ~~ Number and IDs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 % via min/max bounds
 #program shelves(min, max).
@@ -59,26 +60,26 @@ storageNodeNum(N-H-S-P) :- N = #count{ ID : init(object(node, ID),_) }, % # node
 shelfNum(N) :- N = M * pct / 100; storageNodeNum(M). % percentage-based shelf coverage
 object(shelf, 1..N) :- shelfNum(N).
 
-% ~~ Init atoms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% ~~ Init Facts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #program shelves_init.
 1 { init(object(shelf, ID), value(at, (X,Y))) : poss(shelf, at(X,Y)) } 1 :- object(shelf, ID).
 
 
 % * Picking Stations *******************************************************************************
 
-% ~~ Number ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% ~~ Number and IDs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #program picking_stations(min, max).
 1 {pickingStationNum(N) : N = min..max} 1.
 object(pickingStation, 1..N) : pickingStationNum(N).
 
-% ~~ Init atoms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% ~~ Init Facts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #program picking_stations_init.
 1 { init(object(pickingStation, ID), value(at, (X, Y))) : poss(pickingStation, at(X, Y)) } 1 :- object(pickingStation, ID).
 
 
 % * Products ***************************************************************************************
 
-% ~~ Number  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% ~~ Number and IDs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #program products(min, max).
 1 { productNum(N) : N = min..max } 1.
 object(product, 1..N) : productNum(N).
@@ -225,16 +226,17 @@ dist_pickingStations(X) : X = SX / PN, sizeX(SX), pickingStationNum(PN). % dista
 
 
 % * Shelves Reachability ***************************************************************************
-#program reachable_layout().
-reachable(object(shelf, ID), node(X, Y)) :- reachable(object(shelf, ID), node(X-1, Y)), init(object(node, _), value(at, (X, Y))),
-                                           not init(object(shelf, _), value(at, (X, Y))).
-reachable(object(shelf, ID), node(X, Y)) :- reachable(object(shelf, ID), node(X+1, Y)), init(object(node, _), value(at, (X, Y))),
-                                           not init(object(shelf, _), value(at, (X, Y))).
-reachable(object(shelf, ID), node(X, Y)) :- reachable(object(shelf, ID), node(X, Y-1)), init(object(node, _), value(at, (X, Y))),
-                                           not init(object(shelf, _), value(at, (X, Y))).
+%     All shelves have to be reachable from each pickingstation w/o moving other shelves
+#program reachable_shelves().
+reachable(object(shelf, ID), node(X, Y))  :- reachable(object(shelf, ID), node(X-1, Y)), init(object(node, _), value(at, (X, Y))),
+                                             not init(object(shelf, _), value(at, (X, Y))).
+reachable(object(shelf, ID), node(X, Y))  :- reachable(object(shelf, ID), node(X+1, Y)), init(object(node, _), value(at, (X, Y))),
+                                             not init(object(shelf, _), value(at, (X, Y))).
+reachable(object(shelf, ID), node(X, Y))  :- reachable(object(shelf, ID), node(X, Y-1)), init(object(node, _), value(at, (X, Y))),
+                                             not init(object(shelf, _), value(at, (X, Y))).
 reachable(object(shelf, ID), node(X,  Y)) :- reachable(object(shelf, ID), node(X, Y+1)), init(object(node, _), value(at, (X, Y))),
-                                           not init(object(shelf, _), value(at, (X, Y))).
-reachable(object(shelf, ID), node(X, Y)) :- init(object(shelf, ID), value(at, (X, Y))).
+                                             not init(object(shelf, _), value(at, (X, Y))).
+reachable(object(shelf, ID), node(X, Y)) :-  init(object(shelf, ID), value(at, (X, Y))).
 
 :- init(object(pickingStation, StationID), value(at, (X,Y))), not reachable(object(shelf, ShelfID), node(X, Y)), object(shelf, ShelfID).
 

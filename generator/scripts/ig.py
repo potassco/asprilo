@@ -130,7 +130,7 @@ class Control(object):
             flag. Depending on the major layout type, there are further customization options
             available as follows.\n\n""")
         layout_ge_args = parser.add_argument_group("* General layout constraints")
-        layout_ge_args.add_argument("-R", "--reachable-layout",
+        layout_ge_args.add_argument("-R", "--reachable-shelves",
                                     help="""all shelves are reachable from all picking stations
                                     w/o moving other shelves""", action="store_true")
         layout_rd_args = parser.add_argument_group("* Constraints for the *random* layout")
