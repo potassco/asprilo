@@ -43,21 +43,21 @@ object(robot, 1..N) : robotNum(N).
 
 % ~~ Number and IDs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-% via min/max bounds
+% ... via min/max bounds
 #program shelves(min, max).
 1 { shelfNum(N) : N = min..max } 1.
 object(shelf, 1..N) : shelfNum(N).
 
-% or alternatively, via shelf coverage rate of "storage nodes", i.e.,
+% ... or alternatively, via shelf coverage rate of "storage nodes", i.e.,
 % nodes that are neither higway/parking/picking-station nodes
 #program shelf_coverage(pct).
-% # stoarge nodes = ...
-storageNodeNum(N-H-S-P) :- N = #count{ ID : init(object(node, ID),_) }, % # nodes -
-                           H = #count{ X, Y : highway(X, Y) },          % # highwaynodes -
-                           pickingStationNum(S),                        % # picking-stations -
-                           robotNum(P).                                 % # robot-parking-nodes
+% # storage nodes = ...
+storageNodeNum(N-H-S-P) :- nodes(N),                           % # nodes -
+                           H = #count{ X, Y : highway(X, Y) }, % # highwaynodes -
+                           pickingStationNum(S),               % # picking-stations -
+                           robotNum(P).                        % # robot-parking-nodes
 
-shelfNum(N) :- N = M * pct / 100; storageNodeNum(M). % percentage-based shelf coverage
+shelfNum(N) :- N = (M * pct / 100) + 1, storageNodeNum(M). % percentage-based shelf coverage
 object(shelf, 1..N) :- shelfNum(N).
 
 % ~~ Init Facts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
