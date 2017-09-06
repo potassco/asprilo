@@ -8,6 +8,7 @@ import random
 import time
 import argparse
 from math import fabs
+from math import log
 import copy
 import glob
 import threading, time
@@ -23,6 +24,8 @@ class InstanceGenerator(object):
         self._prg = None
         self._solve_opts = ["-t {0}".format(self._args.threads),
                             "--project",
+                            "--sign-def=rnd",
+                            "--sign-fix",
                             # "--opt-mode=optN",
                             "-n {0}".format(self._args.num)]
         self._inits = None
@@ -130,7 +133,7 @@ class InstanceGenerator(object):
             self._prg.ground([("highway_layout", [self._cluster_x, self._cluster_y,
                                                   self._args.beltway_width])])
         else:
-            self._prg.ground([("random_layout", [self._args.gap_size])])
+            self._prg.ground([("random_layout", [])])
 
         # object quantities and IDs contd.: depending on layout definitions
         if self._args.shelf_coverage:
@@ -162,6 +165,36 @@ class InstanceGenerator(object):
         # general rules
         self._prg.ground([("base", [])])
 
+        # Xor constraints
+        if self._args.sxor is not None:
+
+            # Get all the atoms
+            literals = [atom.symbol for atom in self._prg.symbolic_atoms.by_signature("init",2) if abs(atom.literal) != 1]
+                        
+            # Read grounded atoms and randomly add xor constraints
+            if self._args.sxor > 0:
+                estimateds = self._args.sxor
+            else:
+                estimateds = int(log(len(literals),2))
+            
+            print "adding %s xor constraints"%estimateds
+            constraints = []
+            terms = []
+
+            for i in range(estimateds):
+                size = random.randint(1, (len(literals) + 1) / 2)
+                lits = random.sample(literals, size)
+                parity = random.randint(0,1)
+                #print "constraint: %s, parity: %s, terms: %s"%(i+1, parity, lits)
+                constraints.append(("xor_constraints", [i+1, parity]))
+                for term in lits:
+                    terms.append(("xor_terms", [i+1, term]))
+
+            # Ground xor constraints
+            self._prg.ground(terms)
+            self._prg.ground(constraints)
+    
+                    
         # projection to subsets of init/2
         if self._args.prj_orders:
             self._prg.ground([("project_orders", [])])

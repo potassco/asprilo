@@ -66,7 +66,7 @@ class Control(object):
                             help="the number of picking stations")
         parser.add_argument("-u", "--product-units-total", type=Control.check_positive,
                             help="the total number of product units stored in the warehouse")
-        parser.add_argument("-N", "--num", type=int, default=1,
+        parser.add_argument("-N", "--num", type=Control.check_positive, default=1,
                             help="the number of instances to create")
         parser.add_argument("-C", "--console",
                             help="prints the instances to the console", action="store_true")
@@ -94,6 +94,8 @@ class Control(object):
                             help="""time to wait in seconds before
                             solving is aborted if not finished yet""")
         parser.add_argument("-D", "--debug", action="store_true", help="debug output")
+        parser.add_argument("-S", "--sxor", type=int, default=None,
+                            help="the number of xor constraints to create")
 
         product_args = parser.add_argument_group('product constraints')
         product_args.add_argument("-P", "--products", type=Control.check_positive,
@@ -122,10 +124,6 @@ class Control(object):
         layout_args.add_argument("-R", "--reachable-layout",
                                  help="""all shelves are reachable from all picking stations
                                  w/o moving other shelves""", action="store_true")
-        layout_args.add_argument("--gs", "--gap-size", type=Control.check_positive, dest="gap_size",
-                                 default=2,
-                                 help="""the maximum size of "gaps" (i.e., blocked node components)
-                                 in the floor grid.""")
         layout_args.add_argument("-H", "--highway-layout", action="store_true",
                                  help="Manhattan-style street grid using highway-nodes")
         layout_args.add_argument("-X", "--cluster-x", type=Control.check_positive, default=2,
