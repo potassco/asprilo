@@ -10,12 +10,7 @@ object(Type, ID) :- init(object(Type, ID), value(_, _)).
 
 
 % * Floor Nodes ************************************************************************************
-
-% ~~ Number and Inits ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #program nodes(x, y, n).
-sizeX(x).
-sizeY(y).
-nodes(n).
 poss(object(node), value(at, (X, Y))) :- X = 1..x, Y = 1..y.
 n { init(object(node, x * (Y-1) + X), value(at, (X, Y))) : poss(object(node), value(at, (X, Y)))} n.
 reachableNode(1).
@@ -87,10 +82,8 @@ object(product, 1..N) : productNum(N).
 % * Product Units **********************************************************************************
 
 % ~~ Number and init atoms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#program product_units(min, max, maxps).
-%  Arguments:
-%    min, max -- minimum and maximum of overall total number of product units
-%    maps     -- maximum number of a product's unit per shelf
+#program product_units(min, max, maxps). %  min and max of overall total number of product units,
+                                         %  and max number of a product's unit per shelf
 1 { poss(object(product, PID), value(on, (SID, NUM))) : NUM=1..maxps } 1 :- object(shelf, SID),  object(product, PID).
 { init(object(product, PID), value(on, (SID, NUM))) : poss(object(product, PID), value(on, (SID, NUM))) }.
 :- object(product, PID), not init(object(product, PID), value(on, (_, _))).
@@ -134,26 +127,11 @@ ordered(PID, C) :- C = #sum{ NUM, OID : init(object(order, OID), value(line, (PI
 
 
 % * Random Layout **********************************************************************************
-#program random_layout(g).
-% Arguments:
-%   g -- the maximum gaps component size
+#program random_layout().
 poss(pickingStation, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 poss(robot, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 poss(shelf, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 
-% ~~ Evenly spread out gaps ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-gap(SX * (Y-1) + X, X, Y) :- not init(object(node, _), value(at, (X, Y))), X=1..SX, Y=1..SY, sizeX(SX), sizeY(SY).
-gap_edge(ID1, ID2)  :- gap(ID1, X-1, Y),   gap(ID2, X, Y).
-gap_edge(ID1, ID2)  :- gap(ID1, X, Y-1),   gap(ID2, X, Y).
-gap_edge(ID1, ID2)  :- gap(ID1, X-1, Y-1), gap(ID2, X, Y).
-gap_edge(ID1, ID2)  :- gap(ID1, X-1, Y),   gap(ID2, X, Y-1).
-gap_edge(ID1, ID2)  :- gap_edge(ID2, ID1).
-gap_reach(ID1, ID2) :- gap_edge(ID1, ID2).
-gap_reach(ID1, ID3) :- gap_reach(ID1, ID2), gap_reach(ID2, ID3).
-% limit gap size and only allow 1/2 of all gap nodes to form a maximum size component
-:- gap(ID, _, _), g < { gap_reach(ID, _) }.
-gap_max(ID)         :- g { gap_reach(ID, _) } g, gap(ID, _, _).
-:- M = #count { ID : gap_max(ID) }, M > (SX * SY - N) / 2, nodes(N), sizeX(SX), sizeY(SY).
 
 % * Highway Layout *********************************************************************************
 #program highway_layout(x, y, beltway). % x/y storage cluster dimension; beltway-width
@@ -161,8 +139,8 @@ gap_max(ID)         :- g { gap_reach(ID, _) } g, gap(ID, _, _).
 % ~~ Create Manhattan-like grid of highway nodes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 % Max x-,y-coordinates
-%% sizeX(X) :- init(object(node, _), value(at, (X, _))), not init(object(node, _), value(at, (X + 1, _))).
-%% sizeY(Y) :- init(object(node, _), value(at, (_, Y))), not init(object(node, _), value(at, (_, Y + 1))).
+sizeX(X) :- init(object(node, _), value(at, (X, _))), not init(object(node, _), value(at, (X + 1, _))).
+sizeY(Y) :- init(object(node, _), value(at, (_, Y))), not init(object(node, _), value(at, (_, Y + 1))).
 
 % Beltway around shelf clusters
 beltway(X,Y) :-  init(object(node, _), value(at, (X, Y))), X <= beltway,
@@ -258,6 +236,14 @@ reachable(object(shelf, ID), node(X, Y)) :- init(object(shelf, ID), value(at, (X
 #minimize{ PID, OID, OID2 : init(object(order, OID), value(line, (PID, _))),
                             init(object(order, OID2), value(line, (PID, _))) }.
 
+
+% * XOR Constraints*******************************************************************
+#program xor_terms(id, term). % constraint id, term in constraint
+term(id,term).
+
+#program xor_constraints(id, parity). % constraint id, parity
+xor_constraint(id,parity).
+:- N = { init(O,V) : term(ID,init(O,V)) }, xor_constraint(ID,P), N\2!=P.
 
 
 % - PROJECTION TO SPECIFIC INIT ATOMS --------------------------------------------------------------
