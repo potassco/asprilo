@@ -1,0 +1,67 @@
+# Referential instance set compartmentalized into relevant sub-domains.
+
+global_settings: { "-N": 10 }
+
+standard_cases:
+  1:  { "-x": 10, "-y": 10, "-r": 5, "-s": 16, "-p": 4, "-P": 4, "-u": 32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  2:  { "-x": 10, "-y": 10, "-r": 5, "-s": 16, "-p": 4, "-P": 4, "-u": 32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  3:  { "-x": 12, "-y": 12, "-r": 6, "-s": 16, "-p": 5, "-P": 5, "-u": 32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  4:  { "-x": 10, "-y": 10, "-r": 4, "-s": 12, "-p": 3, "-P": 3, "-u": 20, "-o":  5, "-R": true, "-H": true, "--oap": true }
+  5:  { "-x":  8, "-y":  8, "-r": 4, "-s": 10, "-p": 2, "-P": 3, "-u": 16, "-o":  4, "-R": true, "-H": true, "--oap": true }
+  6:  { "-x": 14, "-y": 14, "-r": 7, "-s": 20, "-p": 6, "-P": 5, "-u": 48, "-o": 12, "-R": true, "-H": true, "--oap": true }
+  7:  { "-x":  9, "-y":  9, "-r": 4, "-s": 14, "-p": 4, "-P": 4, "-u": 32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  8:  { "-x": 10, "-y": 10, "-r": 4, "-s": 15, "-p": 3, "-P": 5, "-u": 24, "-o":  6, "-R": true, "-H": true, "--oap": true }
+  9:  { "-x": 10, "-y": 10, "-r": 5, "-s": 20, "-p": 5, "-P": 5, "-u": 48, "-o":  6, "-R": true, "-H": true, "--oap": true }
+  10: { "-x": 10, "-y": 10, "-r": 5, "-s": 20, "-p": 6, "-P": 5, "-u": 10, "-o":  5, "-R": true, "-H": true, "--oap": true }
+  
+tiny_cases: 
+  1x2a: { "-x": 1, "-y": 2, "-r": 1, "-s": 1, "-p": 1, "-P": 1, "-u":  1, "-o": 1,             "--oap": true }
+  1x2b: { "-x": 1, "-y": 2, "-r": 1, "-s": 1, "-p": 1, "-P": 2, "-u":  2, "-o": 2,             "--oap": true }
+  1x2c: { "-x": 1, "-y": 2, "-r": 1, "-s": 1, "-p": 1, "-P": 2, "-u":  4, "-o": 2,             "--oap": true }
+  2x2a: { "-x": 2, "-y": 2, "-r": 1, "-s": 1, "-p": 1, "-P": 1, "-u":  1, "-o": 1, "-R": true, "--oap": true }
+  2x2b: { "-x": 2, "-y": 2, "-r": 2, "-s": 2, "-p": 1, "-P": 2, "-u":  2, "-o": 2, "-R": true, "--oap": true }
+  2x2c: { "-x": 2, "-y": 2, "-r": 2, "-s": 2, "-p": 1, "-P": 2, "-u":  4, "-o": 2, "-R": true, "--oap": true }
+  3x3a: { "-x": 3, "-y": 3, "-r": 1, "-s": 1, "-p": 1, "-P": 1, "-u":  1, "-o": 1, "-R": true, "--oap": true }
+  3x3b: { "-x": 3, "-y": 3, "-r": 2, "-s": 2, "-p": 1, "-P": 2, "-u":  2, "-o": 2, "-R": true, "--oap": true }
+  3x3c: { "-x": 3, "-y": 3, "-r": 2, "-s": 2, "-p": 1, "-P": 2, "-u":  4, "-o": 2, "-R": true, "--oap": true }
+  4x4a: { "-x": 4, "-y": 4, "-r": 2, "-s": 3, "-p": 1, "-P": 2, "-u":  4, "-o": 2, "-R": true, "--oap": true }
+  4x4b: { "-x": 4, "-y": 4, "-r": 2, "-s": 6, "-p": 2, "-P": 4, "-u":  8, "-o": 4, "-R": true, "--oap": true }
+  4x4c: { "-x": 4, "-y": 4, "-r": 3, "-s": 6, "-p": 2, "-P": 6, "-u": 12, "-o": 6, "-R": true, "--oap": true }
+
+grid_scaling:
+  extreme: { "-x": 48, "-y": 48, "-r": 16, "-s": 64, "-p": 12, "-P": 8, "-u": 128, "-o": 32, "-R": true, "-H": true, "--oap": true }
+  huge:    { "-x": 26, "-y": 26, "-r":  5, "-s": 16, "-p":  4, "-P": 4, "-u":  32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  wide:    { "-x":  8, "-y": 30, "-r":  5, "-s": 16, "-p":  4, "-P": 4, "-u":  32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  small:   { "-x":  3, "-y":  3, "-r":  1, "-s":  2, "-p":  1, "-P": 2, "-u":   2, "-o":  2                                        }
+  tight:   { "-x": 10, "-y":  2, "-r":  5, "-s": 12, "-p":  2, "-P": 4, "-u":  16, "-o":  4, "-R": true                            }
+      
+robots_scaling:
+  extreme :    { "-x": 28, "-y": 28, "-r": 48, "-s": 64, "-p": 12, "-P": 8, "-u": 128, "-o": 32, "-R": true, "-H": true, "--oap": true }
+  many:        { "-x": 10, "-y": 10, "-r": 16, "-s": 16, "-p":  4, "-P": 4, "-u": 32,  "-o": 16, "-R": true, "-H": true, "--oap": true }
+  overwhelmed: { "-x": 10, "-y": 10, "-r":  8, "-s": 16, "-p":  1, "-P": 1, "-u": 16,  "-o": 16, "-R": true,             "--oap": true }
+  medium:      { "-x": 10, "-y": 10, "-r":  8, "-s": 16, "-p":  4, "-P": 4, "-u": 32,  "-o":  8, "-R": true, "-H": true, "--oap": true }
+  few:         { "-x": 10, "-y": 10, "-r":  2, "-s": 16, "-p":  4, "-P": 4, "-u": 32,  "-o":  8, "-R": true, "-H": true, "--oap": true }
+
+shelves_scaling:
+  extreme: { "-x": 28, "-y": 28, "-r": 16, "-s": 128, "-p": 12, "-P": 8, "-u": 128, "-o": 32, "-R": true, "-H": true, "--oap": true }
+  many:    { "-x": 10, "-y": 10, "-r": 5,  "-s": 32,  "-p": 4,  "-P": 4, "-u":  32,  "-o": 8, "-R": true, "-H": true, "--oap": true }
+  medium:  { "-x": 10, "-y": 10, "-r": 5,  "-s": 16,  "-p": 4,  "-P": 4, "-u":  32,  "-o": 8, "-R": true, "-H": true, "--oap": true }
+  stuck:   { "-x":  5,  "-y": 5, "-r": 5,  "-s": 25,  "-p": 2,  "-P": 5, "-u":  25,  "-o": 8, "-R": true,             "--oap": true }
+  few:     { "-x": 10, "-y": 10, "-r": 5,  "-s": 8,   "-p": 4,  "-P": 4, "-u":  32,  "-o": 8, "-R": true, "-H": true, "--oap": true }
+  one:     { "-x":  5,  "-y": 5, "-r": 5,  "-s": 1,   "-p": 15, "-P": 5, "-u":  25,  "-o": 8, "-R": true,             "--oap": true }
+      
+pickingstations_scaling:
+  extreme: { "-x": 28, "-y": 28, "-r": 16, "-s": 64, "-p": 56, "-P": 8, "-u": 128, "-o": 32, "-R": true, "-H": true, "--oap": true }
+  many:    { "-x": 10, "-y": 10, "-r": 5,  "-s": 16, "-p": 8,  "-P": 4, "-u":  32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  few:     { "-x": 10, "-y": 10, "-r": 5,  "-s": 16, "-p": 4,  "-P": 4, "-u":  32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  one:     { "-x": 10, "-y": 10, "-r": 5,  "-s": 16, "-p": 1,  "-P": 4, "-u":  32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+
+products_units_orders_scaling:
+  extreme:           { "-x": 28, "-y": 28, "-r": 16, "-s": 64, "-p": 12, "-P": 128, "-u": 256, "-o": 64, "-R": true, "-H": true, "--oap": true }
+  many_units:        { "-x": 10, "-y": 10, "-r":  5, "-s": 16, "-p":  4, "-P":   4, "-u":  64, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  few_units:         { "-x": 10, "-y": 10, "-r":  5, "-s": 16, "-p":  4, "-P":   4, "-u":   4, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  many_common_units: { "-x": 10, "-y": 10, "-r":  5, "-s": 16, "-p":  4, "-P":   1, "-u":  64, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  many_rare_units:   { "-x": 10, "-y": 10, "-r":  5, "-s": 16, "-p":  4, "-P":  64, "-u":  64, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  all_units_ordered: { "-x": 10, "-y": 10, "-r":  5, "-s": 16, "-p":  4, "-P":   4, "-u":  32, "-o": 32, "-R": true, "-H": true, "--oap": true }
+  few_units_ordered: { "-x": 10, "-y": 10, "-r":  5, "-s": 16, "-p":  4, "-P":   4, "-u":  32, "-o":  4, "-R": true, "-H": true, "--oap": true }
+              

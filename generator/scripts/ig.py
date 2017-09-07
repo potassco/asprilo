@@ -12,6 +12,7 @@ import copy
 import glob
 import threading, time
 import signal
+import json
 import clingo
 
 # Add generator module path to sys.path
@@ -39,14 +40,22 @@ class Control(object):
     """Runs InstanceGenerator once or multiple times."""
 
     def __init__(self):
-        self._cl_parser, self._cl_args = self.parse_cl_args()
+        self._cl_parser, self._cl_args = self._parse_cl_args() #TODO: lift arg parsing to main, pass as argument
         self._check_related_cl_args()
         if self._cl_args.split:
-            self.split_up_instances()
+            self._run_split()
         else:
-            self.run_once()
+            self._run()
 
-    def parse_cl_args(self):
+    def _parse_cl_args(self, args=None): # TODO: lift to pure function to be called by main()
+        """Argument paring method.
+
+        Parses command line arguments by default or, alternatively, an optional list of arguments
+        passed by parameter.
+
+        :type list: A list of argument strings or None.
+
+        """
         parser = argparse.ArgumentParser(prog='ig',
                                          formatter_class=SmartFormatter,
                                          add_help=False)
@@ -124,7 +133,7 @@ class Control(object):
                                 help="Each product should at least be ordered once.",
                                 dest="order_all_products")
 
-        layout_all_args = parser.add_argument_group(
+        layout_args = parser.add_argument_group(
             "Layout constrains",
             """There are two major layout categories: *random* as default, or *highway* via the -H
             flag. Depending on the major layout type, there are further customization options
@@ -163,7 +172,7 @@ class Control(object):
                                   help="""splits instances into warehouse and order-related facts;
                                   takes as arguments 1.) the number of warehouses and 2.) the orders
                                   per warehouse to create, resp.""")
-        return parser, parser.parse_args()
+        return parser, parser.parse_args(args)
 
     def _check_related_cl_args(self):
         """Checks consistency wrt. related command line args."""
@@ -177,7 +186,7 @@ class Control(object):
             raise ValueError("""Only single threaded execution (-t 1) possible when splitting
             up (--split) instances""")
 
-    def run_once(self):
+    def _run(self):
         """Regular execution."""
         sig_handled = [False] # Outter flag to indicate sig handler usage
 
@@ -208,10 +217,10 @@ class Control(object):
         finally:
             igen.interrupt()
 
-    def split_up_instances(self):
-        """Execution with split instances."""
+    def _run_split(self):
+        """Execution with split up instances."""
         num_wh_inst, num_order_inst = self._cl_args.split
-        parser = argparse.ArgumentParser()
+        argparse.ArgumentParser()
         cl_args_bak = copy.deepcopy(vars(self._cl_args))
 
         # warehouse instances
@@ -221,10 +230,10 @@ class Control(object):
                                          '-N', str(num_wh_inst)],
                                    namespace=self._cl_args)
         if not self._cl_args.quiet:
-                print "Creating **warehouses** using solve args: " + str(self._cl_args)
-        dest_dirs=self.run_once()
+            print "Creating **warehouses** using solve args: " + str(self._cl_args)
+        dest_dirs = self._run()
 
-        #orders instances and merge
+        # orders instances and merge
         for winst in xrange(1, num_wh_inst+1):
 
             # orders only
@@ -236,20 +245,21 @@ class Control(object):
             self._cl_parser.parse_args(
                 args=['-d', dest_dirs[winst-1],
                       '--instance-dir-suffix', '/orders',
-                       '-T', path_to_warehouse_file,
+                      '-T', path_to_warehouse_file,
                       '--prj-orders',
                       '-N', str(num_order_inst)],
                 namespace=self._cl_args)
             if not self._cl_args.quiet:
                 print "Creating **orders** using solve args: " + str(self._cl_args)
-            self.run_once()
+            self._run()
 
             # merge
             for oinst in xrange(1, len(glob.glob(dest_dirs[winst-1] + '/orders/*.lp')) + 1):
                 cl_args = vars(self._cl_args)
                 cl_args.clear()
                 cl_args.update(copy.deepcopy(cl_args_bak))
-                path_to_order_file = glob.glob(dest_dirs[winst-1] + '/orders/*N{0}.lp'.format(oinst))[0]
+                path_to_order_file = glob.glob(dest_dirs[winst-1] +
+                                               '/orders/*N{0}.lp'.format(oinst))[0]
                 self._cl_parser.parse_args(
                     args=['-d', dest_dirs[winst-1] + '/merged',
                           '-T', path_to_warehouse_file, path_to_order_file,
@@ -258,9 +268,11 @@ class Control(object):
                     namespace=self._cl_args)
                 if not self._cl_args.quiet:
                     print "Creating **merged instances** using solve args: " + str(self._cl_args)
-                self.run_once()
+                self._run()
 
 def main():
+    """Main."""
+    # TODO: batch injection here
     Control()
 
 if __name__ == '__main__':
