@@ -39,23 +39,25 @@ class InstanceGenerator(object):
         else:
             self._cluster_y = self._args.cluster_y
 
-    def on_model(self, m):
+    def on_model(self, model):
+        """Call back method for clingo."""
         self._instance_count += 1
         self._inits = []
         if self._args.console:
             print "\n"
         if self._args.console and not self._args.quiet:
             print str(self._instance_count) + ". instance:"
-        atoms_list = m.symbols(terms=True)
+        atoms_list = model.symbols(terms=True)
         if self._args.debug:
             print '******DEBUG MODE: Found Model:'
-            for atm in m.symbols(atoms=True):
+            for atm in model.symbols(atoms=True):
                 print atm
+        atm = None
         for atm in [atm for atm in atoms_list if atm.name == "init"]:
             self._inits.append(atm)
         self._update_object_counter(atoms_list)
         print self._object_counters
-        self.save()
+        self._save()
 
     def _update_object_counter(self, atoms_list):
         '''Count objects in atom list.'''
@@ -90,6 +92,7 @@ class InstanceGenerator(object):
                                                           value_value.arguments[1].number)
 
     def solve(self):
+        """Grounds and solves the relevant programs for instance generation."""
         # if not self._args.quiet:
         #     print "Used args for solving: " + str(self._args)
 
@@ -188,7 +191,8 @@ class InstanceGenerator(object):
             print "Search space exhausted: " + str(solve_result.exhausted)
 
 
-    def save(self):
+    def _save(self):
+        """Writes instance to file."""
         self._inits.sort()
         file_name = ''
         if not self._args.console:
@@ -220,36 +224,32 @@ class InstanceGenerator(object):
             file_name = (dest_dir + "/" + local_name + ".lp")
         else:
             file_name = "/dev/stdout"
-        ofile = open(file_name, "w")
         try:
-            #head
-            ofile.write("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-            ofile.write("\n% Grid Size X:                      " + str(self._object_counters["x"]))
-            ofile.write("\n% Grid Size Y:                      " + str(self._object_counters["y"]))
-            ofile.write("\n% Number of Nodes:                  " + str(self._object_counters["node"]))
-            ofile.write("\n% Number of Highway Nodes:          " + str(self._object_counters["highway"]))
-            ofile.write("\n% Number of Robots:                 " + str(self._object_counters["robot"]))
-            ofile.write("\n% Number of Shelves:                " + str(self._object_counters["shelf"]))
-            ofile.write("\n% Number of Picking Stations:       " + str(self._object_counters["pickingStation"]))
-            ofile.write("\n% Number of Products:               " + str(self._object_counters["product"]))
-            ofile.write("\n% Number of Product Units in Total: " + str(self._object_counters["units"]))
-            ofile.write("\n% Number of Orders:                 " + str(self._object_counters["order"]))
-            ofile.write("\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+            with open(file_name, "w") as ofile:
+                #head
+                ofile.write("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+                ofile.write("\n% Grid Size X:                      " + str(self._object_counters["x"]))
+                ofile.write("\n% Grid Size Y:                      " + str(self._object_counters["y"]))
+                ofile.write("\n% Number of Nodes:                  " + str(self._object_counters["node"]))
+                ofile.write("\n% Number of Highway Nodes:          " + str(self._object_counters["highway"]))
+                ofile.write("\n% Number of Robots:                 " + str(self._object_counters["robot"]))
+                ofile.write("\n% Number of Shelves:                " + str(self._object_counters["shelf"]))
+                ofile.write("\n% Number of Picking Stations:       " + str(self._object_counters["pickingStation"]))
+                ofile.write("\n% Number of Products:               " + str(self._object_counters["product"]))
+                ofile.write("\n% Number of Product Units in Total: " + str(self._object_counters["units"]))
+                ofile.write("\n% Number of Orders:                 " + str(self._object_counters["order"]))
+                ofile.write("\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
 
-            #body
-            ofile.write("#program base.\n\n")
-            # if not (self._args.grid_x is None or self._args.grid_y is None):
-            #     ofile.write("timelimit("+ str(int(self._args.grid_x * self._args.grid_y * 1.5))
-            #                 + ").\n\n")
-
-            ofile.write("% init\n")
-            for obj in self._inits:
-                ofile.write(str(obj) + ".\n")
-
-        except IOError:
-            ofile.close()
-            return
-        ofile.close()
+                #body
+                ofile.write("#program base.\n\n")
+                # if not (self._args.grid_x is None or self._args.grid_y is None):
+                #     ofile.write("timelimit("+ str(int(self._args.grid_x * self._args.grid_y * 1.5))
+                #                 + ").\n\n")
+                ofile.write("% init\n")
+                for obj in self._inits:
+                    ofile.write(str(obj) + ".\n")
+        except IOError as err:
+            print "IOError while trying to write instance file \'{}\': {}".format(file_name, err)
         return
 
     def interrupt(self):

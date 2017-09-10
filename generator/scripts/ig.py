@@ -13,6 +13,9 @@ import glob
 import threading, time
 import signal
 import json
+from collections import OrderedDict, Iterable
+from pprint import pprint
+import yaml
 import clingo
 
 # Add generator module path to sys.path
@@ -38,22 +41,202 @@ class InterruptThread(threading.Thread):
 
 class Control(object):
     """Runs InstanceGenerator once or multiple times."""
-
     def __init__(self):
-        self._cl_parser, self._cl_args = self._parse_cl_args() #TODO: lift arg parsing to main, pass as argument
-        self._check_related_cl_args()
-        if self._cl_args.split:
-            self._run_split()
-        else:
-            self._run()
+        self._cl_parser, self._cl_args = Control._parse_cl_args()
 
-    def _parse_cl_args(self, args=None): # TODO: lift to pure function to be called by main()
+    def run(self):
+        """Main method to dispatch instance generation."""
+        if self._cl_args.batch:
+            self._run_batch()
+        else:
+            self._run_once()
+
+    def _run_once(self):
+        """Regular single instance generation."""
+        self._cl_parser, self._cl_args = Control._parse_cl_args()
+        if self._cl_args.split:
+            self._gen_split()
+        else:
+            self._gen()
+
+    def _run_batch(self):
+        """Runs batch_file job of instance generations."""
+        # TODO: method to get each single instance generation task
+        try:
+            with open(self._cl_args.batch, 'r') as batch_file:
+                invocations = self._extract_invocations(batch_file.read())
+        except IOError as err:
+            print "IOError while trying to open batch file \'{}\': {}".format(self._cl_args.batch,
+                                                                              err)
+
+    def _extract_invocations(self, batch):
+        """Returns the required invocations from a batch job specification.
+
+        :param str batch: a batch job specification.
+        :returns: a list of list of command line parameters representing the list of single instance
+                  generation tasks to process
+        :rtype: list of lists of strings
+
+        """
+        def odict_constructor(loader, node):
+            """OrderedDict constructor for yaml parser."""
+            return OrderedDict(loader.construct_pairs(node))
+
+        yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, odict_constructor)
+        content = yaml.load(batch)
+        # print content
+        invocations = []
+        track = []
+        stack = [content.iteritems()]
+        visit_next = None
+        prev_leaf = False
+        while stack or visit_next:
+            if visit_next:
+                itr = visit_next
+                visit_next = None
+            else:
+                itr = stack.pop()
+                if track:
+                    track.pop()
+            try:
+                key, val = itr.next()
+            except StopIteration:
+                if prev_leaf:
+                    print "Last LEAF track: " + str(track)
+                    invocations.append(list(track))
+                    track.pop()
+                    track.pop()
+                    prev_leaf = False
+            else:
+                stack.append(itr)
+                print "**vis** " + str(key) + " | " + str(val)
+                if isinstance(val, OrderedDict):
+                    track.append(key)
+                    visit_next = val.iteritems()
+                    prev_leaf = False
+                elif key:
+                    print "LEAF DETECTED: " + str(key) + " :: " + str(val)
+                    track.extend([key, val])
+                    prev_leaf = True
+            key = val = None
+            print "TRACK: " + str(track)
+        pprint("\nInovc:\n")
+        pprint(invocations)
+        return invocations
+
+    @staticmethod
+    def _filter_batch_spec(dct, prefix):
+        if not isinstance(d, dict):
+            return d, prefix, False
+        else:
+            return d.keys(), True
+
+    def _gen(self):
+        """Regular instance generation."""
+        sig_handled = [False] # Outter flag to indicate sig handler usage
+
+        class TimeoutError(Exception):
+            pass
+
+        def sig_handler(signum, frame):
+            sig_handled[0] = True
+            if signum == signal.SIGINT:
+                print "\n! Received Keyboard Interruption (Ctrl-C).\n"
+                raise KeyboardInterrupt
+            elif signum == signal.SIGALRM:
+                print "\n! Solve call timed out!\n"
+                raise TimeoutError()
+
+        signal.signal(signal.SIGINT, sig_handler)
+        signal.signal(signal.SIGALRM, sig_handler)
+        igen = InstanceGenerator(self._cl_args)
+        try:
+            signal.alarm(self._cl_args.wait)
+            igen.solve()
+            return igen.dest_dirs
+        except Exception as exc:
+            if sig_handled[0]:
+                pass
+            else:
+                print type(exc).__name__ + ':\n' + str(exc)
+        finally:
+            igen.interrupt()
+
+    def _gen_split(self):
+        """Execution with split up instances."""
+        num_wh_inst, num_order_inst = self._cl_args.split
+        argparse.ArgumentParser()
+        cl_args_bak = copy.deepcopy(vars(self._cl_args))
+
+        # warehouse instances
+        self._cl_parser.parse_args(args=['-d', self._cl_args.directory + '/warehouse_',
+                                         '--instance-dir',
+                                         '--prj-warehouse',
+                                         '-N', str(num_wh_inst)],
+                                   namespace=self._cl_args)
+        if not self._cl_args.quiet:
+            print "Creating **warehouses** using solve args: " + str(self._cl_args)
+        dest_dirs = self._gen()
+
+        # orders instances and merge
+        for winst in xrange(1, num_wh_inst+1):
+
+            # orders only
+            _cl_args = vars(self._cl_args)
+            _cl_args.clear()
+            _cl_args.update(copy.deepcopy(cl_args_bak))
+            _cl_args['oap'] = False
+            path_to_warehouse_file = glob.glob(dest_dirs[winst-1] + '/*.lp')[0]
+            self._cl_parser.parse_args(
+                args=['-d', dest_dirs[winst-1],
+                      '--instance-dir-suffix', '/orders',
+                      '-T', path_to_warehouse_file,
+                      '--prj-orders',
+                      '-N', str(num_order_inst)],
+                namespace=self._cl_args)
+            if not self._cl_args.quiet:
+                print "Creating **orders** using solve args: " + str(self._cl_args)
+            self._gen()
+
+            # merge
+            for oinst in xrange(1, len(glob.glob(dest_dirs[winst-1] + '/orders/*.lp')) + 1):
+                _cl_args = vars(self._cl_args)
+                _cl_args.clear()
+                _cl_args.update(copy.deepcopy(cl_args_bak))
+                path_to_order_file = glob.glob(dest_dirs[winst-1] +
+                                               '/orders/*N{0}.lp'.format(oinst))[0]
+                self._cl_parser.parse_args(
+                    args=['-d', dest_dirs[winst-1] + '/merged',
+                          '-T', path_to_warehouse_file, path_to_order_file,
+                          '--instance-count', str(oinst),
+                          '-N', '1'],
+                    namespace=self._cl_args)
+                if not self._cl_args.quiet:
+                    print "Creating **merged instances** using solve args: " + str(self._cl_args)
+                self._gen()
+
+    def _check_related_cl_args(self):
+        """Checks consistency wrt. related command line args."""
+        if self._cl_args.batch_file and len(self._cl_args) > 1:
+            raise ValueError("Batch jobs do not accept additional parameters via command line")
+        if self._cl_args.shelves and self._cl_args.shelf_coverage:
+            raise ValueError("""Number of shelves specified by both quantity (-s) and
+            coverage rate (--sc)""")
+        if self._cl_args.products and self._cl_args.product_units_total:
+            if self._cl_args.products > self._cl_args.product_units_total:
+                raise ValueError("Product_units_total must be smaller or equal to products")
+        if self._cl_args.threads > 1 and self._cl_args.split:
+            raise ValueError("""Only single threaded execution (-t 1) possible when splitting
+            up (--split) instances""")
+
+    @staticmethod
+    def _parse_cl_args(args=None):
         """Argument paring method.
 
-        Parses command line arguments by default or, alternatively, an optional list of arguments
-        passed by parameter.
+         Parses command line arguments by default or, alternatively, an optional list of arguments
+         passed by parameter.
 
-        :type list: A list of argument strings or None.
+         :type list: A list of argument strings or None.
 
         """
         parser = argparse.ArgumentParser(prog='ig',
@@ -74,8 +257,8 @@ class Control(object):
                                 help="the number of shelves")
         basic_args.add_argument("--sc", "--shelf-coverage", type=check_positive,
                                 help="""the percentage of storage nodes covered by shelves; storage
-                                nodes are those nodes that are not a highway node nor occupied by a
-                                robot or station""",
+                                 nodes are those nodes that are not a highway node nor occupied by a
+                                 robot or station""",
                                 dest='shelf_coverage')
         basic_args.add_argument("-p", "--picking-stations", type=check_positive,
                                 help="the number of picking stations")
@@ -91,14 +274,14 @@ class Control(object):
                                 help="the directory to safe the files")
         basic_args.add_argument("--instance-dir", action="store_true",
                                 help="""each instance is stored in unique directory where the
-                                path is the concatenation of \'<DIRECTORY> <INSTANCE-NAME>/\'""")
+                                 path is the concatenation of \'<DIRECTORY> <INSTANCE-NAME>/\'""")
         basic_args.add_argument("--instance-dir-suffix", type=str, default='',
                                 help="""additional instance dir suffix, i.e., each instance is
-                                stored in unique directory where the path is the concatenation of
-                                \'<DIRECTORY> <INSTANCE-NAME> <SUFFIX>\'""")
+                                 stored in unique directory where the path is the concatenation of
+                                 \'<DIRECTORY> <INSTANCE-NAME> <SUFFIX>\'""")
         basic_args.add_argument("--instance-count", type=str,
                                 help="""each instance gets the given value as running number instead
-                                of using its rank in the enumeration of clasp""")
+                                 of using its rank in the enumeration of clasp""")
         basic_args.add_argument("-f", "--name-prefix", type=str, default="",
                                 help="the name prefix that eyery file name will contain")
         basic_args.add_argument("-v", "--version", help="show the current version",
@@ -107,8 +290,11 @@ class Control(object):
                                 help="run clingo with THREADS threads")
         basic_args.add_argument("-w", "--wait", type=check_positive, default=300,
                                 help="""time to wait in seconds before
-                                solving is aborted if not finished yet""")
+                                 solving is aborted if not finished yet""")
         basic_args.add_argument("-D", "--debug", action="store_true", help="debug output")
+        basic_args.add_argument("-J", "--batch", type=str, metavar="JOB",
+                                help="""a batch_file job of multiple instance generations specified by
+                                 a job file""")
 
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,
@@ -162,118 +348,24 @@ class Control(object):
 
         project_args = parser.add_argument_group("Projection and template options")
         project_args.add_argument("-T", "--template", nargs='*', type=str, default=[],
-                                  help="""every created instance will contain all atoms of the
-                                  template(s) (defined in #program base)""")
+                                  help="""every created instance will contain all atoms
+                                  defined in #program base of the template file(s)""")
         project_args.add_argument("--prj-orders", action="store_true",
                                   help='project enumeration to order-related init/2 atoms')
         project_args.add_argument("--prj-warehouse", action="store_true",
                                   help='project enumeration to warehouse-related init/2 atoms')
         project_args.add_argument("--split", nargs=2, action='store', type=check_positive,
+                                  metavar="NUM",
                                   help="""splits instances into warehouse and order-related facts;
                                   takes as arguments 1.) the number of warehouses and 2.) the orders
                                   per warehouse to create, resp.""")
         return parser, parser.parse_args(args)
 
-    def _check_related_cl_args(self):
-        """Checks consistency wrt. related command line args."""
-        if self._cl_args.shelves and self._cl_args.shelf_coverage:
-            raise ValueError("""Number of shelves specified by both quantity (-s) and
-            coverage rate (--sc)""")
-        if self._cl_args.products and self._cl_args.product_units_total:
-            if self._cl_args.products > self._cl_args.product_units_total:
-                raise ValueError("Product_units_total must be smaller or equal to products")
-        if self._cl_args.threads > 1 and self._cl_args.split:
-            raise ValueError("""Only single threaded execution (-t 1) possible when splitting
-            up (--split) instances""")
 
-    def _run(self):
-        """Regular execution."""
-        sig_handled = [False] # Outter flag to indicate sig handler usage
-
-        class TimeoutError(Exception):
-            pass
-
-        def sig_handler(signum, frame):
-            sig_handled[0] = True
-            if signum == signal.SIGINT:
-                print "\n! Received Keyboard Interruption (Ctrl-C).\n"
-                raise KeyboardInterrupt
-            elif signum == signal.SIGALRM:
-                print "\n! Solve call timed out!\n"
-                raise TimeoutError()
-
-        signal.signal(signal.SIGINT, sig_handler)
-        signal.signal(signal.SIGALRM, sig_handler)
-        igen = InstanceGenerator(self._cl_args)
-        try:
-            signal.alarm(self._cl_args.wait)
-            igen.solve()
-            return igen.dest_dirs
-        except Exception as exc:
-            if sig_handled[0]:
-                pass
-            else:
-                print type(exc).__name__ + ':\n' + str(exc)
-        finally:
-            igen.interrupt()
-
-    def _run_split(self):
-        """Execution with split up instances."""
-        num_wh_inst, num_order_inst = self._cl_args.split
-        argparse.ArgumentParser()
-        cl_args_bak = copy.deepcopy(vars(self._cl_args))
-
-        # warehouse instances
-        self._cl_parser.parse_args(args=['-d', self._cl_args.directory + '/warehouse_',
-                                         '--instance-dir',
-                                         '--prj-warehouse',
-                                         '-N', str(num_wh_inst)],
-                                   namespace=self._cl_args)
-        if not self._cl_args.quiet:
-            print "Creating **warehouses** using solve args: " + str(self._cl_args)
-        dest_dirs = self._run()
-
-        # orders instances and merge
-        for winst in xrange(1, num_wh_inst+1):
-
-            # orders only
-            cl_args = vars(self._cl_args)
-            cl_args.clear()
-            cl_args.update(copy.deepcopy(cl_args_bak))
-            cl_args['oap'] = False
-            path_to_warehouse_file = glob.glob(dest_dirs[winst-1] + '/*.lp')[0]
-            self._cl_parser.parse_args(
-                args=['-d', dest_dirs[winst-1],
-                      '--instance-dir-suffix', '/orders',
-                      '-T', path_to_warehouse_file,
-                      '--prj-orders',
-                      '-N', str(num_order_inst)],
-                namespace=self._cl_args)
-            if not self._cl_args.quiet:
-                print "Creating **orders** using solve args: " + str(self._cl_args)
-            self._run()
-
-            # merge
-            for oinst in xrange(1, len(glob.glob(dest_dirs[winst-1] + '/orders/*.lp')) + 1):
-                cl_args = vars(self._cl_args)
-                cl_args.clear()
-                cl_args.update(copy.deepcopy(cl_args_bak))
-                path_to_order_file = glob.glob(dest_dirs[winst-1] +
-                                               '/orders/*N{0}.lp'.format(oinst))[0]
-                self._cl_parser.parse_args(
-                    args=['-d', dest_dirs[winst-1] + '/merged',
-                          '-T', path_to_warehouse_file, path_to_order_file,
-                          '--instance-count', str(oinst),
-                          '-N', '1'],
-                    namespace=self._cl_args)
-                if not self._cl_args.quiet:
-                    print "Creating **merged instances** using solve args: " + str(self._cl_args)
-                self._run()
 
 def main():
     """Main."""
-    # TODO: batch injection here
-    Control()
+    Control().run()
 
 if __name__ == '__main__':
     sys.exit(main())

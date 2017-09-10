@@ -1,0 +1,13 @@
+# Referential instance set compartmentalized into relevant sub-domains.
+
+global_settings: { "-N": 10 }
+
+standard_cases:
+    1:  { "-x": 10, "-y": 10, "-r": 5, "-s": 16, "-p": 4, "-P": 4, "-u": 32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  # 2:  { "-x": 10, "-y": 10, "-r": 5, "-s": 16, "-p": 4, "-P": 4, "-u": 32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  # 3:  { "-x": 12, "-y": 12, "-r": 6, "-s": 16, "-p": 5, "-P": 5, "-u": 32, "-o":  8, "-R": true, "-H": true, "--oap": true }
+
+# products_units_orders_scaling:
+#   extreme:           { "-x": 28, "-y": 28, "-r": 16, "-s": 64, "-p": 12, "-P": 128, "-u": 256, "-o": 64, "-R": true, "-H": true, "--oap": true }
+  # many_units:        { "-x": 10, "-y": 10, "-r":  5, "-s": 16, "-p":  4, "-P":   4, "-u":  64, "-o":  8, "-R": true, "-H": true, "--oap": true }
+  # few_units:         { "-x": 10, "-y": 10, "-r":  5, "-s": 16, "-p":  4, "-P":   4, "-u":   4, "-o":  8, "-R": true, "-H": true, "--oap": true }
