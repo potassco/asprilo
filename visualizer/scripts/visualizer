@@ -13,7 +13,7 @@ from visualizer.network import *
 from visualizer.gui import *
 from visualizer.configuration import *
 
-VERSION = '0.10.4'
+VERSION = '0.10.5'
 
 class VisualizerWindow(QMainWindow):
     def __init__(self):
@@ -41,6 +41,9 @@ class VisualizerWindow(QMainWindow):
                                     type=str, default = 'asprilo')
         self._argument_parser.add_argument('-s', '--start_solver',
                                     help='starts the default solver in the init file',
+                                    action='store_true')
+        self._argument_parser.add_argument('-i', '--start_simulator',
+                                    help='starts the default simulator in the init file',
                                     action='store_true')
         self._argument_parser.add_argument('-v', '--version',
                                     help='show the current version', 
@@ -154,6 +157,9 @@ class VisualizerWindow(QMainWindow):
         if self._args.start_solver:
             self._init_solver_dialog.on_ok(None)
 
+        if self._args.start_simulator:
+            self._init_simulator_dialog.on_ok(None)
+
         for file_name in self._args.templates:
             self._asp_parser.parse_file(file_name)
         for file_name in self._args.layouts:
@@ -262,14 +268,23 @@ class VisualizerWindow(QMainWindow):
         menu_solver.addAction(action)
         self.addAction(action)
 
+        action = QAction('Fast Simulate', self)
+        action.setShortcut('Ctrl+D')
+        action.setStatusTip('Connect the visualizer to a simulator and start simulating')
+        action.triggered.connect((lambda: 
+            self.skip_server_dialog(self._connect_simulator_dialog, 
+            self._simulator_socket)))
+        menu_solver.addAction(action)
+        self.addAction(action)
+
         action = QAction('Initialize solver', self)
-        action.setShortcut('Ctrl + I')
+        action.setShortcut('Ctrl+I')
         action.setStatusTip('Run a solver script')
         action.triggered.connect(self._init_solver_dialog.show)
         menu_solver.addAction(action)
 
         action = QAction('Initialize simulator', self)
-        action.setShortcut('Ctrl + N')
+        action.setShortcut('Ctrl+N')
         action.setStatusTip('Run a simulator script')
         action.triggered.connect(self._init_simulator_dialog.show)
         menu_solver.addAction(action)

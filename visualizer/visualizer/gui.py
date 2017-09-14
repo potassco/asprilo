@@ -610,6 +610,8 @@ class OrderTable(QTableWidget):
     def remove_request(self, order, product_id):
         self._menu.hide()
         order.remove_request(product_id)
+        if order.get_num_requests() == 0:
+            self._model.remove_item(order)
         self._model.update_windows()
 
 class OrderWidget(QSplitter):

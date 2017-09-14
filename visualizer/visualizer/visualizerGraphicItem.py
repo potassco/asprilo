@@ -20,7 +20,7 @@ def calculate_color(first_color, second_color, multiplier):
                 blue[0] + (blue[1] - blue[0]) * multiplier)
 
 class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
-    def __init__(self, ID = 0, x = 0, y = 0):
+    def __init__(self, ID = '0', x = 0, y = 0):
         QGraphicsItem.__init__(self)
         visualizerItem.VisualizerItem.__init__(self)
         self._kind_name = ''

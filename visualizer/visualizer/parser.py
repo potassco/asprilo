@@ -130,11 +130,12 @@ class AspParser(object):
                 traceback.print_exc()
             print ('invalid init: init(' + str(obj) + ', ' + str(value) + ')')
 
-    def done_instance(self):
+    def done_instance(self, enable_auto_solve = True):
         self._model.accept_new_items()
         self._model.update_windows()
         if (self._solver is not None
-            and configuration.config.get('visualizer', 'auto_solve')):
+            and configuration.config.get('visualizer', 'auto_solve') 
+            and enable_auto_solve):
             self._solver.set_model(self._model)
             self._solver.solve()
 

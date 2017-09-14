@@ -150,6 +150,7 @@ class SolverSocket(VisualizerSocket):
 
     def model_expanded(self, msg):
         self.send(msg)
+        self._waiting = True
 
     def receive(self):
         if self._s is None or self._parser is None or self._model is None:
@@ -173,7 +174,6 @@ class SolverSocket(VisualizerSocket):
         if self._s == None or self._model == None: return -1
         self._s.send('%$RESET.')
         self._model.set_editable(False)
-        self._model.clear_actions()
         self._model.restart()
         for atom in self._model.to_init_str():        #send instance
             self._s.send(str(atom))
@@ -193,6 +193,8 @@ class SimulatorSocket(VisualizerSocket):
             return -1
 
         data = self._receive_data()
+        empty = True
+        reset = False
         if data is None:
             return
         if data == '':
@@ -202,9 +204,17 @@ class SimulatorSocket(VisualizerSocket):
             if len(str_atom) != 0 and not (len(str_atom) == 1 and str_atom[0] == '\n'):
                 if str_atom == '%$RESET':
                     self._parser.clear_model()
+                    reset = True
+                    empty = False
                 else:
                     self._parser.on_atom(clingo.parse_term(str_atom))
-        self._parser.done_instance()
+                    empty = False
+        if not empty:
+            self._parser.done_instance(reset)
+
+    def connect(self, host = None, port = None):
+        VisualizerSocket.connect(self, host, port)
+        self.run()
 
     def run(self):
         self.run_connection()
