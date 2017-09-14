@@ -84,52 +84,62 @@ class Control(object):
 
         yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, odict_constructor)
         content = yaml.load(batch)
-        # print content
+        print content
         invocations = []
-        track = []
+        path = []
         stack = [content.iteritems()]
         visit_next = None
         prev_leaf = False
         while stack or visit_next:
+            print "Current path: " + str(path)
             if visit_next:
                 itr = visit_next
-                visit_next = None
             else:
                 itr = stack.pop()
-                if track:
-                    track.pop()
+                if path and not prev_leaf:
+                    print ">>>POP PATH: " + str(path.pop())
             try:
                 key, val = itr.next()
             except StopIteration:
-                if prev_leaf:
-                    print "Last LEAF track: " + str(track)
-                    invocations.append(list(track))
-                    track.pop()
-                    track.pop()
+                if path and prev_leaf:
+                    print "Last LEAF path: " + str(path)
+                    invocations.append(Control._convert_path(path))
+                    print ">>>POP PATH: " + str(path.pop())
                     prev_leaf = False
             else:
                 stack.append(itr)
                 print "**vis** " + str(key) + " | " + str(val)
                 if isinstance(val, OrderedDict):
-                    track.append(key)
+                    path.append(key)
                     visit_next = val.iteritems()
                     prev_leaf = False
                 elif key:
                     print "LEAF DETECTED: " + str(key) + " :: " + str(val)
-                    track.extend([key, val])
+                    if isinstance(path[-1], list):
+                        path[-1].append((key, val))
+                    else:
+                        path.append([(key, val)])
+                    visit_next = None
                     prev_leaf = True
             key = val = None
-            print "TRACK: " + str(track)
+            print "PATH: " + str(path)
         pprint("\nInovc:\n")
         pprint(invocations)
         return invocations
 
     @staticmethod
-    def _filter_batch_spec(dct, prefix):
-        if not isinstance(d, dict):
-            return d, prefix, False
-        else:
-            return d.keys(), True
+    def _convert_path(plist):
+        """Converts path given as list to a valid path string."""
+        path = ''
+        for part in plist:
+            if isinstance(part, list): #Leaf level
+                args = ''
+                for tup in part:
+                    args += ' ' + ' '.join([str(elm) for elm in tup])
+                path = os.path.join(path, args)
+            else:
+                path = os.path.join(path, str(part))
+        return path
 
     def _gen(self):
         """Regular instance generation."""
@@ -231,7 +241,7 @@ class Control(object):
 
     @staticmethod
     def _parse_cl_args(args=None):
-        """Argument paring method.
+        """Argument parsing method.
 
          Parses command line arguments by default or, alternatively, an optional list of arguments
          passed by parameter.
