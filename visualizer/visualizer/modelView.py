@@ -168,7 +168,7 @@ class ModelView(QGraphicsView):
                 return super(self.__class__, self).event(event)
             ss = 'node(' + str(self._model.get_node_id(pos)) +') at ' + str(pos)
             for item in self._model.filter_items(position = pos):
-                ss += '\n' + item.get_name() + '('+ item.get_id() +')'
+                ss += '\n' + item.get_name() + '('+ str(item.get_id()) +')'
             self.setToolTip(ss)
         return super(self.__class__, self).event(event)
 

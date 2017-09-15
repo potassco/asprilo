@@ -19,7 +19,14 @@ class Configuration(object):
         self._scroll_area = None
         self._widget = None
         self._text_edits = []
-        self._file_name = os.path.dirname(sys.argv[0]) + '/config/init.cfg'
+
+        if not os.path.isdir(os.path.expanduser('~/.config/asprilo')):
+            os.makedirs(os.path.expanduser('~/.config/asprilo'))
+
+        if not os.path.isdir(os.path.expanduser('~/.config/asprilo/visualizer')):
+            os.makedirs(os.path.expanduser('~/.config/asprilo/visualizer'))
+
+        self._file_name = os.path.expanduser('~/.config/asprilo/visualizer/init.cfg')
     
         self._values = {}
         self.init_defaults()
@@ -207,13 +214,17 @@ class LLConfiguration(Configuration):
 
     def __init__(self):
         super(self.__class__, self).__init__()
-        self._file_name = None
+        if not os.path.isdir(os.path.expanduser('~/.config/asprilo')):
+            os.makedirs(os.path.expanduser('~/.config/asprilo'))
+
+        if not os.path.isdir(os.path.expanduser('~/.config/asprilo/visualizer')):
+            os.makedirs(os.path.expanduser('~/.config/asprilo/visualizer'))
 
     def init_defaults(self, args = None):
         if args is None:
             return
         elif args.mode == 'complete':
-            self._file_name = os.path.dirname(sys.argv[0]) + '/config/mcomplete.cfg'
+            self._file_name = os.path.expanduser('~/.config/asprilo/visualizer/mcomplete.cfg')
             self._values = {
                         ('features', 'orders') : ConfigEntry(self._read_bool_from_config, True, str, 'orders'),
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, True, str, 'products'),
@@ -222,7 +233,7 @@ class LLConfiguration(Configuration):
                         ('features', 'load_files') : ConfigEntry(self._read_str_from_config, '', str, 'load files'),
                         }
         elif args.mode == 'asprilo':
-            self._file_name = os.path.dirname(sys.argv[0]) + '/config/masprilo.cfg'
+            self._file_name = os.path.expanduser('~/.config/asprilo/visualizer/masprilo.cfg')
             self._values = {
                         ('features', 'orders') : ConfigEntry(self._read_bool_from_config, True, str, 'orders'),
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, True, str, 'products'),
@@ -231,7 +242,7 @@ class LLConfiguration(Configuration):
                         ('features', 'load_files') : ConfigEntry(self._read_str_from_config, '', str, 'load files'),
                         }
         elif args.mode == 'gtapf':
-            self._file_name = os.path.dirname(sys.argv[0]) + '/config/mgtapf.cfg'
+            self._file_name = os.path.expanduser('~/.config/asprilo/visualizer/mgtapf.cfg')
             self._values = {
                         ('features', 'orders') : ConfigEntry(self._read_bool_from_config, False, str, 'orders'),
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, False, str, 'products'),

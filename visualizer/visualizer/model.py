@@ -244,6 +244,7 @@ class Model(object):
                         break_loop = False
                         break
 
+        ID = str(ID)
         if item_kind == 'shelf':
             item = Shelf(ID)
         elif item_kind == 'pickingStation':
@@ -297,8 +298,20 @@ class Model(object):
                 value = iterator.next()
             except StopIteration:
                 return
-            value.done_step(step)
-            self.notify_sockets(iterator, value, step)
+            self.notify_sockets2(iterator, value, step)
+
+    def notify_sockets2(self, iterator, value, step):
+        if value.is_waiting():
+            if self._notifier is not None:
+                self._notifier.stop()
+
+            self._notifier = QTimer()
+            self._notifier.setSingleShot(True)
+            self._notifier.timeout.connect(lambda: self.notify_sockets2(iterator, value, step))
+            self._notifier.start(100)
+            return
+        value.done_step(step)
+        self.notify_sockets(iterator, value, step)
 
     def undo(self):
         if self._current_step == 0:

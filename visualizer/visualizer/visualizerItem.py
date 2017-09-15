@@ -65,7 +65,7 @@ class Order(VisualizerItem):
         for temp_request in self._requests: 
             if str(temp_request.product_id) == str(product_id):
                 self._requests.remove(temp_request)
-                if len(self._requests) == 0:
+                if len(self._requests) == 0 and self._model is not None:
                     self._model.remove_item(self)
                 return
 
@@ -142,6 +142,9 @@ class Order(VisualizerItem):
 
     def get_fulfilled_at(self):
         return self._is_fulfilled_at
+
+    def get_num_requests(self):
+        return len(self._requests)
 
     def iterate_requests(self):
         for request in self._requests:
