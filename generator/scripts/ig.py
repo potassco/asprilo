@@ -64,7 +64,9 @@ class Control(object):
         # TODO: method to get each single instance generation task
         try:
             with open(self._args.batch, 'r') as batch_file:
-                invocations = self._extract_invocations(batch_file.read())
+                invocations, global_settings = self._extract_invocations(batch_file.read())
+                print invocations
+                print global_settings
         except IOError as err:
             print "IOError while trying to open batch file \'{}\': {}".format(self._args.batch,
                                                                               err)
@@ -86,6 +88,7 @@ class Control(object):
         content = yaml.load(batch)
         print content
         invocations = []
+        global_settings = ''
         path = []
         stack = [content.iteritems()]
         visit_next = None
@@ -103,7 +106,10 @@ class Control(object):
             except StopIteration:
                 if path and prev_leaf:
                     print "Last LEAF path: " + str(path)
-                    invocations.append(Control._convert_path_to_args(path))
+                    if path[0] == 'global_settings':
+                        global_settings = Control._convert_path_to_args(path, True)
+                    else:
+                        invocations.append(Control._convert_path_to_args(path))
                     print ">>>POP PATH: " + str(path.pop())
                     prev_leaf = False
             else:
@@ -125,10 +131,10 @@ class Control(object):
             print "PATH: " + str(path)
         pprint("\nInovc:\n")
         pprint(invocations)
-        return invocations
+        return invocations, global_settings
 
     @staticmethod
-    def _convert_path_to_args(path):
+    def _convert_path_to_args(path, leafs_only=False):
         """Converts path to list of input args for Control."""
         args = '-d '
         for part in path:
@@ -136,7 +142,11 @@ class Control(object):
                 leaf_args = ''
                 for tup in part:
                     leaf_args += ' ' + ' '.join([str(elm) for elm in tup])
-                args = os.path.join(args, leaf_args)
+                if leafs_only:
+                    args = leaf_args
+                    break
+                else:
+                    args = os.path.join(args, leaf_args)
             else:
                 args = os.path.join(args, str(part))
         return args
