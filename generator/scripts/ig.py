@@ -107,7 +107,7 @@ class Control(object):
                 if path and prev_leaf:
                     print "Last LEAF path: " + str(path)
                     if path[0] == 'global_settings':
-                        global_settings = Control._convert_path_to_args(path, True)
+                        global_settings += ' ' + Control._convert_path_to_args(path, True)
                     else:
                         invocations.append(Control._convert_path_to_args(path))
                     print ">>>POP PATH: " + str(path.pop())
@@ -141,7 +141,7 @@ class Control(object):
             if isinstance(part, list): #Leaf level
                 leaf_args = ''
                 for tup in part:
-                    leaf_args += ' ' + ' '.join([str(elm) for elm in tup])
+                    leaf_args += ' ' + ' '.join([str(elm) for elm in tup if elm is not True])
                 if leafs_only:
                     args = leaf_args
                     break
