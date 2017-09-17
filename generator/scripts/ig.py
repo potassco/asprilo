@@ -43,6 +43,7 @@ class Control(object):
     """Runs InstanceGenerator once or multiple times."""
     def __init__(self):
         self._cl_parser, self._args = Control._parse_cl_args()
+        self._check_related_cl_args()
 
     def run(self):
         """Main method to dispatch instance generation."""
@@ -238,8 +239,6 @@ class Control(object):
 
     def _check_related_cl_args(self):
         """Checks consistency wrt. related command line args."""
-        if self._args.batch_file and len(self._args) > 1:
-            raise ValueError("Batch jobs do not accept additional parameters via command line")
         if self._args.shelves and self._args.shelf_coverage:
             raise ValueError("""Number of shelves specified by both quantity (-s) and
             coverage rate (--sc)""")
@@ -314,8 +313,9 @@ class Control(object):
                                  solving is aborted if not finished yet""")
         basic_args.add_argument("-D", "--debug", action="store_true", help="debug output")
         basic_args.add_argument("-J", "--batch", type=str, metavar="JOB",
-                                help="""a batch_file job of multiple instance generations specified by
-                                 a job file""")
+                                help="""a batch_file job of multiple instance generations specified
+                                by a job file; takes as additional options only directory (-d) and (-D)
+                                debug flag into account, otherwise ignored""")
 
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,
@@ -381,7 +381,6 @@ class Control(object):
                                   takes as arguments 1.) the number of warehouses and 2.) the orders
                                   per warehouse to create, resp.""")
         return parser, parser.parse_args(args)
-
 
 
 def main():
