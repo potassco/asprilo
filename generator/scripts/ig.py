@@ -42,19 +42,19 @@ class InterruptThread(threading.Thread):
 class Control(object):
     """Runs InstanceGenerator once or multiple times."""
     def __init__(self):
-        self._cl_parser, self._cl_args = Control._parse_cl_args()
+        self._cl_parser, self._args = Control._parse_cl_args()
 
     def run(self):
         """Main method to dispatch instance generation."""
-        if self._cl_args.batch:
+        if self._args.batch:
             self._run_batch()
         else:
             self._run_once()
 
     def _run_once(self):
         """Regular single instance generation."""
-        self._cl_parser, self._cl_args = Control._parse_cl_args()
-        if self._cl_args.split:
+        self._cl_parser, self._args = Control._parse_cl_args()
+        if self._args.split:
             self._gen_split()
         else:
             self._gen()
@@ -63,10 +63,10 @@ class Control(object):
         """Runs batch_file job of instance generations."""
         # TODO: method to get each single instance generation task
         try:
-            with open(self._cl_args.batch, 'r') as batch_file:
+            with open(self._args.batch, 'r') as batch_file:
                 invocations = self._extract_invocations(batch_file.read())
         except IOError as err:
-            print "IOError while trying to open batch file \'{}\': {}".format(self._cl_args.batch,
+            print "IOError while trying to open batch file \'{}\': {}".format(self._args.batch,
                                                                               err)
 
     def _extract_invocations(self, batch):
@@ -103,7 +103,7 @@ class Control(object):
             except StopIteration:
                 if path and prev_leaf:
                     print "Last LEAF path: " + str(path)
-                    invocations.append(Control._convert_path(path))
+                    invocations.append(Control._convert_path_to_args(path))
                     print ">>>POP PATH: " + str(path.pop())
                     prev_leaf = False
             else:
@@ -128,18 +128,18 @@ class Control(object):
         return invocations
 
     @staticmethod
-    def _convert_path(plist):
-        """Converts path given as list to a valid path string."""
-        path = ''
-        for part in plist:
+    def _convert_path_to_args(path):
+        """Converts path to list of input args for Control."""
+        args = '-d '
+        for part in path:
             if isinstance(part, list): #Leaf level
-                args = ''
+                leaf_args = ''
                 for tup in part:
-                    args += ' ' + ' '.join([str(elm) for elm in tup])
-                path = os.path.join(path, args)
+                    leaf_args += ' ' + ' '.join([str(elm) for elm in tup])
+                args = os.path.join(args, leaf_args)
             else:
-                path = os.path.join(path, str(part))
-        return path
+                args = os.path.join(args, str(part))
+        return args
 
     def _gen(self):
         """Regular instance generation."""
@@ -159,9 +159,9 @@ class Control(object):
 
         signal.signal(signal.SIGINT, sig_handler)
         signal.signal(signal.SIGALRM, sig_handler)
-        igen = InstanceGenerator(self._cl_args)
+        igen = InstanceGenerator(self._args)
         try:
-            signal.alarm(self._cl_args.wait)
+            signal.alarm(self._args.wait)
             igen.solve()
             return igen.dest_dirs
         except Exception as exc:
@@ -174,25 +174,25 @@ class Control(object):
 
     def _gen_split(self):
         """Execution with split up instances."""
-        num_wh_inst, num_order_inst = self._cl_args.split
+        num_wh_inst, num_order_inst = self._args.split
         argparse.ArgumentParser()
-        cl_args_bak = copy.deepcopy(vars(self._cl_args))
+        cl_args_bak = copy.deepcopy(vars(self._args))
 
         # warehouse instances
-        self._cl_parser.parse_args(args=['-d', self._cl_args.directory + '/warehouse_',
+        self._cl_parser.parse_args(args=['-d', self._args.directory + '/warehouse_',
                                          '--instance-dir',
                                          '--prj-warehouse',
                                          '-N', str(num_wh_inst)],
-                                   namespace=self._cl_args)
-        if not self._cl_args.quiet:
-            print "Creating **warehouses** using solve args: " + str(self._cl_args)
+                                   namespace=self._args)
+        if not self._args.quiet:
+            print "Creating **warehouses** using solve args: " + str(self._args)
         dest_dirs = self._gen()
 
         # orders instances and merge
         for winst in xrange(1, num_wh_inst+1):
 
             # orders only
-            _cl_args = vars(self._cl_args)
+            _cl_args = vars(self._args)
             _cl_args.clear()
             _cl_args.update(copy.deepcopy(cl_args_bak))
             _cl_args['oap'] = False
@@ -203,14 +203,14 @@ class Control(object):
                       '-T', path_to_warehouse_file,
                       '--prj-orders',
                       '-N', str(num_order_inst)],
-                namespace=self._cl_args)
-            if not self._cl_args.quiet:
-                print "Creating **orders** using solve args: " + str(self._cl_args)
+                namespace=self._args)
+            if not self._args.quiet:
+                print "Creating **orders** using solve args: " + str(self._args)
             self._gen()
 
             # merge
             for oinst in xrange(1, len(glob.glob(dest_dirs[winst-1] + '/orders/*.lp')) + 1):
-                _cl_args = vars(self._cl_args)
+                _cl_args = vars(self._args)
                 _cl_args.clear()
                 _cl_args.update(copy.deepcopy(cl_args_bak))
                 path_to_order_file = glob.glob(dest_dirs[winst-1] +
@@ -220,22 +220,22 @@ class Control(object):
                           '-T', path_to_warehouse_file, path_to_order_file,
                           '--instance-count', str(oinst),
                           '-N', '1'],
-                    namespace=self._cl_args)
-                if not self._cl_args.quiet:
-                    print "Creating **merged instances** using solve args: " + str(self._cl_args)
+                    namespace=self._args)
+                if not self._args.quiet:
+                    print "Creating **merged instances** using solve args: " + str(self._args)
                 self._gen()
 
     def _check_related_cl_args(self):
         """Checks consistency wrt. related command line args."""
-        if self._cl_args.batch_file and len(self._cl_args) > 1:
+        if self._args.batch_file and len(self._args) > 1:
             raise ValueError("Batch jobs do not accept additional parameters via command line")
-        if self._cl_args.shelves and self._cl_args.shelf_coverage:
+        if self._args.shelves and self._args.shelf_coverage:
             raise ValueError("""Number of shelves specified by both quantity (-s) and
             coverage rate (--sc)""")
-        if self._cl_args.products and self._cl_args.product_units_total:
-            if self._cl_args.products > self._cl_args.product_units_total:
+        if self._args.products and self._args.product_units_total:
+            if self._args.products > self._args.product_units_total:
                 raise ValueError("Product_units_total must be smaller or equal to products")
-        if self._cl_args.threads > 1 and self._cl_args.split:
+        if self._args.threads > 1 and self._args.split:
             raise ValueError("""Only single threaded execution (-t 1) possible when splitting
             up (--split) instances""")
 
