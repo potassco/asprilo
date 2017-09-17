@@ -64,14 +64,14 @@ class Control(object):
         # TODO: method to get each single instance generation task
         try:
             with open(self._args.batch, 'r') as batch_file:
-                invocations, global_settings = self._extract_invocations(batch_file.read())
+                invocations, global_settings = self._extract_invocations(batch_file.read(), self._args.directory)
                 print invocations
                 print global_settings
         except IOError as err:
             print "IOError while trying to open batch file \'{}\': {}".format(self._args.batch,
                                                                               err)
 
-    def _extract_invocations(self, batch):
+    def _extract_invocations(self, batch, parent_path='.'):
         """Returns the required invocations from a batch job specification.
 
         :param str batch: a batch job specification.
@@ -107,9 +107,10 @@ class Control(object):
                 if path and prev_leaf:
                     print "Last LEAF path: " + str(path)
                     if path[0] == 'global_settings':
-                        global_settings += ' ' + Control._convert_path_to_args(path, True)
+                        global_settings += ' ' + Control._convert_path_to_args(path, parent_path,
+                                                                               True)
                     else:
-                        invocations.append(Control._convert_path_to_args(path))
+                        invocations.append(Control._convert_path_to_args(path, parent_path))
                     print ">>>POP PATH: " + str(path.pop())
                     prev_leaf = False
             else:
@@ -134,9 +135,9 @@ class Control(object):
         return invocations, global_settings
 
     @staticmethod
-    def _convert_path_to_args(path, leafs_only=False):
+    def _convert_path_to_args(path, parent_path='.', leafs_only=False):
         """Converts path to list of input args for Control."""
-        args = '-d '
+        args = '-d ' + parent_path
         for part in path:
             if isinstance(part, list): #Leaf level
                 leaf_args = ''
