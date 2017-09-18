@@ -2,16 +2,7 @@
 # -*- coding: utf-8 -*-
 """Instance Generator Core."""
 
-import sys
 import os
-import random
-import time
-import argparse
-from math import fabs
-import copy
-import glob
-import threading, time
-import signal
 import clingo
 
 

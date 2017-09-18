@@ -4,46 +4,32 @@
 
 import sys
 import os
-import random
-import time
 import argparse
-from math import fabs
+import logging
 import copy
 import glob
-import threading, time
 import signal
-import json
-from collections import OrderedDict, Iterable
+from collections import OrderedDict
 from pprint import pprint
 import yaml
-import clingo
 
 # Add generator module path to sys.path
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from generator.generator import InstanceGenerator
-from generator.aux import check_positive, SmartFormatter
+from generator.utils.aux import check_positive, SmartFormatter
+from generator.utils.logger import setup_logger
+
+LOG = logging.getLogger('custom')
 
 VERSION = "0.1"
-
-class InterruptThread(threading.Thread):
-    """Thread to interrupt solver."""
-    def __init__(self, prg, timeout):
-        threading.Thread.__init__(self)
-        self._prg = prg
-        self.timeout = timeout
-
-    def run(self):
-        time.sleep(self.timeout)
-        self._prg.interrupt()
-        print '\n! Solve call timed out. All solve threads killed. \n'
-
 
 class Control(object):
     """Runs InstanceGenerator once or multiple times."""
     def __init__(self, args=None):
         self._cl_parser, self._args = Control._parse_cl_args(args)
         self._check_related_cl_args()
+        setup_logger(self._args.loglevel)
 
     def run(self):
         """Main method to dispatch instance generation."""
@@ -63,23 +49,22 @@ class Control(object):
     def _run_batch(self):
         """Runs batch_file job of instance generations."""
         # TODO: method to get each single instance generation task
+        LOG.info("Running in batch mode")
         try:
             with open(self._args.batch, 'r') as batch_file:
                 invocations, global_settings = self._extract_invocations(batch_file.read(),
                                                                          self._args.directory)
-                print "Invoc: " + str(invocations)
-                print "global settings: " + str(global_settings)
                 for invoc in invocations:
                     invoc.extend(global_settings)
                     try:
-                        print "Running: " + str(invoc)
+                        LOG.info("Running invocation for pars: %s ", str(invoc))
                         Control(invoc).run()
                     except Exception, exc:
-                        print "During batch mode, received exception {} while running with parameters {}".format(exc, str(invoc))
+                        LOG.error("""During batch mode, received exception %s while running with
+                        parameters %s""", exc, str(invoc))
                 # Control(['-d', 'bla/blu_ba/1', '-x', '5', '-y','6', '-r', '5', '-s', '10', '-p', '1', '-N', '10']).run()
         except IOError as err:
-            print "IOError while trying to open batch file \'{}\': {}".format(self._args.batch,
-                                                                              err)
+            LOG.error("IOError while trying to open batch file \'%s\': %s", self._args.batch, err)
 
     def _extract_invocations(self, batch, parent_path='.'):
         """Returns the required invocations from a batch job specification.
@@ -96,7 +81,7 @@ class Control(object):
 
         yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, odict_constructor)
         content = yaml.load(batch)
-        print content
+        LOG.debug("Content parsed from YAML batch file: %s", str(content))
         invocations = []
         global_settings = []
         path = []
@@ -104,35 +89,37 @@ class Control(object):
         visit_next = None
         prev_leaf = False
         while stack or visit_next:
-            print "Current path: " + str(path)
+            LOG.debug("Current path: %s", str(path))
             if visit_next:
                 itr = visit_next
             else:
                 itr = stack.pop()
                 if path and not prev_leaf:
-                    print ">>>POP PATH: " + str(path.pop())
+                    popped = path.pop()
+                    LOG.debug("Popped from path:  %s", str(popped))
             try:
                 key, val = itr.next()
             except StopIteration:
                 if path and prev_leaf:
-                    print "Last LEAF path: " + str(path)
+                    LOG.debug("Last leaf path: %s", str(path))
                     if path[0] == 'global_settings':
                         global_settings.extend(Control._convert_path_to_args(path,
                                                                              parent_path,
                                                                              True))
                     else:
                         invocations.append(Control._convert_path_to_args(path, parent_path))
-                    print ">>>POP PATH: " + str(path.pop())
+                    popped = path.pop()
+                    LOG.debug("Popped from path:  %s", str(popped))
                     prev_leaf = False
             else:
                 stack.append(itr)
-                print "**vis** " + str(key) + " | " + str(val)
+                LOG.debug("Visiting: %s | %s", str(key), str(val))
                 if isinstance(val, OrderedDict):
                     path.append(key)
                     visit_next = val.iteritems()
                     prev_leaf = False
                 elif key:
-                    print "LEAF DETECTED: " + str(key) + " :: " + str(val)
+                    LOG.debug("Leaf detected: %s :: %s", str(key), str(val))
                     if isinstance(path[-1], list):
                         path[-1].append((key, val))
                     else:
@@ -140,9 +127,7 @@ class Control(object):
                     visit_next = None
                     prev_leaf = True
             key = val = None
-            print "PATH: " + str(path)
-        pprint("\nInovc:\n")
-        pprint(invocations)
+        LOG.debug("Invocations: %s", str(invocations))
         return invocations, global_settings
 
     @staticmethod
@@ -173,10 +158,10 @@ class Control(object):
         def sig_handler(signum, frame):
             sig_handled[0] = True
             if signum == signal.SIGINT:
-                print "\n! Received Keyboard Interruption (Ctrl-C).\n"
+                LOG.warn("\n! Received Keyboard Interruption (Ctrl-C).\n")
                 raise KeyboardInterrupt
             elif signum == signal.SIGALRM:
-                print "\n! Solve call timed out!\n"
+                LOG.warn("\n! Solve call timed out!\n")
                 raise TimeoutError()
 
         signal.signal(signal.SIGINT, sig_handler)
@@ -190,7 +175,7 @@ class Control(object):
             if sig_handled[0]:
                 pass
             else:
-                print type(exc).__name__ + ':\n' + str(exc)
+                LOG.error("%s: %s", type(exc).__name__, exc)
         finally:
             igen.interrupt()
 
@@ -206,8 +191,8 @@ class Control(object):
                                          '--prj-warehouse',
                                          '-N', str(num_wh_inst)],
                                    namespace=self._args)
-        if not self._args.quiet:
-            print "Creating **warehouses** using solve args: " + str(self._args)
+
+        LOG.info("Creating **warehouses** using solve args: %s", str(self._args))
         dest_dirs = self._gen()
 
         # orders instances and merge
@@ -226,8 +211,8 @@ class Control(object):
                       '--prj-orders',
                       '-N', str(num_order_inst)],
                 namespace=self._args)
-            if not self._args.quiet:
-                print "Creating **orders** using solve args: " + str(self._args)
+
+            LOG.info("Creating **orders** using solve args: %s", str(self._args))
             self._gen()
 
             # merge
@@ -243,8 +228,7 @@ class Control(object):
                           '--instance-count', str(oinst),
                           '-N', '1'],
                     namespace=self._args)
-                if not self._args.quiet:
-                    print "Creating **merged instances** using solve args: " + str(self._args)
+                LOG.info("Creating **merged instances** using solve args: %s", str(self._args))
                 self._gen()
 
     def _check_related_cl_args(self):
@@ -298,8 +282,6 @@ class Control(object):
                                 help="the number of instances to create")
         basic_args.add_argument("-C", "--console",
                                 help="prints the instances to the console", action="store_true")
-        basic_args.add_argument("-q", "--quiet",
-                                help="prints nothing to the console", action="store_true")
         basic_args.add_argument("-d", "--directory", type=str, default="generatedInstances",
                                 help="the directory to safe the files")
         basic_args.add_argument("--instance-dir", action="store_true",
@@ -314,14 +296,19 @@ class Control(object):
                                  of using its rank in the enumeration of clasp""")
         basic_args.add_argument("-f", "--name-prefix", type=str, default="",
                                 help="the name prefix that eyery file name will contain")
-        basic_args.add_argument("-v", "--version", help="show the current version",
+        basic_args.add_argument("-V", "--version", help="show the current version",
                                 action="version", version=VERSION)
         basic_args.add_argument("-t", "--threads", type=check_positive, default=1,
                                 help="run clingo with THREADS threads")
         basic_args.add_argument("-w", "--wait", type=check_positive, default=300,
                                 help="""time to wait in seconds before
                                  solving is aborted if not finished yet""")
-        basic_args.add_argument("-D", "--debug", action="store_true", help="debug output")
+        basic_args.add_argument('-v', '--verbose', action='store_const', dest='loglevel',
+                                const=logging.INFO, default=logging.WARNING,
+                                help='Verbose output.')
+        basic_args.add_argument('-D', '--debug', action='store_const', dest='loglevel',
+                                const=logging.DEBUG, default=logging.WARNING,
+                                help='Debug output.')
         basic_args.add_argument("-J", "--batch", type=str, metavar="JOB",
                                 help="""a batch_file job of multiple instance generations specified
                                 by a job file; takes as additional options only directory (-d) and (-D)
