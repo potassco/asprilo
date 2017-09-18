@@ -10,7 +10,6 @@ import copy
 import glob
 import signal
 from collections import OrderedDict
-from pprint import pprint
 import yaml
 
 # Add generator module path to sys.path
@@ -48,7 +47,6 @@ class Control(object):
 
     def _run_batch(self):
         """Runs batch_file job of instance generations."""
-        # TODO: method to get each single instance generation task
         LOG.info("Running in batch mode")
         try:
             with open(self._args.batch, 'r') as batch_file:
@@ -62,9 +60,12 @@ class Control(object):
                     except Exception, exc:
                         LOG.error("""During batch mode, received exception %s while running with
                         parameters %s""", exc, str(invoc))
-                # Control(['-d', 'bla/blu_ba/1', '-x', '5', '-y','6', '-r', '5', '-s', '10', '-p', '1', '-N', '10']).run()
         except IOError as err:
             LOG.error("IOError while trying to open batch file \'%s\': %s", self._args.batch, err)
+
+    def _carry_over_args(self):
+        """In batch mode, carries over relevant args."""
+        pass
 
     def _extract_invocations(self, batch, parent_path='.'):
         """Returns the required invocations from a batch job specification.
@@ -129,7 +130,7 @@ class Control(object):
             key = val = None
         LOG.debug("Invocations: %s", str(invocations))
         return invocations, global_settings
-
+    
     @staticmethod
     def _convert_path_to_args(path, parent_path='.', leafs_only=False):
         """Converts path to list of input args for _parse_cl_args."""
@@ -296,14 +297,14 @@ class Control(object):
                                  of using its rank in the enumeration of clasp""")
         basic_args.add_argument("-f", "--name-prefix", type=str, default="",
                                 help="the name prefix that eyery file name will contain")
-        basic_args.add_argument("-V", "--version", help="show the current version",
+        basic_args.add_argument("-v", "--version", help="show the current version",
                                 action="version", version=VERSION)
         basic_args.add_argument("-t", "--threads", type=check_positive, default=1,
                                 help="run clingo with THREADS threads")
         basic_args.add_argument("-w", "--wait", type=check_positive, default=300,
                                 help="""time to wait in seconds before
                                  solving is aborted if not finished yet""")
-        basic_args.add_argument('-v', '--verbose', action='store_const', dest='loglevel',
+        basic_args.add_argument('-V', '--verbose', action='store_const', dest='loglevel',
                                 const=logging.INFO, default=logging.WARNING,
                                 help='Verbose output.')
         basic_args.add_argument('-D', '--debug', action='store_const', dest='loglevel',
@@ -311,8 +312,8 @@ class Control(object):
                                 help='Debug output.')
         basic_args.add_argument("-J", "--batch", type=str, metavar="JOB",
                                 help="""a batch_file job of multiple instance generations specified
-                                by a job file; takes as additional options only directory (-d) and (-D)
-                                debug flag into account, otherwise ignored""")
+                                by a job file; takes as additional options only directory (-d), 
+                                debug (-D) or verbose (-V) flag into account, otherwise ignored""")
 
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,

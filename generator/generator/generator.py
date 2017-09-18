@@ -3,8 +3,10 @@
 """Instance Generator Core."""
 
 import os
+import logging
 import clingo
 
+LOG = logging.getLogger('custom')
 
 class InstanceGenerator(object):
 
@@ -36,18 +38,14 @@ class InstanceGenerator(object):
         self._inits = []
         if self._args.console:
             print "\n"
-        if self._args.console and not self._args.quiet:
-            print str(self._instance_count) + ". instance:"
+            LOG.info("~~~~ %s. Instance ~~~~", str(self._instance_count))
         atoms_list = model.symbols(terms=True)
-        if self._args.debug:
-            print '******DEBUG MODE: Found Model:'
-            for atm in model.symbols(atoms=True):
-                print atm
+        LOG.debug("Found model: %s", model.symbols(atoms=True))
         atm = None
         for atm in [atm for atm in atoms_list if atm.name == "init"]:
             self._inits.append(atm)
         self._update_object_counter(atoms_list)
-        print self._object_counters
+        LOG.info("Stats: %s", self._object_counters)
         self._save()
 
     def _update_object_counter(self, atoms_list):
@@ -84,8 +82,7 @@ class InstanceGenerator(object):
 
     def solve(self):
         """Grounds and solves the relevant programs for instance generation."""
-        # if not self._args.quiet:
-        #     print "Used args for solving: " + str(self._args)
+        LOG.debug("Used args for grounding & solving: %s", str(self._args))
 
         self._prg = clingo.Control(self._solve_opts)
         self._prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -95,8 +92,7 @@ class InstanceGenerator(object):
             self._prg.ground([("base", [])])
             self._prg.ground([("template_stub", [])])
 
-        if not self._args.quiet:
-            print "ground..."
+        LOG.info("Grounding...")
 
         # nodes
         if not (self._args.grid_x is None or self._args.grid_y is None):
@@ -164,8 +160,7 @@ class InstanceGenerator(object):
         else:
             self._prg.ground([("project_all", [])])
 
-        if not self._args.quiet:
-            print "solve..."
+        LOG.info("Solving...")
 
         # solve_future = self._prg.solve_async(self.on_model)
         # solve_future.wait(self._args.wait)
@@ -174,13 +169,11 @@ class InstanceGenerator(object):
 
         solve_result = self._prg.solve(on_model=self.on_model)
 
-        if not self._args.quiet:
-            print "Parallel mode: " + str(self._prg.configuration.solve.parallel_mode)
-            print "Generated instances: " + str(self._instance_count)
-            print "Solve result: " + str(solve_result)
-            print "Search finished: " + str(not solve_result.interrupted)
-            print "Search space exhausted: " + str(solve_result.exhausted)
-
+        LOG.info("Parallel mode: %s", str(self._prg.configuration.solve.parallel_mode))
+        LOG.info("Generated instances: %s", str(self._instance_count))
+        LOG.info("Solve result: %s", str(solve_result))
+        LOG.info("Search finished: %s", str(not solve_result.interrupted))
+        LOG.info("Search space exhausted: %s", str(solve_result.exhausted))
 
     def _save(self):
         """Writes instance to file."""
@@ -240,7 +233,7 @@ class InstanceGenerator(object):
                 for obj in self._inits:
                     ofile.write(str(obj) + ".\n")
         except IOError as err:
-            print "IOError while trying to write instance file \'{}\': {}".format(file_name, err)
+            LOG.error("IOError while trying to write instance file \'%s\': %s", file_name, err)
         return
 
     def interrupt(self):
