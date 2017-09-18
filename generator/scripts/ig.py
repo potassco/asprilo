@@ -41,8 +41,8 @@ class InterruptThread(threading.Thread):
 
 class Control(object):
     """Runs InstanceGenerator once or multiple times."""
-    def __init__(self):
-        self._cl_parser, self._args = Control._parse_cl_args()
+    def __init__(self, args=None):
+        self._cl_parser, self._args = Control._parse_cl_args(args)
         self._check_related_cl_args()
 
     def run(self):
@@ -54,7 +54,7 @@ class Control(object):
 
     def _run_once(self):
         """Regular single instance generation."""
-        self._cl_parser, self._args = Control._parse_cl_args()
+        # self._cl_parser, self._args = Control._parse_cl_args()
         if self._args.split:
             self._gen_split()
         else:
@@ -65,9 +65,18 @@ class Control(object):
         # TODO: method to get each single instance generation task
         try:
             with open(self._args.batch, 'r') as batch_file:
-                invocations, global_settings = self._extract_invocations(batch_file.read(), self._args.directory)
-                print invocations
-                print global_settings
+                invocations, global_settings = self._extract_invocations(batch_file.read(),
+                                                                         self._args.directory)
+                print "Invoc: " + str(invocations)
+                print "global settings: " + str(global_settings)
+                for invoc in invocations:
+                    invoc.extend(global_settings)
+                    try:
+                        print "Running: " + str(invoc)
+                        Control(invoc).run()
+                    except Exception, exc:
+                        print "During batch mode, received exception {} while running with parameters {}".format(exc, str(invoc))
+                # Control(['-d', 'bla/blu_ba/1', '-x', '5', '-y','6', '-r', '5', '-s', '10', '-p', '1', '-N', '10']).run()
         except IOError as err:
             print "IOError while trying to open batch file \'{}\': {}".format(self._args.batch,
                                                                               err)
@@ -139,12 +148,12 @@ class Control(object):
     @staticmethod
     def _convert_path_to_args(path, parent_path='.', leafs_only=False):
         """Converts path to list of input args for _parse_cl_args."""
-        args = ['-d ', parent_path]
+        args = ['-d', parent_path]
         for part in path:
             if isinstance(part, list): #Leaf level
                 leaf_args = []
                 for tup in part:
-                    leaf_args += [elm for elm in tup if elm is not True]
+                    leaf_args += [str(elm) for elm in tup if elm is not True]
                 if leafs_only:
                     args = leaf_args
                     break
