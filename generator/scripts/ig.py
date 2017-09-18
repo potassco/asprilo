@@ -89,7 +89,7 @@ class Control(object):
         content = yaml.load(batch)
         print content
         invocations = []
-        global_settings = ''
+        global_settings = []
         path = []
         stack = [content.iteritems()]
         visit_next = None
@@ -108,8 +108,9 @@ class Control(object):
                 if path and prev_leaf:
                     print "Last LEAF path: " + str(path)
                     if path[0] == 'global_settings':
-                        global_settings += ' ' + Control._convert_path_to_args(path, parent_path,
-                                                                               True)
+                        global_settings.extend(Control._convert_path_to_args(path,
+                                                                             parent_path,
+                                                                             True))
                     else:
                         invocations.append(Control._convert_path_to_args(path, parent_path))
                     print ">>>POP PATH: " + str(path.pop())
@@ -137,20 +138,20 @@ class Control(object):
 
     @staticmethod
     def _convert_path_to_args(path, parent_path='.', leafs_only=False):
-        """Converts path to list of input args for Control."""
-        args = '-d ' + parent_path
+        """Converts path to list of input args for _parse_cl_args."""
+        args = ['-d ', parent_path]
         for part in path:
             if isinstance(part, list): #Leaf level
-                leaf_args = ''
+                leaf_args = []
                 for tup in part:
-                    leaf_args += ' ' + ' '.join([str(elm) for elm in tup if elm is not True])
+                    leaf_args += [elm for elm in tup if elm is not True]
                 if leafs_only:
                     args = leaf_args
                     break
                 else:
-                    args = os.path.join(args, leaf_args)
+                    args.extend(leaf_args)
             else:
-                args = os.path.join(args, str(part))
+                args[1] = os.path.join(args[1], str(part))
         return args
 
     def _gen(self):
