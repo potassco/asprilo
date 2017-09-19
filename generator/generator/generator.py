@@ -45,7 +45,7 @@ class InstanceGenerator(object):
         for atm in [atm for atm in atoms_list if atm.name == "init"]:
             self._inits.append(atm)
         self._update_object_counter(atoms_list)
-        LOG.info("Stats: %s", self._object_counters)
+        LOG.info("Stats: %s", {k: int(v) for k, v in self._object_counters.items()})
         self._save()
 
     def _update_object_counter(self, atoms_list):
