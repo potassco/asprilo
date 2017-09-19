@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """General Execution Control."""
 from __future__ import absolute_import
+import os
 import argparse
 import logging
 import copy
@@ -19,10 +20,11 @@ LOG = logging.getLogger('custom')
 
 class Control(object):
     """Runs InstanceGenerator once or multiple times."""
-    def __init__(self, args=None):
-        self._cl_parser, self._args = Control._parse_cl_args(args)
+    def __init__(self, args=None, namespace=None, nested=False):
+        self._cl_parser, self._args = Control._parse_cl_args(args, namespace)
         self._check_related_cl_args()
-        setup_logger(self._args.loglevel)
+        if not nested:
+            setup_logger(self._args.loglevel)
 
     def run(self):
         """Main method to dispatch instance generation."""
@@ -50,16 +52,15 @@ class Control(object):
                     invoc.extend(global_settings)
                     try:
                         LOG.info("Running invocation for pars: %s ", str(invoc))
-                        Control(invoc).run()
+                        nsdict = {k: copy.deepcopy(v) for k, v in vars(self._args).items()
+                                  if k != 'batch'}
+                        nspace = argparse.Namespace(**nsdict)
+                        Control(invoc, nspace, True).run()
                     except Exception, exc:
-                        LOG.error("""During batch mode, received exception %s while running with
+                        LOG.error("""During batch mode, received exception \'%s\' while running with
                         parameters %s""", exc, str(invoc))
         except IOError as err:
             LOG.error("IOError while trying to open batch file \'%s\': %s", self._args.batch, err)
-
-    def _carry_over_args(self):
-        """In batch mode, carries over relevant args."""
-        pass
 
     def _extract_invocations(self, batch, parent_path='.'):
         """Returns the required invocations from a batch job specification.
@@ -156,7 +157,7 @@ class Control(object):
                 LOG.warn("\n! Received Keyboard Interruption (Ctrl-C).\n")
                 raise KeyboardInterrupt
             elif signum == signal.SIGALRM:
-                LOG.warn("\n! Solve call timed out!\n")
+                LOG.warn("Solve call timed out!")
                 raise TimeoutError()
 
         signal.signal(signal.SIGINT, sig_handler)
@@ -239,13 +240,14 @@ class Control(object):
             up (--split) instances""")
 
     @staticmethod
-    def _parse_cl_args(args=None):
+    def _parse_cl_args(args=None, namespace=None):
         """Argument parsing method.
 
          Parses command line arguments by default or, alternatively, an optional list of arguments
          passed by parameter.
 
-         :type list: A list of argument strings or None.
+         :type args: A list of argument strings or None.
+         :type namespace: An existing argparse.Namespace object to use instead of new one.
 
         """
         parser = argparse.ArgumentParser(prog='ig',
@@ -305,9 +307,10 @@ class Control(object):
                                 const=logging.DEBUG, default=logging.WARNING,
                                 help='Debug output.')
         basic_args.add_argument("-J", "--batch", type=str, metavar="JOB",
-                                help="""a batch_file job of multiple instance generations specified
-                                by a job file; takes as additional options only directory (-d), 
-                                debug (-D) or verbose (-V) flag into account, otherwise ignored""")
+                                help="""a batch job of multiple instance generations specified
+                                by a job file; Warning: additional command line parameters will be carried over
+                                as input parameters for single instance generation runs, unless explicitly
+                                redefined in the job file""")
 
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,
@@ -372,4 +375,4 @@ class Control(object):
                                   help="""splits instances into warehouse and order-related facts;
                                   takes as arguments 1.) the number of warehouses and 2.) the orders
                                   per warehouse to create, resp.""")
-        return parser, parser.parse_args(args)
+        return parser, parser.parse_args(args, namespace)
