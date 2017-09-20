@@ -28,6 +28,12 @@ class Control(object):
 
     def run(self):
         """Main method to dispatch instance generation."""
+        if os.path.isdir(self._args.directory):
+            if self._args.skip_existing:
+                LOG.warn("Skipping, since directory \'%s\' exists!", self._args.directory)
+                return
+            else:
+                LOG.warn('Writing in existing directory!')
         if self._args.batch:
             self._run_batch()
         else:
@@ -300,6 +306,10 @@ class Control(object):
         basic_args.add_argument("-w", "--wait", type=check_positive, default=300,
                                 help="""time to wait in seconds before
                                  solving is aborted if not finished yet""")
+        basic_args.add_argument("--se", "--skip-existing", action="store_true",
+                                dest="skip_existing",
+                                help="""skip instance generation if destination directory
+                                already exists""")
         basic_args.add_argument('-V', '--verbose', action='store_const', dest='loglevel',
                                 const=logging.INFO, default=logging.WARNING,
                                 help='Verbose output.')
