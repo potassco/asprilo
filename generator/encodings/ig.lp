@@ -197,17 +197,16 @@ init(object(highway, (Y-1) * SX + X), value(at, (X, Y))) :- highway(X, Y), sizeX
 { poss(pickingStation, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))), Y <= (PN-1) / SX + 1, sizeX(SX), pickingStationNum(PN).
 :- PN < #count{ X, Y : poss(pickingStation, at(X,Y)) }, pickingStationNum(PN).
 
-%% clearance_ps(|X-X3|) :- init(object(pickingStation,_), value(at, (X,Y))), init(object(pickingStation,_), value(at, (X3,Y))),
-%%                         not init(object(pickingStation,_), value(at, (X2,Y))), init(object(node, _), value(at, (X2, _))), X < X2, X2 < X3. 
-dist_pickingStations(X) : X = SX / PN, sizeX(SX), pickingStationNum(PN). % distance between adjacent picking stations
-:- poss(pickingStation, at(X, Y)), init(object(node, _), value(at, (X2, Y))), dist_pickingStations(X - X2), not poss(pickingStation, at(X2, Y)),
-   not dist_pickingStations(1).
+dist_pickingStations(X) : X = (SX+2) / (PN+1), sizeX(SX), pickingStationNum(PN). % distance between adjacent picking stations
+:- poss(pickingStation, at(X, Y)), init(object(node, _), value(at, (X2, Y))), dist_pickingStations(X - X2),
+   not poss(pickingStation, at(X2, Y)), not dist_pickingStations(1). % dist to left neighbouring picking station
 :- poss(pickingStation, at(X, Y)), poss(pickingStation, at(X2, Y)), X2 > X, X2 < X + DX, dist_pickingStations(DX),
-   not dist_pickingStations(1).
-:- poss(pickingStation, at(X, Y)), X < DX, dist_pickingStations(DX), not pickingStationNum(1). % padding left
+   not dist_pickingStations(1). % dist to right neighbouring picking station
+:- poss(pickingStation, at(X, Y)), X < DX, dist_pickingStations(DX). % padding left
 % Special case when dist_pickingStations(1) (i.e., amount picking stations > sizeX / 2)
 :- poss(pickingStation, at(X, Y)), poss(pickingStation, at(X2, Y)), X2 > X, X2 < X + 2, 2 * (PN - X) <= SX - X,
    sizeX(SX), pickingStationNum(PN), dist_pickingStations(1).
+
 % ~~ All robots in left-lower corner, next to each other ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { poss(robot, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))), Y > Y2 - ((RN - 1) / X2 + 1), sizeY(Y2), sizeX(X2), robotNum(RN).
 :- RN < #count{ X, Y : poss(robot, at(X,Y)) }, robotNum(RN).
