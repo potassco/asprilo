@@ -55,6 +55,12 @@ class Control(object):
                 invocations, global_settings = self._extract_invocations(batch_file.read(),
                                                                          self._args.directory)
                 for invoc in invocations:
+                    if self._args.cat:
+                        if not [cat for cat in self._args.cat if
+                                invoc[1].startswith('{}/{}'.format(self._args.directory, cat))]:
+                            LOG.warn("Categories provided, skipping mismatching invocation: %s",
+                                     str(invoc))
+                            continue
                     invoc.extend(global_settings)
                     try:
                         LOG.info("Running invocation for pars: %s ", str(invoc))
@@ -131,7 +137,7 @@ class Control(object):
             key = val = None
         LOG.debug("Invocations: %s", str(invocations))
         return invocations, global_settings
-    
+
     @staticmethod
     def _convert_path_to_args(path, parent_path='.', leafs_only=False):
         """Converts path to list of input args for _parse_cl_args."""
@@ -306,21 +312,27 @@ class Control(object):
         basic_args.add_argument("-w", "--wait", type=check_positive, default=300,
                                 help="""time to wait in seconds before
                                  solving is aborted if not finished yet""")
-        basic_args.add_argument("--se", "--skip-existing", action="store_true",
-                                dest="skip_existing",
-                                help="""skip instance generation if destination directory
-                                already exists""")
         basic_args.add_argument('-V', '--verbose', action='store_const', dest='loglevel',
                                 const=logging.INFO, default=logging.WARNING,
                                 help='Verbose output.')
         basic_args.add_argument('-D', '--debug', action='store_const', dest='loglevel',
                                 const=logging.DEBUG, default=logging.WARNING,
                                 help='Debug output.')
-        basic_args.add_argument("-J", "--batch", type=str, metavar="JOB",
+
+        batch_args = parser.add_argument_group("Batch mode options")
+        batch_args.add_argument("-j", "--batch", type=str, metavar="JOB",
                                 help="""a batch job of multiple instance generations specified
                                 by a job file; Warning: additional command line parameters will be carried over
                                 as input parameters for single instance generation runs, unless explicitly
                                 redefined in the job file""")
+        batch_args.add_argument('-c', '--cat', nargs='*',
+                                help="""optional list of names (i.e., prefixes) of sub-categories
+                                to create""")
+        batch_args.add_argument("--se", "--skip-existing", action="store_true",
+                                dest="skip_existing",
+                                help="""skip instance generation if destination directory
+                                already exists""")
+
 
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,
