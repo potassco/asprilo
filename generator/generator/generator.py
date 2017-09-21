@@ -40,7 +40,7 @@ class InstanceGenerator(object):
             print "\n"
             LOG.info("~~~~ %s. Instance ~~~~", str(self._instance_count))
         atoms_list = model.symbols(terms=True)
-        LOG.debug("Found model: %s", model.symbols(atoms=True))
+        LOG.debug("Found model: %s", '.\n'.join([str(atm) for atm in model.symbols(atoms=True)]))
         atm = None
         for atm in [atm for atm in atoms_list if atm.name == "init"]:
             self._inits.append(atm)
