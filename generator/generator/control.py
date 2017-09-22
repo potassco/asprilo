@@ -145,8 +145,16 @@ class Control(object):
         for part in path:
             if isinstance(part, list): #Leaf level
                 leaf_args = []
-                for tup in part:
-                    leaf_args += [str(elm) for elm in tup if elm is not True]
+                for elm in [elm for tup in part for elm in tup]:
+                    if isinstance(elm, list):
+                        leaf_args += [str(itm) for itm in elm]
+                    elif isinstance(elm, bool):
+                        if elm is False:
+                            leaf_args.pop()
+                        else:
+                            pass
+                    else:
+                        leaf_args += [str(elm)]
                 if leafs_only:
                     args = leaf_args
                     break
