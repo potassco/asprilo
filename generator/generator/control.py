@@ -25,6 +25,9 @@ class Control(object):
         self._check_related_cl_args()
         if not nested:
             setup_logger(self._args.loglevel)
+        if self._args.template_relative and self._args.template and self._args.directory:
+            for idx, _ in enumerate(self._args.template):
+                self._args.template[idx] = os.path.join(self._args.directory, self._args.template[idx])
 
     def run(self):
         """Main method to dispatch instance generation."""
@@ -55,7 +58,7 @@ class Control(object):
                 invocations, global_settings = self._extract_invocations(batch_file.read(),
                                                                          self._args.directory)
                 for invoc in invocations:
-                    if self._args.cat:
+                    if self._args.cat: # Filter selected categories
                         if not [cat for cat in self._args.cat if
                                 invoc[1].startswith('{}/{}'.format(self._args.directory, cat))]:
                             LOG.warn("Categories provided, skipping mismatching invocation: %s",
@@ -66,6 +69,8 @@ class Control(object):
                         LOG.info("Running invocation for pars: %s ", str(invoc))
                         nsdict = {k: copy.deepcopy(v) for k, v in vars(self._args).items()
                                   if k != 'batch'}
+                        if self._args.skip_existing_sub:
+                            nsdict['skip_existing'] = True
                         nspace = argparse.Namespace(**nsdict)
                         Control(invoc, nspace, True).run()
                     except Exception, exc:
@@ -301,6 +306,10 @@ class Control(object):
                                 help="prints the instances to the console", action="store_true")
         basic_args.add_argument("-d", "--directory", type=str, default="generatedInstances",
                                 help="the directory to safe the files")
+        basic_args.add_argument("--se", "--skip-existing", action="store_true",
+                                dest="skip_existing",
+                                help="""skip instance generation if destination directory
+                                already exists""")
         basic_args.add_argument("--instance-dir", action="store_true",
                                 help="""each instance is stored in unique directory where the
                                  path is the concatenation of \'<DIRECTORY> <INSTANCE-NAME>/\'""")
@@ -333,14 +342,13 @@ class Control(object):
                                 by a job file; Warning: additional command line parameters will be carried over
                                 as input parameters for single instance generation runs, unless explicitly
                                 redefined in the job file""")
-        batch_args.add_argument('-c', '--cat', nargs='*',
+        batch_args.add_argument('-c', '--cat', nargs='*', type=str,
                                 help="""optional list of names (i.e., prefixes) of sub-categories
                                 to create""")
-        batch_args.add_argument("--se", "--skip-existing", action="store_true",
-                                dest="skip_existing",
-                                help="""skip instance generation if destination directory
-                                already exists""")
-
+        basic_args.add_argument("--su", "--skip-existing-sub", action="store_true",
+                                dest="skip_existing_sub",
+                                help="""during batch instance generation, skip those sub-directories
+                                that exist; helpful to resume interrupted generation jobs""")
 
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,
@@ -396,6 +404,10 @@ class Control(object):
         project_args.add_argument("-T", "--template", nargs='*', type=str, default=[],
                                   help="""every created instance will contain all atoms
                                   defined in #program base of the template file(s)""")
+        project_args.add_argument('--tr', '--template-relative', action='store_true',
+                                  dest='template_relative',
+                                  help="""searches template relative to the destination directory
+                                  (-d) if given""")
         project_args.add_argument("--prj-orders", action="store_true",
                                   help='project enumeration to order-related init/2 atoms')
         project_args.add_argument("--prj-warehouse", action="store_true",
