@@ -22,7 +22,7 @@ class Control(object):
     """Runs InstanceGenerator once or multiple times."""
     def __init__(self, args=None, parent=None):
         namespace = None
-        if parent:
+        if parent: # Carrying over settings from parent
             nsdict = {k: copy.deepcopy(v) for k, v in vars(parent.args).items()
                       if k != 'batch'}
             if parent.args.skip_existing_sub:
@@ -32,14 +32,16 @@ class Control(object):
         self._check_related_cl_args()
         if not parent:
             setup_logger(self._args.loglevel)
-        if self._args.template_relative and self._args.template and self._args.directory:
-            for idx, _ in enumerate(self._args.template):
-                self._args.template[idx] = os.path.join(self._args.directory,
-                                                        self._args.template[idx])
+
     @property
     def args(self):
-        """Read-only access to args."""
+        """Property for command line args."""
         return self._args
+
+    @property
+    def cl_parser(self):
+        """Property for command line parser."""
+        return self._cl_parser
 
     def run(self):
         """Main method to dispatch instance generation."""
@@ -157,6 +159,7 @@ class Control(object):
         for part in path:
             if isinstance(part, list): #Leaf level
                 leaf_args = []
+                template_path = False
                 for elm in [elm for tup in part for elm in tup]:
                     if isinstance(elm, list):
                         leaf_args += [str(itm) for itm in elm]
@@ -165,6 +168,12 @@ class Control(object):
                             leaf_args.pop()
                         else:
                             pass
+                    elif template_path:
+                        leaf_args += [os.path.join(parent_path, elm)]
+                        template_path = False
+                    elif elm == '-T' or elm == '--template':
+                        template_path = True
+                        leaf_args += [str(elm)]
                     else:
                         leaf_args += [str(elm)]
                 if leafs_only:
@@ -411,10 +420,6 @@ class Control(object):
         project_args.add_argument("-T", "--template", nargs='*', type=str, default=[],
                                   help="""every created instance will contain all atoms
                                   defined in #program base of the template file(s)""")
-        project_args.add_argument('--tr', '--template-relative', action='store_true',
-                                  dest='template_relative',
-                                  help="""searches template relative to the destination directory
-                                  (-d) if given""")
         project_args.add_argument("--prj-orders", action="store_true",
                                   help='project enumeration to order-related init/2 atoms')
         project_args.add_argument("--prj-warehouse", action="store_true",
