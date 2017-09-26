@@ -20,14 +20,26 @@ LOG = logging.getLogger('custom')
 
 class Control(object):
     """Runs InstanceGenerator once or multiple times."""
-    def __init__(self, args=None, namespace=None, nested=False):
+    def __init__(self, args=None, parent=None):
+        namespace = None
+        if parent:
+            nsdict = {k: copy.deepcopy(v) for k, v in vars(parent.args).items()
+                      if k != 'batch'}
+            if parent.args.skip_existing_sub:
+                nsdict['skip_existing'] = True
+            namespace = argparse.Namespace(**nsdict)
         self._cl_parser, self._args = Control._parse_cl_args(args, namespace)
         self._check_related_cl_args()
-        if not nested:
+        if not parent:
             setup_logger(self._args.loglevel)
         if self._args.template_relative and self._args.template and self._args.directory:
             for idx, _ in enumerate(self._args.template):
-                self._args.template[idx] = os.path.join(self._args.directory, self._args.template[idx])
+                self._args.template[idx] = os.path.join(self._args.directory,
+                                                        self._args.template[idx])
+    @property
+    def args(self):
+        """Read-only access to args."""
+        return self._args
 
     def run(self):
         """Main method to dispatch instance generation."""
@@ -67,12 +79,7 @@ class Control(object):
                     invoc.extend(global_settings)
                     try:
                         LOG.info("Running invocation for pars: %s ", str(invoc))
-                        nsdict = {k: copy.deepcopy(v) for k, v in vars(self._args).items()
-                                  if k != 'batch'}
-                        if self._args.skip_existing_sub:
-                            nsdict['skip_existing'] = True
-                        nspace = argparse.Namespace(**nsdict)
-                        Control(invoc, nspace, True).run()
+                        Control(invoc, self).run()
                     except Exception, exc:
                         LOG.error("""During batch mode, received exception \'%s\' while running with
                         parameters %s""", exc, str(invoc))
