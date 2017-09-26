@@ -125,11 +125,11 @@ class Control(object):
                 if path and prev_leaf:
                     LOG.debug("Last leaf path: %s", str(path))
                     if path[0] == 'global_settings':
-                        global_settings.extend(Control._convert_path_to_args(path,
+                        global_settings.extend(self._convert_path_to_args(path,
                                                                              parent_path,
                                                                              True))
                     else:
-                        invocations.append(Control._convert_path_to_args(path, parent_path))
+                        invocations.append(self._convert_path_to_args(path, parent_path))
                     popped = path.pop()
                     LOG.debug("Popped from path:  %s", str(popped))
                     prev_leaf = False
@@ -152,8 +152,7 @@ class Control(object):
         LOG.debug("Invocations: %s", str(invocations))
         return invocations, global_settings
 
-    @staticmethod
-    def _convert_path_to_args(path, parent_path='.', leafs_only=False):
+    def _convert_path_to_args(self, path, parent_path='.', leafs_only=False):
         """Converts path to list of input args for _parse_cl_args."""
         args = ['-d', parent_path]
         for part in path:
@@ -171,7 +170,7 @@ class Control(object):
                     elif template_path:
                         leaf_args += [os.path.join(parent_path, elm)]
                         template_path = False
-                    elif elm == '-T' or elm == '--template':
+                    elif (elm == '-T' or elm == '--template') and self._args.template_relative:
                         template_path = True
                         leaf_args += [str(elm)]
                     else:
@@ -361,10 +360,14 @@ class Control(object):
         batch_args.add_argument('-c', '--cat', nargs='*', type=str,
                                 help="""optional list of names (i.e., prefixes) of sub-categories
                                 to create""")
-        basic_args.add_argument("--su", "--skip-existing-sub", action="store_true",
+        batch_args.add_argument("--su", "--skip-existing-sub", action="store_true",
                                 dest="skip_existing_sub",
                                 help="""during batch instance generation, skip those sub-directories
                                 that exist; helpful to resume interrupted generation jobs""")
+        batch_args.add_argument('--tr', '--template-relative', action='store_true',
+                                dest='template_relative',
+                                help="""consider template paths relative to the destination
+                                directory (-d) if given""")
 
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,

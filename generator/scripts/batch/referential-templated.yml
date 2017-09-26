@@ -1,6 +1,6 @@
 # Referential instance set compartmentalized into relevant sub-domains.
 
-global_settings: { '-N': 10, '--tr': True } #'--split': [2, 2] }
+global_settings: { '-N': 10} #'--split': [2, 2] }
 
 
 # = Warehouse Templates ============================================================================
@@ -9,14 +9,12 @@ global_settings: { '-N': 10, '--tr': True } #'--split': [2, 2] }
 #  but no specification of stocked products or orders.
 #
 
-warehouse_templates:
-
 # = Standard Warehouse Layout ======================================================================
 #
 #     Typical warehouse layout with rectangular shelf clusters, symmetrically placed in a
 #     Manhattan-style grid
 #
-
+warehouse_templates:
   standard:
     
     # - Rectangular shelf clusters -------------------------------------------------------------------
@@ -69,5 +67,6 @@ full_instances:
   standard:
     rectangles:
       tiny:
-        50sc: { '-T': standard/rectangles/tiny/50sc, '-P': 4, '-u': 32, '-o': 8, '--oap': True }
+        50sc:
+          P4u32o8: { '-T': warehouse_templates/standard/rectangles/tiny/50sc/*.lp, '-P': 4, '-u': 32, '-o': 8, '--oap': True }
 
