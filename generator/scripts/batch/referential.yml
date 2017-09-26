@@ -1,50 +1,77 @@
 # Referential instance set compartmentalized into relevant sub-domains.
 
-global_settings: { '-N': 10 } #'--split': [2, 2] }
+global_settings: { '-N': 1, '--split': [2, 2] }
 
-
+run_configs:
+ 
 # = Standard Warehouse Layout ======================================================================
 #
 #     Typical warehouse layout with rectangular shelf clusters, symmetrically placed in a
 #     Manhattan-style grid
 #
-standard:
-  # - Rectangular shelf clusters -------------------------------------------------------------------
-  rectangles:
-    tiny:
-      # half of storage locations occupied by shelves
-      50sc:  { '-x': 9, '-y': 6, '-X':3 , '-Y': 2, '-r': 2, '-s':  6, '-p': 1, '-P': 4, '-u': 32, '-o': 8, '-H': True, '--oap': True }
-      # all storage locations occupied by shelves
-      100sc: { '-x': 9, '-y': 6, '-X':3 , '-Y': 2, '-r': 2, '-s': 12, '-p': 1, '-P': 4, '-u': 32, '-o': 8, '-H': True, '--oap': True }
-      # 2:  { '-x': 7, '-y': 6, '-r': 3, '-s':  8, '-p': 2, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-      # 2:  { '-x': 6, '-y': 6, '-r': 5, '-s': 16, '-p': 4, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-    small:
-      50sc:  { '-x': 13, '-y': 12, '-X': 5, '-Y': 2, '-r': 4, '-s': 30, '-p': 3, '-P': 6, '-u': 48, '-o': 10, '-H': True, '--oap': True }
-      100sc: { '-x': 13, '-y': 12, '-X': 5, '-Y': 2, '-r': 4, '-s': 60, '-p': 3, '-P': 6, '-u': 48, '-o': 10, '-H': True, '--oap': True }
-    medium:
-      50sc:  { '-x': 19, '-y': 15, '-X': 8, '-Y': 2, '-r': 5, '-s':  64, '-p': 4, '-P': 8, '-u': 64, '-o': 10, '-H': True, '--oap': True }
-      100sc: { '-x': 19, '-y': 15, '-X': 8, '-Y': 2, '-r': 5, '-s': 128, '-p': 4, '-P': 8, '-u': 64, '-o': 10, '-H': True, '--oap': True }
-    huge:
-      1: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 2, '-P': 4, '-u': 32, '-o':  8, '-H': True, '--oap': True }
-      2: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 7, '-P': 4, '-u': 32, '-o':  8, '-H': True, '--oap': True }
-      3: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 1, '-P': 4, '-u': 32, '-o':  8, '-H': True, '--oap': True }
+  standard:
+    #- Rectangular shelf clusters -------------------------------------------------------------------
+    rectangles:
+      tiny:
+        # half of storage locations occupied by shelves
+        50sc:
+          wh: { '-x': 9, '-y': 6, '-X':3 , '-Y': 2, '-r': 2, '-s': 6, '-p': 1, '-H': True }
+          po:
+            - { '-P': 4, '-u': 20, '-o': 4, '--oap': True }
+            - { '-P': 6, '-u': 32, '-o': 6, '--oap': True }
+           
+        #  all storage locations occupied by shelves
+        100sc:
+          wh: { '-x': 9, '-y': 6, '-X':3 , '-Y': 2, '-r': 2, '-s': 12, '-p': 1, '-H': True }
+          po:
+            - { '-P': 4, '-u': 20, '-o': 4, '--oap': True }
+            - { '-P': 6, '-u': 32, '-o': 6, '--oap': True }
+          
+      # # 2:  { '-x': 7, '-y': 6, '-r': 3, '-s':  8, '-p': 2, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+      # # 2:  { '-x': 6, '-y': 6, '-r': 5, '-s': 16, '-p': 4, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+      small:
+        50sc:
+          wh: { '-x': 13, '-y': 12, '-X': 5, '-Y': 2, '-r': 4, '-s': 30, '-p': 3, '-H': True }
+          po:
+            - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
+            - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
+            - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
+  #     100sc:
+  #       wh: { '-x': 13, '-y': 12, '-X': 5, '-Y': 2, '-r': 4, '-s': 60, '-p': 3, '-H': True }
+  #       po:
+  #         - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
+  #         - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
+  #         - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
+  #   medium:
+  #     50sc:  { '-x': 19, '-y': 15, '-X': 8, '-Y': 2, '-r': 5, '-s':  64, '-p': 4, '-P': 8, '-u': 64, '-o': 10, '-H': True, '--oap': True }
+  #     100sc: { '-x': 19, '-y': 15, '-X': 8, '-Y': 2, '-r': 5, '-s': 128, '-p': 4, '-P': 8, '-u': 64, '-o': 10, '-H': True, '--oap': True }
+  #   huge:
+  #     1: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 2, '-P': 4, '-u': 32, '-o':  8, '-H': True, '--oap': True }
+  #     2: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 7, '-P': 4, '-u': 32, '-o':  8, '-H': True, '--oap': True }
+  #     3: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 1, '-P': 4, '-u': 32, '-o':  8, '-H': True, '--oap': True }
 
-  # - Square shelf clusters ------------------------------------------------------------------------
-  squares:
-    tiny:
-      # half of storage locations occupied by shelves
-      50sc:  { '-x': 7, '-y': 6, '-X':2 , '-Y': 2, '-r': 2, '-s':  4, '-p': 1, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-      # all storage locations occupied by shelves
-      100sc: { '-x': 7, '-y': 6, '-X':2 , '-Y': 2, '-r': 2, '-s':  8, '-p': 1, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-    small:
-      1: { '-x': 12, '-y': 12, '-X': 5, '-Y':  2, '-r': 5, '-s': 16, '-p': 3, '-P':  4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-      2: { '-x': 10, '-y': 10, '-r': 5, '-s': 16, '-p': 4, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-      3: { '-x': 12, '-y': 12, '-r': 6, '-s': 16, '-p': 5, '-P': 5, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-    medium:
-      1: { '-x': 10, '-y': 10, '-r': 5, '-s': 16, '-p': 4, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-      2: { '-x': 10, '-y': 10, '-r': 5, '-s': 16, '-p': 4, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-      3: { '-x': 12, '-y': 12, '-r': 6, '-s': 16, '-p': 5, '-P': 5, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-    huge:
-      1: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 2, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-      2: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 7, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
-      3: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 1, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+  # # - Square shelf clusters ------------------------------------------------------------------------
+    squares:
+      tiny:
+        # half of storage locations occupied by shelves
+        50sc:
+          wh: { '-x': 7, '-y': 6, '-X':2 , '-Y': 2, '-r': 2, '-s':  4, '-p': 1, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+          po:
+            - { '-P': 100000}
+        # all storage locations occupied by shelves
+        100sc:
+          wh: { '-x': 7, '-y': 6, '-X':2 , '-Y': 2, '-r': 2, '-s':  8, '-p': 1, '-H': True }
+          po:
+            - { '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+  #   small:
+  #     1: { '-x': 12, '-y': 12, '-X': 5, '-Y':  2, '-r': 5, '-s': 16, '-p': 3, '-P':  4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+  #     2: { '-x': 10, '-y': 10, '-r': 5, '-s': 16, '-p': 4, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+  #     3: { '-x': 12, '-y': 12, '-r': 6, '-s': 16, '-p': 5, '-P': 5, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+  #   medium:
+  #     1: { '-x': 10, '-y': 10, '-r': 5, '-s': 16, '-p': 4, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+  #     2: { '-x': 10, '-y': 10, '-r': 5, '-s': 16, '-p': 4, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+  #     3: { '-x': 12, '-y': 12, '-r': 6, '-s': 16, '-p': 5, '-P': 5, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+  #   huge:
+  #     1: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 2, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+  #     2: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 7, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
+  #     3: { '-x': 20, '-y': 20, '-r': 5, '-s': 16, '-p': 1, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }

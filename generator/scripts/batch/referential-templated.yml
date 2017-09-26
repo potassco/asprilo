@@ -14,9 +14,8 @@ global_settings: { '-N': 10} #'--split': [2, 2] }
 #     Typical warehouse layout with rectangular shelf clusters, symmetrically placed in a
 #     Manhattan-style grid
 #
-warehouse_templates:
-  standard:
-    
+warehouses:
+  standard:  
     # - Rectangular shelf clusters -------------------------------------------------------------------
     rectangles:
       tiny:
@@ -27,8 +26,18 @@ warehouse_templates:
         # 2:  { '-x': 7, '-y': 6, '-r': 3, '-s':  8, '-p': 2, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
         # 2:  { '-x': 6, '-y': 6, '-r': 5, '-s': 16, '-p': 4, '-P': 4, '-u': 32, '-o':  8, '-R': True, '-H': True, '--oap': True }
       small:
-        50sc:  { '-x': 13, '-y': 12, '-X': 5, '-Y': 2, '-r': 4, '-s': 30, '-p': 3, '-P': 6, '-u': 48, '-o': 10, '-H': True, '--oap': True }
-        100sc: { '-x': 13, '-y': 12, '-X': 5, '-Y': 2, '-r': 4, '-s': 60, '-p': 3, '-P': 6, '-u': 48, '-o': 10, '-H': True, '--oap': True }
+        50sc:
+          wh: { '-x': 13, '-y': 12, '-X': 5, '-Y': 2, '-r': 4, '-s': 30, '-p': 3, '-H': True }
+          po:
+            - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
+            - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
+            - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
+        100sc:
+          wh: { '-x': 13, '-y': 12, '-X': 5, '-Y': 2, '-r': 4, '-s': 60, '-p': 3, '-H': True }
+          po:
+            - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
+            - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
+            - { '-P': 6, '-u': 48, '-o': 10, '--oap': True }
       medium:
         50sc:  { '-x': 19, '-y': 15, '-X': 8, '-Y': 2, '-r': 5, '-s':  64, '-p': 4, '-P': 8, '-u': 64, '-o': 10, '-H': True, '--oap': True }
         100sc: { '-x': 19, '-y': 15, '-X': 8, '-Y': 2, '-r': 5, '-s': 128, '-p': 4, '-P': 8, '-u': 64, '-o': 10, '-H': True, '--oap': True }

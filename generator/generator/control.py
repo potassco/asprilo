@@ -88,6 +88,7 @@ class Control(object):
         except IOError as err:
             LOG.error("IOError while trying to open batch file \'%s\': %s", self._args.batch, err)
 
+
     def _extract_invocations(self, batch, parent_path='.'):
         """Returns the required invocations from a batch job specification.
 
@@ -104,52 +105,103 @@ class Control(object):
         yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, odict_constructor)
         content = yaml.load(batch)
         LOG.debug("Content parsed from YAML batch file: %s", str(content))
+        invocations, global_settings = self._collect_invocs(content, None, parent_path)
+        # invocations = []
+        # global_settings = []
+        # path = []
+        # stack = [content.iteritems()]
+        # visit_next = None
+        # prev_leaf = False
+        # while stack or visit_next:
+        #     LOG.debug("Current path: %s", str(path))
+        #     if visit_next:
+        #         itr = visit_next
+        #     else:
+        #         itr = stack.pop()
+        #         if path and not prev_leaf:
+        #             popped = path.pop()
+        #             LOG.debug("Popped from path:  %s", str(popped))
+        #     try:
+        #         key, val = itr.next()
+        #     except StopIteration:
+        #         if path and prev_leaf:
+        #             LOG.debug("Last leaf path: %s", str(path))
+        #             if path[0] == 'global_settings':
+        #                 global_settings.extend(self._convert_path_to_args(path,
+        #                                                                      parent_path,
+        #                                                                      True))
+        #             else:
+        #                 invocations.append(self._convert_path_to_args(path, parent_path))
+        #             popped = path.pop()
+        #             LOG.debug("Popped from path:  %s", str(popped))
+        #             prev_leaf = False
+        #     else:
+        #         stack.append(itr)
+        #         LOG.debug("Visiting: %s | %s", str(key), str(val))
+        #         if isinstance(val, OrderedDict):
+        #             path.append(key)
+        #             visit_next = val.iteritems()
+        #             prev_leaf = False
+        #         elif key:
+        #             LOG.debug("Leaf detected: %s :: %s", str(key), str(val))
+        #             if isinstance(path[-1], list):
+        #                 path[-1].append((key, val))
+        #             else:
+        #                 path.append([(key, val)])
+        #             visit_next = None
+        #             prev_leaf = True
+        #     key = val = None
+        LOG.debug("Global settings: %s", str(global_settings))
+        LOG.debug("Invocations: %s", str(invocations))
+        exit(1)
+        return invocations, global_settings
+
+    def _collect_invocs(self, content, path=None, parent_path='.'):
         invocations = []
         global_settings = []
-        path = []
-        stack = [content.iteritems()]
-        visit_next = None
-        prev_leaf = False
-        while stack or visit_next:
-            LOG.debug("Current path: %s", str(path))
-            if visit_next:
-                itr = visit_next
-            else:
-                itr = stack.pop()
-                if path and not prev_leaf:
-                    popped = path.pop()
-                    LOG.debug("Popped from path:  %s", str(popped))
-            try:
-                key, val = itr.next()
-            except StopIteration:
-                if path and prev_leaf:
-                    LOG.debug("Last leaf path: %s", str(path))
-                    if path[0] == 'global_settings':
-                        global_settings.extend(self._convert_path_to_args(path,
-                                                                             parent_path,
-                                                                             True))
-                    else:
-                        invocations.append(self._convert_path_to_args(path, parent_path))
-                    popped = path.pop()
-                    LOG.debug("Popped from path:  %s", str(popped))
-                    prev_leaf = False
-            else:
-                stack.append(itr)
-                LOG.debug("Visiting: %s | %s", str(key), str(val))
-                if isinstance(val, OrderedDict):
+        path = path or []
+        warehouse_invoc = []
+        LOG.debug("Current path: %s", str(path))
+        if isinstance(content, OrderedDict):
+            for key, val in content.items():
+                if key == 'wh':
+                    LOG.debug("Warehouse leaf found %s", str(val))
+                    warehouse_invoc, _ = self._collect_invocs(val, path, parent_path)
+                elif key == 'po':
+                    LOG.debug("Products-Orders leaf found %s", str(val))
+                    invs, _ = self._collect_invocs(val, path, parent_path)
+                    invocations.extend([list(*warehouse_invoc) + inv for inv in invs])
+                elif isinstance(val, OrderedDict):
                     path.append(key)
-                    visit_next = val.iteritems()
-                    prev_leaf = False
-                elif key:
-                    LOG.debug("Leaf detected: %s :: %s", str(key), str(val))
-                    if isinstance(path[-1], list):
+                    invs, gls = self._collect_invocs(val, path, parent_path)
+                    invocations.extend(invs)
+                    global_settings.extend(gls)
+                    if path and content.keys().index(key) is len(content) - 1:
+                        path.pop()
+                else: # leaf level
+                    if path and isinstance(path[-1], list):
                         path[-1].append((key, val))
                     else:
                         path.append([(key, val)])
-                    visit_next = None
-                    prev_leaf = True
-            key = val = None
-        LOG.debug("Invocations: %s", str(invocations))
+                    if content.keys().index(key) is len(content) - 1: # last leaf
+                        if path and path[0] == 'global_settings':
+                            global_settings.extend(self._convert_path_to_args(path, parent_path,
+                                                                              True))
+                            path.pop()
+                        elif path and path[0] == 'po':
+                            invocations.append(self._convert_path_to_args(path[1:], parent_path,
+                                                                          True))
+                            LOG.debug("Added the following path to invocations: %s", str(path[1:]))
+                        elif path and path[0] == 'run_configs':
+                            invocations.append(self._convert_path_to_args(path[1:], parent_path))
+                            LOG.debug("Added the following path to invocations: %s", str(path[1:]))
+                            path.pop()
+                        path.pop()
+        elif isinstance(content, list): #list of product-order settings
+            for po_conf in content:
+                invs, gls = self._collect_invocs(po_conf, ['po'], parent_path)
+                invocations.extend(invs)
+                global_settings.extend(gls)
         return invocations, global_settings
 
     def _convert_path_to_args(self, path, parent_path='.', leafs_only=False):
@@ -158,7 +210,7 @@ class Control(object):
         for part in path:
             if isinstance(part, list): #Leaf level
                 leaf_args = []
-                template_path = False
+                rel_template_path = False
                 for elm in [elm for tup in part for elm in tup]:
                     if isinstance(elm, list):
                         leaf_args += [str(itm) for itm in elm]
@@ -167,11 +219,11 @@ class Control(object):
                             leaf_args.pop()
                         else:
                             pass
-                    elif template_path:
+                    elif rel_template_path:
                         leaf_args += [os.path.join(parent_path, elm)]
-                        template_path = False
+                        rel_template_path = False
                     elif (elm == '-T' or elm == '--template') and self._args.template_relative:
-                        template_path = True
+                        rel_template_path = True
                         leaf_args += [str(elm)]
                     else:
                         leaf_args += [str(elm)]
@@ -189,9 +241,11 @@ class Control(object):
         sig_handled = [False] # Outter flag to indicate sig handler usage
 
         class TimeoutError(Exception):
+            """Time out exception."""
             pass
 
         def sig_handler(signum, frame):
+            """Custom signal handler."""
             sig_handled[0] = True
             if signum == signal.SIGINT:
                 LOG.warn("\n! Received Keyboard Interruption (Ctrl-C).\n")
@@ -368,6 +422,11 @@ class Control(object):
                                 dest='template_relative',
                                 help="""consider template paths relative to the destination
                                 directory (-d) if given""")
+        batch_args.add_argument('--who', '--warehouse-only', action='store_true',
+                                dest='warehouse_only',
+                                help="""only compute warehouse instances without allocating products
+                                to shelves nor generating orders""")
+
 
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,
