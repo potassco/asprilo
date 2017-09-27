@@ -167,10 +167,17 @@ class Control(object):
                 if key == 'wh':
                     LOG.debug("Warehouse leaf found %s", str(val))
                     warehouse_invoc, _ = self._collect_invocs(val, path, parent_path)
+                    # If po missing or --who given, add invocation directly
+                    if (content.keys().index(key) is len(content) - 1 or
+                            self._args.warehouse_only):
+                        invocations.extend(warehouse_invoc)
                 elif key == 'po':
-                    LOG.debug("Products-Orders leaf found %s", str(val))
-                    invs, _ = self._collect_invocs(val, path, parent_path)
-                    invocations.extend([list(*warehouse_invoc) + inv for inv in invs])
+                    if self._args.warehouse_only:
+                        continue
+                    else:
+                        LOG.debug("Products-Orders leaf found %s", str(val))
+                        invs, _ = self._collect_invocs(val, path, parent_path)
+                        invocations.extend([list(*warehouse_invoc) + inv for inv in invs])
                 elif isinstance(val, OrderedDict):
                     path.append(key)
                     invs, gls = self._collect_invocs(val, path, parent_path)
