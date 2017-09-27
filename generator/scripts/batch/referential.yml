@@ -1,6 +1,7 @@
 # Referential instance set compartmentalized into relevant sub-domains.
 
-global_settings: { '-N': 1, '--split': [2, 2] }
+#global_settings: { '-N': 10 }
+global_settings: { '--split': [4, 4] }
 
 run_configs:
  

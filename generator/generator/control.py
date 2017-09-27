@@ -106,54 +106,9 @@ class Control(object):
         content = yaml.load(batch)
         LOG.debug("Content parsed from YAML batch file: %s", str(content))
         invocations, global_settings = self._collect_invocs(content, None, parent_path)
-        # invocations = []
-        # global_settings = []
-        # path = []
-        # stack = [content.iteritems()]
-        # visit_next = None
-        # prev_leaf = False
-        # while stack or visit_next:
-        #     LOG.debug("Current path: %s", str(path))
-        #     if visit_next:
-        #         itr = visit_next
-        #     else:
-        #         itr = stack.pop()
-        #         if path and not prev_leaf:
-        #             popped = path.pop()
-        #             LOG.debug("Popped from path:  %s", str(popped))
-        #     try:
-        #         key, val = itr.next()
-        #     except StopIteration:
-        #         if path and prev_leaf:
-        #             LOG.debug("Last leaf path: %s", str(path))
-        #             if path[0] == 'global_settings':
-        #                 global_settings.extend(self._convert_path_to_args(path,
-        #                                                                      parent_path,
-        #                                                                      True))
-        #             else:
-        #                 invocations.append(self._convert_path_to_args(path, parent_path))
-        #             popped = path.pop()
-        #             LOG.debug("Popped from path:  %s", str(popped))
-        #             prev_leaf = False
-        #     else:
-        #         stack.append(itr)
-        #         LOG.debug("Visiting: %s | %s", str(key), str(val))
-        #         if isinstance(val, OrderedDict):
-        #             path.append(key)
-        #             visit_next = val.iteritems()
-        #             prev_leaf = False
-        #         elif key:
-        #             LOG.debug("Leaf detected: %s :: %s", str(key), str(val))
-        #             if isinstance(path[-1], list):
-        #                 path[-1].append((key, val))
-        #             else:
-        #                 path.append([(key, val)])
-        #             visit_next = None
-        #             prev_leaf = True
-        #     key = val = None
         LOG.debug("Global settings: %s", str(global_settings))
         LOG.debug("Invocations: %s", str(invocations))
-        exit(1)
+        #exit(1)
         return invocations, global_settings
 
     def _collect_invocs(self, content, path=None, parent_path='.'):
@@ -169,7 +124,8 @@ class Control(object):
                     warehouse_invoc, _ = self._collect_invocs(val, path, parent_path)
                     # If po missing or --who given, add invocation directly
                     if (content.keys().index(key) is len(content) - 1 or
-                            self._args.warehouse_only):
+                            self._args.warehouse_only or
+                            self.args.warehouse_too):
                         invocations.extend(warehouse_invoc)
                 elif key == 'po':
                     if self._args.warehouse_only:
@@ -431,9 +387,12 @@ class Control(object):
                                 directory (-d) if given""")
         batch_args.add_argument('--who', '--warehouse-only', action='store_true',
                                 dest='warehouse_only',
-                                help="""only compute warehouse instances without allocating products
-                                to shelves nor generating orders""")
-
+                                help="""*only* compute warehouse instances without allocating
+                                products to shelves nor generating orders""")
+        batch_args.add_argument('--wht', '--warehouse-too', action='store_true',
+                                dest='warehouse_too',
+                                help="""*additionally* compute warehouse instances without
+                                allocating products to shelves nor generating orders""")
 
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,
