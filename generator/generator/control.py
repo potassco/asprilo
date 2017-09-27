@@ -119,16 +119,16 @@ class Control(object):
         LOG.debug("Current path: %s", str(path))
         if isinstance(content, OrderedDict):
             for key, val in content.items():
-                if key == 'wh':
+                if key == 'pre':
                     LOG.debug("Warehouse leaf found %s", str(val))
                     warehouse_invoc, _ = self._collect_invocs(val, path, parent_path)
                     # If po missing or --who given, add invocation directly
                     if (content.keys().index(key) is len(content) - 1 or
-                            self._args.warehouse_only or
-                            self.args.warehouse_too):
+                            self._args.pre_only or
+                            self.args.pre_too):
                         invocations.extend(warehouse_invoc)
-                elif key == 'po':
-                    if self._args.warehouse_only:
+                elif key == 'var':
+                    if self._args.pre_only:
                         continue
                     else:
                         LOG.debug("Products-Orders leaf found %s", str(val))
@@ -151,7 +151,7 @@ class Control(object):
                             global_settings.extend(self._convert_path_to_args(path, parent_path,
                                                                               True))
                             path.pop()
-                        elif path and path[0] == 'po':
+                        elif path and path[0] == 'var':
                             invocations.append(self._convert_path_to_args(path[1:], parent_path,
                                                                           True))
                             LOG.debug("Added the following path to invocations: %s", str(path[1:]))
@@ -162,7 +162,7 @@ class Control(object):
                         path.pop()
         elif isinstance(content, list): #list of product-order settings
             for po_conf in content:
-                invs, gls = self._collect_invocs(po_conf, ['po'], parent_path)
+                invs, gls = self._collect_invocs(po_conf, ['var'], parent_path)
                 invocations.extend(invs)
                 global_settings.extend(gls)
         return invocations, global_settings
@@ -385,14 +385,12 @@ class Control(object):
                                 dest='template_relative',
                                 help="""consider template paths relative to the destination
                                 directory (-d) if given""")
-        batch_args.add_argument('--who', '--warehouse-only', action='store_true',
-                                dest='warehouse_only',
-                                help="""*only* compute warehouse instances without allocating
-                                products to shelves nor generating orders""")
-        batch_args.add_argument('--wht', '--warehouse-too', action='store_true',
-                                dest='warehouse_too',
-                                help="""*additionally* compute warehouse instances without
-                                allocating products to shelves nor generating orders""")
+        batch_args.add_argument('--preo', '--pre-only', action='store_true', dest='pre_only',
+                                help="""*only* compute instances for the configuration presets
+                                instead of their variants""")
+        batch_args.add_argument('--pret', '--pre-too', action='store_true', dest='pre_too',
+                                help="""*additionally* compute instances for the
+                                configuration presets in addition to their variants""")
 
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,
