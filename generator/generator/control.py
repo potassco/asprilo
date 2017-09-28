@@ -45,7 +45,7 @@ class Control(object):
 
     def run(self):
         """Main method to dispatch instance generation."""
-        if os.path.isdir(self._args.directory):
+        if not self._args.batch and os.path.isdir(self._args.directory):
             if self._args.skip_existing:
                 LOG.warn("Skipping, since directory \'%s\' exists!", self._args.directory)
                 return
