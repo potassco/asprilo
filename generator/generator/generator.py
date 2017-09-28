@@ -18,6 +18,10 @@ class InstanceGenerator(object):
                             "--project",
                             # "--opt-mode=optN",
                             "-n {0}".format(self._args.num)]
+        if self._args.random:
+            self._solve_opts.extend(['--rand-freq={}'.format(self._args.rand_freq),
+                                     '--sign-def={}'.format(self._args.sign_def),
+                                     '--seed={}'.format(self._args.seed)])
         self._inits = None
         self._object_counters = {}
         self._instance_count = 0

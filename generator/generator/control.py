@@ -361,6 +361,21 @@ class Control(object):
         basic_args.add_argument("-w", "--wait", type=check_positive, default=300,
                                 help="""time to wait in seconds before
                                  solving is aborted if not finished yet (default: %(default)s)""")
+        basic_args.add_argument('--random', action='store_true', dest='random',
+                                help="""Randomize clingo\'s model enumeration based on the flags
+                                \'--rand-freq\', \'--sign-def\', and \'--seed\'""")
+        basic_args.add_argument("--rand-freq", type=float, default=0.5, dest='rand_freq',
+                                metavar='PERCENTAGE',
+                                help="""for model randomization: the \'--rand-freq=%(metavar)s\'
+                                flag passed to clingo (default: %(default)s)""")
+        basic_args.add_argument("--sign-def", type=str, default='rnd', dest='sign_def',
+                                metavar='DEFAULT_SIGN',
+                                help="""for model randomization: the \'--sign-def=%(metavar)s\' flag
+                                passed to clingo (default: %(default)s)""")
+        basic_args.add_argument("--seed", type=int, default=123456789, dest='seed',
+                                metavar='SEED',
+                                help="""for model randomization: the \'--seed=%(metavar)s\' flag
+                                passed to clingo (default: %(default)s)""")
         basic_args.add_argument('-V', '--verbose', action='store_const', dest='loglevel',
                                 const=logging.INFO, default=logging.WARNING,
                                 help='verbose output (default: %(default)s)')
