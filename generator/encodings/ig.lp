@@ -176,6 +176,7 @@ beltway(X,Y) :-  init(object(node, _), value(at, (X, Y))), Y>SY-beltway-P, Y <= 
 % Extra rows for placing picking station and robots, resp., at the top and bottom
 paddingTop(Y)    :- Y = (PN-1) / X + 1, sizeX(X), pickingStationNum(PN).
 paddingBottom(Y) :- Y = (RN-1) / X + 1, sizeX(X), robotNum(RN).
+paddingBottom(1) :- not robotNum(_). % padding if no robots present
 
 % Draw grid
 highway(X, Y) :- beltway(X,Y).

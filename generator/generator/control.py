@@ -333,22 +333,22 @@ class Control(object):
         basic_args.add_argument("-u", "--product-units-total", type=check_positive,
                                 help="the total number of product units stored in the warehouse")
         basic_args.add_argument("-N", "--num", type=int, default=1,
-                                help="the number of instances to create")
+                                help="the number of instances to create (default: %(default)s)")
         basic_args.add_argument("-C", "--console",
                                 help="prints the instances to the console", action="store_true")
         basic_args.add_argument("-d", "--directory", type=str, default="generatedInstances",
-                                help="the directory to safe the files")
+                                help="the directory to safe the files (default: %(default)s)")
         basic_args.add_argument("--se", "--skip-existing", action="store_true",
                                 dest="skip_existing",
                                 help="""skip instance generation if destination directory
                                 already exists""")
         basic_args.add_argument("--instance-dir", action="store_true",
                                 help="""each instance is stored in unique directory where the
-                                 path is the concatenation of \'<DIRECTORY> <INSTANCE-NAME>/\'""")
+                                 path is the concatenation of \'<DIRECTORY>/<INSTANCE-NAME>/\'""")
         basic_args.add_argument("--instance-dir-suffix", type=str, default='',
                                 help="""additional instance dir suffix, i.e., each instance is
                                  stored in unique directory where the path is the concatenation of
-                                 \'<DIRECTORY> <INSTANCE-NAME> <SUFFIX>\'""")
+                                 \'<DIRECTORY>/<INSTANCE-NAME><SUFFIX>/\'""")
         basic_args.add_argument("--instance-count", type=str,
                                 help="""each instance gets the given value as running number instead
                                  of using its rank in the enumeration of clasp""")
@@ -357,16 +357,16 @@ class Control(object):
         basic_args.add_argument('-v', '--version', action='version',
                                 version='%(prog)s {0}'.format(release.__version__))
         basic_args.add_argument("-t", "--threads", type=check_positive, default=1,
-                                help="run clingo with THREADS threads")
+                                help="run clingo with THREADS threads (default: %(default)s)")
         basic_args.add_argument("-w", "--wait", type=check_positive, default=300,
                                 help="""time to wait in seconds before
-                                 solving is aborted if not finished yet""")
+                                 solving is aborted if not finished yet (default: %(default)s)""")
         basic_args.add_argument('-V', '--verbose', action='store_const', dest='loglevel',
                                 const=logging.INFO, default=logging.WARNING,
-                                help='Verbose output.')
+                                help='verbose output (default: %(default)s)')
         basic_args.add_argument('-D', '--debug', action='store_const', dest='loglevel',
                                 const=logging.DEBUG, default=logging.WARNING,
-                                help='Debug output.')
+                                help='debug output (default: %(default)s)')
 
         batch_args = parser.add_argument_group("Batch mode options")
         batch_args.add_argument("-j", "--batch", type=str, metavar="JOB",
@@ -397,7 +397,7 @@ class Control(object):
                                   help="the number of product kinds")
         product_args.add_argument("--Pus", "--product-units-per-product-shelf",
                                   type=check_positive, default=20,
-                                  help="the number of each product's units per shelf",
+                                  help="the number of each product's units per shelf (default: %(default)s)",
                                   dest="product_units_per_product_shelf")
 
         order_args = parser.add_argument_group("Order constraints")
@@ -405,11 +405,11 @@ class Control(object):
                                 help="the number of orders")
         order_args.add_argument("--olmin", "--order-min-lines", type=check_positive,
                                 default=1,
-                                help="Specifies minimum of lines per order.",
+                                help="Specifies minimum of lines per order (default: %(default)s)",
                                 dest="order_min_lines")
         order_args.add_argument("--olmax", "--order-max-lines", type=check_positive,
                                 default=1,
-                                help="Specifies maximum of lines per order.",
+                                help="Specifies maximum of lines per order (default: %(default)s)",
                                 dest="order_max_lines")
         order_args.add_argument("--oap", "--order-all-products", action="store_true",
                                 help="Each product should at least be ordered once.",
@@ -428,24 +428,24 @@ class Control(object):
         layout_rd_args.add_argument("--gs", "--gap-size", type=check_positive,
                                     dest="gap_size", default=2,
                                     help="""the maximum size of "gaps" (i.e., blocked node
-                                    components) in the floor grid.""")
+                                    components) in the floor grid (default: %(default)s)""")
         layout_hw_args = parser.add_argument_group("* Constraints for the *highway* layout")
         layout_hw_args.add_argument("-H", "--highway-layout", action="store_true",
                                     help="Manhattan-style street grid using highway-nodes")
         layout_hw_args.add_argument("-X", "--cluster-x", type=check_positive, default=2,
                                     help="""for highway-layout: the size of one rectangular shelf
-                                    cluster in x-direction""")
+                                    cluster in x-direction (default: %(default)s)""")
         layout_hw_args.add_argument("-Y", "--cluster-y", type=check_positive, default=2,
                                     help="""for highway-layout: the size of one rectangular shelf
-                                    cluster in y-direction""")
+                                    cluster in y-direction (default: %(default)s)""")
         layout_hw_args.add_argument("-B", "--beltway-width", type=check_positive, default=1,
                                     help="""for highway layout: the width of the beltway surrounding
-                                    all shelf clusters""")
+                                    all shelf clusters (default: %(default)s)""")
 
         project_args = parser.add_argument_group("Projection and template options")
         project_args.add_argument("-T", "--template", nargs='*', type=str, default=[],
                                   help="""every created instance will contain all atoms
-                                  defined in #program base of the template file(s)""")
+                                  defined in #program base of the template file(s) (default: %(default)s)""")
         project_args.add_argument("--prj-orders", action="store_true",
                                   help='project enumeration to order-related init/2 atoms')
         project_args.add_argument("--prj-warehouse", action="store_true",
