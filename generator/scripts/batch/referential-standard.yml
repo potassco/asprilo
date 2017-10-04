@@ -16,7 +16,7 @@ run_configs:
       1x2x3: # format: rows x columns x cluster-length
         # half of storage locations occupied by shelves
         50sc:
-          pre: { '-x': 9, '-y': 6, '-X':3 , '-Y': 2, '-s': 6, '-p': 1, '-H': True, '-r': 2 }
+          pre: { '-x': 9, '-y': 6, '-X': 3, '-Y': 2, '-s': 6, '-p': 1, '-H': True, '-r': 2 }
           var:
             - { '-r': 2, '-P': 4, '-u': 20, '-o': 4, '--oap': True }
             - { '-r': 3, '-P': 6, '-u': 32, '-o': 6, '--oap': True }
