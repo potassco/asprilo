@@ -1,0 +1,22 @@
+global_settings: { '-N': 10}
+
+run_configs:
+  standard:
+    square:
+      tiny:
+        wh: { '-x': 7, '-y': 2 }
+        po:
+          - { '-P': 8 }
+  weird:
+    bla:
+      boo:
+        wh: { '-x': 54, '-y': 32 }
+        # po:
+        #   - { '-P': 83 }
+      mii:
+        wh: { '-x': 24, '-y': 44 }
+        po:
+          - { '-P': 83 }
+
+
+        

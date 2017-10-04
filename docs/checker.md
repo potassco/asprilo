@@ -15,11 +15,11 @@ This is the user manual of the solution checker of [ASPRILO](index.md).
 
 # Encoding Structure
 
-The checker&rsquo;s encoding is compartmentalized into several parts with respect to
+The checker's encoding is compartmentalized into several parts with respect to
 
 1.  the problem domain, i.e., all encodings related to a domain `DOMAIN` are stored in a separate
     directory `./checker/encodings/DOMAIN/`, .e.g. `./checker/encodings/default/` for the [default
-    domain](file:///home/phil/logistics/ASPRILO/public/asprilo/docs/specification.md)
+    domain](specification.md)
 
 2.  the initial environmental state and the general law of inertia stored in
     `./checker/encodings/DOMAIN/init.lp`, .e.g. `./checker/encodings/default/` for the default
@@ -51,10 +51,10 @@ for the default domain.
 
 At present we support the following problem domains:
 
--   the [default domain](file:///home/phil/logistics/ASPRILO/public/asprilo/docs/specification.md)
+-   the [default domain](specification.md)
     - checker encodings at `./checker/encodings/default/`
 -   the default domain in conjunction with the ['disregard of product quantities'
-    (DPQ)](file:///home/phil/logistics/ASPRILO/public/asprilo/docs/specification.md) modification
+    (DPQ)](specification.md) modification
     - checker encodings at `./checker/encodings/dpq`
 
 
