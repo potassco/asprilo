@@ -101,7 +101,7 @@ a detailed list and description run
     via
 
     ``` bash
-    ig -x 20 -y 20 -s 160 -p 20 -r 10 -P 12 -u 64 -o 10 --oap
+    ig -x 20 -y 20 -n 360 -s 160 -p 20 -r 10 -P 12 -u 64 -o 10 --oap
     ```
 
 
