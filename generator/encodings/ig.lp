@@ -200,9 +200,9 @@ init(object(highway, (Y-1) * SX + X), value(at, (X, Y))) :- highway(X, Y), sizeX
 
 dist_pickingStations(X) : X = (SX+2) / (PN+1), sizeX(SX), pickingStationNum(PN). % distance between adjacent picking stations
 :- poss(pickingStation, at(X, Y)), init(object(node, _), value(at, (X2, Y))), dist_pickingStations(X - X2),
-   not poss(pickingStation, at(X2, Y)), not dist_pickingStations(1). % dist to left neighbouring picking station
+   not poss(pickingStation, at(X2, Y)), not dist_pickingStations(1). % place next pickingstation after DX-1 free slots
 :- poss(pickingStation, at(X, Y)), poss(pickingStation, at(X2, Y)), X2 > X, X2 < X + DX, dist_pickingStations(DX),
-   not dist_pickingStations(1). % dist to right neighbouring picking station
+   not dist_pickingStations(1). % but do not place picking station inside the DX-1 long gaps
 :- poss(pickingStation, at(X, Y)), X < DX, dist_pickingStations(DX). % padding left
 % Special case when dist_pickingStations(1) (i.e., amount picking stations > sizeX / 2)
 :- poss(pickingStation, at(X, Y)), poss(pickingStation, at(X2, Y)), X2 > X, X2 < X + 2, 2 * (PN - X) <= SX - X,
