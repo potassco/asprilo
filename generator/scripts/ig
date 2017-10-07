@@ -7,6 +7,8 @@ import os
 
 # Add generator module path to sys.path
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+# Add libs (submodules) path to sys.path
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../lib'))
 
 from generator.control import Control
 
