@@ -20,7 +20,6 @@ def gen_instances(cases, args):
     else:
         split = ''
     for cat, _cases in cases_items:
-        template_pars = ''
         for subcat, subcases in _cases.items():
             for case in subcases:
                 case_dir = subcat
@@ -43,7 +42,6 @@ def gen_instances(cases, args):
                                           case_pars=case_pars))
 
                 if 'template' in case: # Generate templates
-                    template_pars = case_pars
                     if args.split:
                         models = args.split[0]
                     else:
@@ -66,7 +64,6 @@ def gen_instances(cases, args):
                             dest = '{dest_pre}/instances_T{idx}'.format(dest_pre=dest_pre,
                                                                         idx=str(idx+1))
                             command = list(command_common)
-                            command.extend(shlex.split(template_pars))
                             command.extend(shlex.split(
                                 '''
                                 -N {models}

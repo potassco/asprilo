@@ -63,7 +63,7 @@ def define_cases(dest_dir):
 
     # -- 75sc --------------------------------------------------------------------------------------
     __cases = _cases['75sc'] = []
-    __cases.append({'template': True, 'pars': ' -x 19 -y  9 -X 5 -Y 2 -s 45 -p 3 -H'})
+    __cases.append({'template': True, 'pars': '-x 19 -y  9 -X 5 -Y 2 -s 45 -p 3 -H'})
     __cases.append({'pars': '-r  3 -P  90 -u  270 -o  6'})
     __cases.append({'pars': '-r  6 -P 180 -u  540 -o 12'})
     __cases.append({'pars': '-r 12 -P 270 -u  810 -o 24'})

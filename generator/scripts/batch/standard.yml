@@ -1,6 +1,6 @@
 # Referential instance set compartmentalized into relevant sub-domains.
 
-global_settings: { '-N': 10, '--olmin' : 3, '--olmax' : 3 } # '--olmin': 1, '--olmax': 5 }
+global_settings: { '-N': 10, '--olmin' : 4, '--olmax' : 4 } # '--olmin': 1, '--olmax': 5 }
 #global_settings: { '--split': [4, 4] }
 
 run_configs:
