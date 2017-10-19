@@ -260,9 +260,9 @@ paddingBottom(1) :- not robot_amount(_). % padding if no robots present
 % Draw grid
 highway(X, Y) :- beltway(X,Y).
 highway(X, Y) :- highway(X, Y-y-1), init(object(node, _), value(at, (X, Y))), not beltway(X,   Y-y), not beltway(X, Y),
-                 Y < SY-P, sizeY(SY), paddingBottom(P).
+                 Y > PT, Y < SY-PB, sizeY(SY), paddingTop(PT), paddingBottom(PB).
 highway(X, Y) :- highway(X-x-1, Y), init(object(node, _), value(at, (X, Y))), not beltway(X-x-2, Y), not beltway(X, Y),
-                 Y < SY-P, sizeY(SY), paddingBottom(P).
+                 Y > PT, Y < SY-PB, sizeY(SY), paddingTop(PT), paddingBottom(PB).
 
 % No blanks between picking stations at the top
 highway(X,Y) :- not poss(pickingStation, at(X, Y)), Y= 1..P, paddingTop(P), init(object(node, _), value(at, (X, Y))).
