@@ -12,8 +12,8 @@ run_configs:
 #
   standard:
     #- Rectangular shelf clusters of fixed height 2 ------------------------------------------------
-    rectangles:
-      1x2x3: # format: rows x columns x cluster-length
+    rectangles: # format: rows x columns x cluster-length
+      1x2x3:
         # half of storage locations occupied by shelves
         50sc:
           pre: { '-x': 9, '-y': 6, '-X': 3, '-Y': 2, '-s': 6, '-p': 1, '-H': True, '-r': 2 }
@@ -113,18 +113,18 @@ run_configs:
             - { '-r':  6, '-P': 12, '-u':  64, '-o': 10, '--oap': True }
             - { '-r':  8, '-P': 18, '-u':  96, '-o': 15, '--oap': True }
             - { '-r': 12, '-P': 24, '-u': 128, '-o': 20, '--oap': True }
-        # 50sc:
-        #   pre: { '-x': 111, '-y': 39, '-X': 10, '-Y': 2, '-s': 500, '-p': 10, '-H': True}
-        #   var:
-        #     - { '-r':  6, '-P': 12, '-u':  64, '-o': 10, '--oap': True }
-        #     - { '-r':  8, '-P': 18, '-u':  96, '-o': 15, '--oap': True }
-        #     - { '-r': 12, '-P': 24, '-u': 128, '-o': 20, '--oap': True }
-        # 50sc:
-        #   pre: { '-x': 111, '-y': 39, '-X': 10, '-Y': 2, '-s': 1000, '-p': 10, '-H': True}
-        #   var:
-        #     - { '-r':  6, '-P': 12, '-u':  64, '-o': 10, '--oap': True }
-        #     - { '-r':  8, '-P': 18, '-u':  96, '-o': 15, '--oap': True }
-        #     - { '-r': 12, '-P': 24, '-u': 128, '-o': 20, '--oap': True }
+        50sc:
+          pre: { '-x': 111, '-y': 39, '-X': 10, '-Y': 2, '-s': 500, '-p': 40, '-H': True}
+          var:
+            - { '-r':  6, '-P': 12, '-u':  64, '-o': 10, '--oap': True }
+            - { '-r':  8, '-P': 18, '-u':  96, '-o': 15, '--oap': True }
+            - { '-r': 12, '-P': 24, '-u': 128, '-o': 20, '--oap': True }
+        100sc:
+          pre: { '-x': 111, '-y': 39, '-X': 10, '-Y': 2, '-s': 1000, '-p': 60, '-H': True}
+          var:
+            - { '-r':  12, '-P': 24, '-u': 128, '-o': 20, '--oap': True }
+            - { '-r':  24, '-P': 48, '-u': 256, '-o': 40, '--oap': True }
+            - { '-r':  48, '-P': 96, '-u': 512, '-o': 80, '--oap': True }
 
     # - Square shelf clusters ------------------------------------------------------------------------
     squares:

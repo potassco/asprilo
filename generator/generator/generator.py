@@ -91,46 +91,61 @@ class InstanceGenerator(object):
         self._prg = clingo.Control(self._solve_opts)
         self._prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                     '../encodings/ig.lp'))
+
+        # Templates
         for template in self._args.template:
             self._prg.load(template)
-            self._prg.ground([("base", [])])
-            self._prg.ground([("template_stub", [])])
+        self._prg.ground([("base", [])])
+        self._prg.ground([("template_stub", [])])
 
         LOG.info("Grounding...")
 
-        # nodes
-        if not (self._args.grid_x is None or self._args.grid_y is None):
+        # Nodes
+        if self._args.grid_x and self._args.grid_y:
             if self._args.nodes is None:
                 self._prg.ground([("nodes", [self._args.grid_x, self._args.grid_y,
                                              self._args.grid_x * self._args.grid_y])])
             else:
                 self._prg.ground([("nodes", [self._args.grid_x, self._args.grid_y,
                                              self._args.nodes])])
-        # object quantities and IDs
+
+        # Floor dimensions and total number nodes (grounded independently to also support floor
+        # templates)
+        self._prg.ground([("floor_dimensions", [])])
+
+        # Object quantities and IDs
         if self._args.robots:
-            self._prg.ground([("robots", [self._args.robots, self._args.robots])])
+            self._prg.ground([("robots_cl", [self._args.robots, self._args.robots])])
+        self._prg.ground([("robots", [])])
+
         if self._args.shelves:
-            self._prg.ground([("shelves", [self._args.shelves, self._args.shelves])])
+            self._prg.ground([("shelves_cl", [self._args.shelves, self._args.shelves])])
+        self._prg.ground([("shelves", [])])
+
         if self._args.picking_stations:
-            self._prg.ground([("picking_stations",
+            self._prg.ground([("picking_stations_cl",
                                [self._args.picking_stations, self._args.picking_stations])])
+        self._prg.ground([("picking_stations", [])])
+
         if self._args.products:
-            self._prg.ground([("products", [self._args.products, self._args.products])])
+            self._prg.ground([("products_cl", [self._args.products, self._args.products])])
+        self._prg.ground([("products", [])])
+
         if self._args.orders:
             self._prg.ground([("orders", [self._args.orders])])
 
-        # layouts
+        # Layouts
         if self._args.highway_layout:
             self._prg.ground([("highway_layout", [self._cluster_x, self._cluster_y,
                                                   self._args.beltway_width])])
         else:
             self._prg.ground([("random_layout", [self._args.gap_size])])
 
-        # object quantities and IDs contd.: depending on layout definitions
+        # Object quantities and IDs contd.: depending on layout definitions
         if self._args.shelf_coverage:
             self._prg.ground([("shelf_coverage", [self._args.shelf_coverage])])
 
-        # object inits
+        # Object inits
         self._prg.ground([("robots_init", [])])
         self._prg.ground([("shelves_init", [])])
         self._prg.ground([("picking_stations_init", [])])
@@ -141,22 +156,22 @@ class InstanceGenerator(object):
         self._prg.ground([("orders_init", [self._args.order_min_lines,
                                            self._args.order_max_lines])])
 
-        # layouts contd.: constraints related to interior object placement
+        # Layouts contd.: constraints related to interior object placement
         # TODO: simplify grounding order of layouts, constraints, object inits program parts
         # - use init/2 instead of poss/2 in layout constraints above
         if self._args.reachable_shelves:
             self._prg.ground([("reachable_shelves", [])])
 
 
-        # order constraints & optimizations
+        # Order constraints & optimizations
         if self._args.order_all_products:
             self._prg.ground([("order_all_products", [])])
         # self._prg.ground([("orders_different", [])])
 
-        # general rules
+        # General rules
         self._prg.ground([("base", [])])
 
-        # projection to subsets of init/2
+        # Projection to subsets of init/2
         if self._args.prj_orders:
             self._prg.ground([("project_orders", [])])
         elif self._args.prj_warehouse:

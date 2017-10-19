@@ -410,9 +410,10 @@ class Control(object):
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,
                                   help="the number of product kinds")
-        product_args.add_argument("--Pus", "--product-units-per-product-shelf",
+        product_args.add_argument("--pus", "--product-units-per-product-shelf",
                                   type=check_positive, default=20,
-                                  help="the number of each product's units per shelf (default: %(default)s)",
+                                  help="""the maximum number of each product's units per shelf
+                                  (default: %(default)s)""",
                                   dest="product_units_per_product_shelf")
 
         order_args = parser.add_argument_group("Order constraints")
