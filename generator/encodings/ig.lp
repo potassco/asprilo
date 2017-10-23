@@ -167,15 +167,24 @@ object(product, 1..N) :- product_amount(N).
 
 % ~~ Number and init atoms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#program product_units(min, max, maxps).
+#program product_units(min, max, maxprs, maxspr, maxpus).
 %  Arguments:
 %    min, max -- minimum and maximum of overall total number of product units
-%    maps     -- maximum number of a product's unit per shelf
-1 { poss(object(product, PID), value(on, (SID, NUM))) : NUM=1..maxps } 1 :- object(shelf, SID),  object(product, PID).
+%    maxprs     -- maximum number of products per shelf
+%    maxprs     -- maximum number of shelfs that contain the same product
+%    maxpus     -- maximum number of a product's units per shelf
+
+1 { poss(object(product, PID), value(on, (SID, NUM))) : NUM=1..maxpus } 1 :- object(shelf, SID),  object(product, PID).
 { init(object(product, PID), value(on, (SID, NUM))) : poss(object(product, PID), value(on, (SID, NUM))) }.
+
 :- object(product, PID), not init(object(product, PID), value(on, (_, _))).
 :- min > #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 :- max < #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
+
+product_on(PID, SID) :- init(object(product, PID), value(on, (SID, _))).
+0 { product_on(PID, SID) : object(product, PID) } maxprs  :- object(shelf, SID).
+0 { product_on(PID, SID) : object(shelf,   SID) } maxspr  :- object(product, PID).
+
 
 % Regarding template input: no explicit rules required!
 
