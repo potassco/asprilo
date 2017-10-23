@@ -57,11 +57,6 @@ holds(object(product, P), value(on, (S, SQ-Q)), T) :- occurs(object(robot,   R),
 
 
 % - Book-Keeping: Related Inertia Abnormals ---------------------------------------
-%
-
-% Remove outdated order lines
-ab(object(order,   O), value(line, (P, RQ)), T) :-  occurs(object(robot,   R), action(deliver, (O, P, _)), T  );
-                                                    holds( object(order,   O), value( line,    (P, RQ)  ), T-1).
 
 % Remove outdated product quantites on shelves
 ab(object(product, P), value(on,   (S, SQ)), T) :-  occurs(object(robot,   R), action(deliver, (_, P, _)), T  );

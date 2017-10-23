@@ -7,7 +7,7 @@ holds(O, V, 0) :- init(O, V).
 
 % - Plan Length ----------------------------------------------------------------
 
-horizon(H) :- H = #max{0; T : occurs( _, _, T)}.
+horizon(H) :- H = #max{ 0; T : occurs( _, _, T) }.
 time(1..H) :-  horizon(H).
 
 

@@ -35,7 +35,3 @@ err(deliver, orderAmount, (R, T)) :- occurs(object(robot, R), action(deliver, (O
 
 % - Book-Keeping: Related Inertia Abnormals ---------------------------------------
 %
-
-% Remove outdated order lines
-ab(object(order,   O), value(line, (P, RQ)), T) :-  occurs(object(robot, R), action(deliver, (O, P )), T  );
-                                                    holds(object(order,O),   value( line,    (P, RQ)), T-1).
