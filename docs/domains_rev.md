@@ -29,7 +29,7 @@ Informatively, **Movements Only (MOO)** is a TAPF-syle simplification of the def
 it in the following way:
 
 -   The only action that robots can perform is move, i.e., there are no pickup, putdown or delivery
-    actions in plans.
+    actions in plans
 -   Shelves are fixed in place
 -   There is a one-to-one correspondence (bijection) between shelves and products:
     - the number of shelves and products is identical; and
