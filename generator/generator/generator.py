@@ -5,6 +5,7 @@
 import os
 import logging
 import clingo
+from xor_counting import Propagator
 
 LOG = logging.getLogger('custom')
 
@@ -172,6 +173,10 @@ class InstanceGenerator(object):
 
         # General rules
         self._prg.ground([("base", [])])
+
+        # Xor constraints - with Propagator
+        if self._args.sxor is not None:
+            self._prg.register_propagator(Propagator(self._args.sxor)) 
 
         # Projection to subsets of init/2
         if self._args.prj_orders:
