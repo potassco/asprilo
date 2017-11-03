@@ -95,7 +95,7 @@ class InstanceGenerator(object):
         # Templates
         for template in self._args.template:
             self._prg.load(template)
-        self._prg.ground([("base", [])])
+        #self._prg.ground([("base", [])])
         self._prg.ground([("template_stub", [])])
 
         LOG.info("Grounding...")
@@ -139,7 +139,9 @@ class InstanceGenerator(object):
             self._prg.ground([("highway_layout", [self._cluster_x, self._cluster_y,
                                                   self._args.beltway_width])])
         else:
-            self._prg.ground([("random_layout", [self._args.gap_size])])
+            self._prg.ground([("random_layout", [])])
+            if self._args.grid_x and self._args.grid_y and self._args.nodes:
+                self._prg.ground([("grid_gaps", [self._args.gap_size])])
 
         # Object quantities and IDs contd.: depending on layout definitions
         if self._args.shelf_coverage:

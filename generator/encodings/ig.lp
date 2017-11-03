@@ -33,10 +33,9 @@ reachableNode(N2) :- reachableNode(N), init(object(node, N), value(at, (X, Y))),
 % Determine dimensions, i.e., maximum x-,y-coordinates and the total number of nodes
 % - This variant also supprt
 #program floor_dimensions.
-sizeX(X) :- init(object(node, _), value(at, (X, _))), not init(object(node, _), value(at, (X + 1, _))).
-sizeY(Y) :- init(object(node, _), value(at, (_, Y))), not init(object(node, _), value(at, (_, Y + 1))).
-nodes(N) :- N = #count{ ID : init(object(node, ID), value(at, (_, _))) }.
-
+sizeX(MX) :- MX = #max{    X : init(object(node, _),  value(at, (X, _))) }.
+sizeY(MY) :- MY = #max{    Y : init(object(node, _),  value(at, (_, Y))) }.
+nodes(N)  :- N  = #count{ ID : init(object(node, ID), value(at, (_, _))) }.
 
 
 % * Robots *****************************************************************************************
@@ -224,7 +223,7 @@ ordered(PID, C) :- C = #sum{ NUM, OID : init(object(order, OID), value(line, (PI
 
 % * Random Layout **********************************************************************************
 
-#program random_layout(g).
+#program random_layout.
 % Arguments:
 %   g -- the maximum gaps component size
 poss(pickingStation, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
@@ -232,6 +231,7 @@ poss(robot, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 poss(shelf, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 
 % ~~ Evenly spread out gaps ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#program grid_gaps(g).
 gap(SX * (Y-1) + X, X, Y) :- not init(object(node, _), value(at, (X, Y))), X=1..SX, Y=1..SY, sizeX(SX), sizeY(SY).
 gap_edge(ID1, ID2)  :- gap(ID1, X-1, Y),   gap(ID2, X, Y).
 gap_edge(ID1, ID2)  :- gap(ID1, X, Y-1),   gap(ID2, X, Y).
