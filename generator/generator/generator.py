@@ -95,7 +95,7 @@ class InstanceGenerator(object):
         # Templates
         for template in self._args.template:
             self._prg.load(template)
-        #self._prg.ground([("base", [])])
+        self._prg.ground([("base", [])])
         self._prg.ground([("template_stub", [])])
 
         LOG.info("Grounding...")

@@ -264,6 +264,7 @@ beltway(X,Y) :-  init(object(node, _), value(at, (X, Y))), Y>SY-beltway-P, Y <= 
 % Extra rows for placing picking station and robots, resp., at the top and bottom
 paddingTop(Y)    :- Y = (PN-1) / X + 1, sizeX(X), pickingStation_amount(PN).
 paddingBottom(Y) :- Y = (RN-1) / X + 1, sizeX(X), robot_amount(RN).
+paddingTop(1)    :- not pickingStation_amount(_). % padding if no picking station present
 paddingBottom(1) :- not robot_amount(_). % padding if no robots present
 
 % Draw grid
@@ -274,10 +275,12 @@ highway(X, Y) :- highway(X-x-1, Y), init(object(node, _), value(at, (X, Y))), no
                  Y > PT, Y < SY-PB, sizeY(SY), paddingTop(PT), paddingBottom(PB).
 
 % No blanks between picking stations at the top
-highway(X,Y) :- not poss(pickingStation, at(X, Y)), Y= 1..P, paddingTop(P), init(object(node, _), value(at, (X, Y))).
+highway(X,Y) :- not poss(pickingStation, at(X, Y)), Y= 1..P, paddingTop(P), init(object(node, _), value(at, (X, Y))),
+                pickingStation_amount(_).
 
 % No blanks between robots at bottom, blank nodes represent parking locations for robots
-highway(X,Y) :- not poss(robot, at(X, Y)), Y=SY-P+1..SY, paddingBottom(P), sizeY(SY), init(object(node, _), value(at, (X, Y))).
+highway(X,Y) :- not poss(robot, at(X, Y)), Y=SY-P+1..SY, paddingBottom(P), sizeY(SY), init(object(node, _), value(at, (X, Y))),
+                robot_amount(_).
 
 % Init highway nodes
 init(object(highway, (Y-1) * SX + X), value(at, (X, Y))) :- highway(X, Y), sizeX(SX).
@@ -303,18 +306,15 @@ dist_pickingStations(X) :- X = (SX+2) / (PN+1), sizeX(SX), pickingStation_amount
 :- RN < #count{ X, Y : poss(robot, at(X,Y)) }, robot_amount(RN).
 :- poss(robot, at(X,Y)), X > X2, init(object(node, _), value(at, (X2, Y))), not poss(robot, at(X2,Y)).
 
-% ~~ Shelves restrictions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-%     Shelves must not:
-%       1.) be placed on highways,
-%       2.) share locations with robots or pickinstations,
-%       3.) be in top or bottom most row.
+% ~~ Shelves placement and restrictions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { poss(shelf, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))).
-:- poss(shelf, at(X, Y)), highway(X, Y).
-:- poss(shelf, at(X, Y)), poss(robot, at(X, Y)).
-:- poss(shelf, at(X, Y)), poss(pickingStation, at(X, Y)).
-:- poss(shelf, at(X, _)), sizeX(X).
-:- poss(shelf, at(_, Y)), sizeY(Y).
-:- poss(shelf, at(1, _; _, 1)).
+% Shelves must not be placed ...
+:- poss(shelf, at(X, Y)), highway(X, Y).                  % on highways;
+:- poss(shelf, at(X, Y)), poss(robot, at(X, Y)).          % on robot locations;
+:- poss(shelf, at(X, Y)), poss(pickingStation, at(X, Y)). % on picking station locations;
+:- poss(shelf, at(X, _)), sizeX(X).                       % in the top row;
+:- poss(shelf, at(_, Y)), sizeY(Y).                       % in the bottom row;
+:- poss(shelf, at(1, _; _, 1)).                           % on the left and right edge.
 
 
 % * Shelves Reachability ***************************************************************************
