@@ -421,7 +421,7 @@ class Control(object):
                                   product (default: %(default)s)""",
                                   dest="shelves_per_product")
         product_args.add_argument("--pus", "--product-units-per-product-shelf",
-                                  type=check_positive, default=20,
+                                  type=check_positive, default=10,
                                   help="""the maximum number of each product's units per shelf
                                   (default: %(default)s)""",
                                   dest="product_units_per_product_shelf")

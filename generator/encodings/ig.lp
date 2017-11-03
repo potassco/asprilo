@@ -9,8 +9,10 @@
 
 #program template_stub.
 % For templates, each init(object(Type, ID), value(_ ,_)) induces an object(Type, ID)
+%object(Type, ID) :- init(object(Type, ID), _).
 object(Type, ID) :- init(object(Type, ID), _).
-
+template(object(Type, ID)) :- init(object(Type, ID), _).
+template(init(object(Type, ID), value(Attr, Value))) :- init(object(Type, ID), value(Attr, Value)).
 
 
 % * Floor Nodes ************************************************************************************
@@ -68,7 +70,8 @@ object(robot, 1..N) :- robot_amount(N).
 % ~~ Init Facts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #program robots_init.
-1 { init(object(robot, ID), value(at, (X,Y))) : poss(robot, at(X,Y)) } 1 :- object(robot, ID).
+1 { init(object(robot, ID), value(at, (X,Y))) : poss(robot, at(X,Y)) } 1 :-              object(robot, ID),
+                                                                            not template(object(robot, ID)).
 
 
 
@@ -110,7 +113,8 @@ object(shelf, 1..N) :- shelf_amount(N).
 % ~~ Init Facts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #program shelves_init.
-1 { init(object(shelf, ID), value(at, (X,Y))) : poss(shelf, at(X,Y)) } 1 :- object(shelf, ID).
+1 { init(object(shelf, ID), value(at, (X,Y))) : poss(shelf, at(X,Y)) } 1 :-              object(shelf, ID),
+                                                                            not template(object(shelf, ID)).
 
 
 
@@ -137,7 +141,8 @@ object(pickingStation, 1..N) :- pickingStation_amount(N).
 % ~~ Init Facts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #program picking_stations_init.
-1 { init(object(pickingStation, ID), value(at, (X, Y))) : poss(pickingStation, at(X, Y)) } 1 :- object(pickingStation, ID).
+1 { init(object(pickingStation, ID), value(at, (X, Y))) : poss(pickingStation, at(X, Y)) } 1 :-              object(pickingStation, ID),
+                                                                                                not template(object(pickingStation, ID)).
 
 
 
@@ -173,14 +178,15 @@ object(product, 1..N) :- product_amount(N).
 %    maxprs     -- maximum number of shelfs that contain the same product
 %    maxpus     -- maximum number of a product's units per shelf
 
-1 { poss(object(product, PID), value(on, (SID, NUM))) : NUM=1..maxpus } 1 :- object(shelf, SID),  object(product, PID).
-{ init(object(product, PID), value(on, (SID, NUM))) : poss(object(product, PID), value(on, (SID, NUM))) }.
+{ init(object(product, PID), value(on, (SID, NUM))) : NUM=1..maxpus } 1 :- object(shelf, SID), object(product, PID),
+                                                                           not template(init(object(product, PID), value(on, (SID, _)))).
+%% { init(object(product, PID), value(on, (SID, NUM))) : poss(object(product, PID), value(on, (SID, NUM))) }
 
 :- object(product, PID), not init(object(product, PID), value(on, (_, _))).
 :- min > #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 :- max < #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 
-product_on(PID, SID) :- init(object(product, PID), value(on, (SID, _))).
+%% product_on(PID, SID) :- init(object(product, PID), value(on, (SID, _))).
 0 { product_on(PID, SID) : object(product, PID) } maxprs  :- object(shelf, SID).
 0 { product_on(PID, SID) : object(shelf,   SID) } maxspr  :- object(product, PID).
 
@@ -194,9 +200,11 @@ product_on(PID, SID) :- init(object(product, PID), value(on, (SID, _))).
 object(order, 1..num).
 
 #program orders_init(minlines, maxlines).
-1 { init(object(order, OID), value(pickingStation, PSID)) : object(pickingStation, PSID) } 1 :- object(order, OID).
+1 { init(object(order, OID), value(pickingStation, PSID)) : object(pickingStation, PSID) } 1 :- object(order, OID),
+                                                                                                not template(object(order, OID)).
 %1 { init(object(order, OID), value(line, (PID, N))) : init(object(product, PID), value(on, (SID, NUM))), N=1..NUM } <= maxlines :- object(order, OID).
-minlines <= { init(object(order, OID), value(line, (PID, NUM))) : object(product, PID), NUM=1..20 } <= maxlines :- object(order, OID).
+minlines <= { init(object(order, OID), value(line, (PID, NUM))) : object(product, PID), NUM=1..20 } <= maxlines :-              object(order, OID),
+                                                                                                                   not template(object(order, OID)).
 :- 2 { init(object(order, OID), value(line, (PID, _))) }, object(product, PID), object(order, OID).
 
 % Don't order more products than available
@@ -288,6 +296,8 @@ init(object(highway, (Y-1) * SX + X), value(at, (X, Y))) :- highway(X, Y), sizeX
 % ~~ All picking station in top row(s), evenly distributed ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { poss(pickingStation, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))), Y <= (PN-1) / SX + 1,
                                         sizeX(SX), pickingStation_amount(PN).
+poss(pickingStation, at(X, Y))       :- template(init(object(pickingStation, _), value(at, (X,Y)))).
+
 :- PN < #count{ X, Y : poss(pickingStation, at(X,Y)) }, pickingStation_amount(PN).
 
 dist_pickingStations(X) :- X = (SX+2) / (PN+1), sizeX(SX), pickingStation_amount(PN). % distance between adjacent picking stations
@@ -303,11 +313,14 @@ dist_pickingStations(X) :- X = (SX+2) / (PN+1), sizeX(SX), pickingStation_amount
 % ~~ All robots in left-lower corner, next to each other ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { poss(robot, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))), Y > Y2 - ((RN - 1) / X2 + 1),
                                sizeY(Y2), sizeX(X2), robot_amount(RN).
+poss(robot, at(X,Y))        :- template(init(object(robot, _), value(at, (X, Y)))).
+    
 :- RN < #count{ X, Y : poss(robot, at(X,Y)) }, robot_amount(RN).
 :- poss(robot, at(X,Y)), X > X2, init(object(node, _), value(at, (X2, Y))), not poss(robot, at(X2,Y)).
 
 % ~~ Shelves placement and restrictions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { poss(shelf, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))).
+poss(shelf, at(X,Y))        :- template(init(object(shelf, _), value(at, (X, Y)))).
 % Shelves must not be placed ...
 :- poss(shelf, at(X, Y)), highway(X, Y).                  % on highways;
 :- poss(shelf, at(X, Y)), poss(robot, at(X, Y)).          % on robot locations;
