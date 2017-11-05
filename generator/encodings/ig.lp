@@ -35,8 +35,8 @@ reachableNode(N2) :- reachableNode(N), init(object(node, N), value(at, (X, Y))),
 % Determine dimensions, i.e., maximum x-,y-coordinates and the total number of nodes
 % - This variant also supprt
 #program floor_dimensions.
-sizeX(MX) :- MX = #max{    X : init(object(node, _),  value(at, (X, _))) }.
-sizeY(MY) :- MY = #max{    Y : init(object(node, _),  value(at, (_, Y))) }.
+sizeX(MX) :- MX = #max{    X : init(object(node, _),  value(at, (X, _))); 1 }.
+sizeY(MY) :- MY = #max{    Y : init(object(node, _),  value(at, (_, Y))); 1 }.
 nodes(N)  :- N  = #count{ ID : init(object(node, ID), value(at, (_, _))) }.
 
 
