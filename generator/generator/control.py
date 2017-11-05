@@ -3,6 +3,7 @@
 """General Execution Control."""
 from __future__ import absolute_import
 import os
+import sys
 import argparse
 import logging
 import copy
@@ -12,7 +13,7 @@ from collections import OrderedDict
 import yaml
 
 from generator.generator import InstanceGenerator
-from generator.utils.aux import check_positive, SmartFormatter
+from generator.utils.aux import check_positive, SmartFormatter, clone_args
 from generator.utils.logger import setup_logger
 from generator import release
 
@@ -29,6 +30,11 @@ class Control(object):
                 nsdict['skip_existing'] = True
             namespace = argparse.Namespace(**nsdict)
         self._cl_parser, self._args = Control._parse_cl_args(args, namespace)
+        self._args_dict = vars(self._args)
+        self._args_dict['template_str'] = None
+        if self._args.template == ['-']:
+            self._args_dict['template'] = []
+            self._args_dict['template_str'] = sys.stdin.read()
         self._check_related_cl_args()
         if not parent:
             setup_logger(self._args.loglevel)
@@ -59,7 +65,9 @@ class Control(object):
     def _run_once(self):
         """Regular single instance generation."""
         # self._cl_parser, self._args = Control._parse_cl_args()
-        if self._args.split:
+        if self._args.gen_inc:
+            self._gen_inc()
+        elif self._args.split:
             self._gen_split()
         else:
             self._gen()
@@ -199,8 +207,13 @@ class Control(object):
                 args[1] = os.path.join(args[1], str(part))
         return args
 
-    def _gen(self):
-        """Regular instance generation."""
+    def _gen(self, args=None):
+        """Regular instance generation.
+
+        :param args: Optional argparse.Namespace.
+
+        """
+        args = args or self._args
         sig_handled = [False] # Outter flag to indicate sig handler usage
 
         class TimeoutError(Exception):
@@ -219,11 +232,11 @@ class Control(object):
 
         signal.signal(signal.SIGINT, sig_handler)
         signal.signal(signal.SIGALRM, sig_handler)
-        igen = InstanceGenerator(self._args)
+        igen = InstanceGenerator(args)
         try:
-            signal.alarm(self._args.wait)
-            igen.solve()
-            return igen.dest_dirs
+            signal.alarm(args.wait)
+            instances = igen.solve()
+            return instances, igen.dest_dirs
         except Exception as exc:
             if sig_handled[0]:
                 pass
@@ -232,11 +245,56 @@ class Control(object):
         finally:
             igen.interrupt()
 
+    def _gen_inc(self):
+        """Incremental generation of an instance."""
+        LOG.info(("** INCREMENTAL MODE ****************************************************\n"
+                  "Incremental instance generation for initial args: %s"), str(self._args))
+
+        # Generate instance that contains only the grid, robots and picking station
+        LOG.info("\n** INC MODE: Generating Grid, Robots, Picking Stations ****************")
+        args = clone_args(self._cl_parser, self._args)
+        args_dict = vars(args)
+        args_dict['shelves'] = None
+        args_dict['products'] = None
+        args_dict['product_units_total'] = None
+        args_dict['orders'] = None
+        args_dict['num'] = 1
+        LOG.info("Creating grid with robots and picking stations based on args: %s", str(args))
+        args_dict['template_str'] = self._gen(args)[0][0]
+        args_dict['picking_stations'] = None
+        args_dict['robots'] = None
+
+        # Incrementally add shelves
+        LOG.info("\n** INC MODE: Generating Shelves ****************************************")
+        self._gen_inc_stage('shelves', self._args.shelves, args)
+
+        # Incrementally add product units
+        LOG.info("\n** INC MODE: Generating Products and Product Units *********************")
+        args_dict['products'] = self._args.products
+        self._gen_inc_stage('product_units_total', self._args.product_units_total, args)
+        args_dict['products'] = None
+
+        # Incrementally add orders
+        LOG.info("\n **INC MODE: Generating Orders *****************************************")
+        self._gen_inc_stage('orders', self._args.orders, args, 1)
+
+    def _gen_inc_stage(self, otype, max_count, args, inc_size=20):
+        """Incremental adds objects of a given type to an instance."""
+        args_dict = vars(args)
+        count = 0
+        while count < max_count:
+            if count + inc_size <= max_count:
+                count += inc_size
+            else:
+                count = max_count
+            args_dict[otype] = count
+            args_dict['template_str'] = self._gen(args)[0][0]
+        args_dict[otype] = None
+
     def _gen_split(self):
         """Execution with split up instances."""
         num_wh_inst, num_order_inst = self._args.split
-        argparse.ArgumentParser()
-        cl_args_bak = copy.deepcopy(vars(self._args))
+        args_dict_bak = copy.deepcopy(vars(self._args))
 
         # warehouse instances
         self._cl_parser.parse_args(args=['-d', self._args.directory + '/warehouse_',
@@ -246,16 +304,15 @@ class Control(object):
                                    namespace=self._args)
 
         LOG.info("Creating **warehouses** using solve args: %s", str(self._args))
-        dest_dirs = self._gen()
+        dest_dirs = self._gen()[1]
 
         # orders instances and merge
         for winst in xrange(1, num_wh_inst+1):
 
             # orders only
-            _cl_args = vars(self._args)
-            _cl_args.clear()
-            _cl_args.update(copy.deepcopy(cl_args_bak))
-            _cl_args['oap'] = False
+            self._args_dict.clear()
+            self._args_dict.update(copy.deepcopy(args_dict_bak))
+            self._args_dict['oap'] = False
             path_to_warehouse_file = glob.glob(dest_dirs[winst-1] + '/*.lp')[0]
             self._cl_parser.parse_args(
                 args=['-d', dest_dirs[winst-1],
@@ -270,9 +327,8 @@ class Control(object):
 
             # merge
             for oinst in xrange(1, len(glob.glob(dest_dirs[winst-1] + '/orders/*.lp')) + 1):
-                _cl_args = vars(self._args)
-                _cl_args.clear()
-                _cl_args.update(copy.deepcopy(cl_args_bak))
+                self._args_dict.clear()
+                self._args_dict.update(copy.deepcopy(args_dict_bak))
                 path_to_order_file = glob.glob(dest_dirs[winst-1] +
                                                '/orders/*N{0}.lp'.format(oinst))[0]
                 self._cl_parser.parse_args(
@@ -376,6 +432,8 @@ class Control(object):
                                 metavar='SEED',
                                 help="""for model randomization: the \'--seed=%(metavar)s\' flag
                                 passed to clingo (default: %(default)s)""")
+        basic_args.add_argument("-I", "--gen-inc", action='store_true', help="""use incremental instance
+                                generation; required for large instances to reduce grounding size""")
         basic_args.add_argument('-V', '--verbose', action='store_const', dest='loglevel',
                                 const=logging.INFO, default=logging.WARNING,
                                 help='verbose output (default: %(default)s)')
@@ -468,10 +526,12 @@ class Control(object):
                                     help="""for highway layout: the width of the beltway surrounding
                                     all shelf clusters (default: %(default)s)""")
 
-        project_args = parser.add_argument_group("Projection and template options")
+        project_args = parser.add_argument_group("Template and projection options")
         project_args.add_argument("-T", "--template", nargs='*', type=str, default=[],
-                                  help="""every created instance will contain all atoms
-                                  defined in #program base of the template file(s) (default: %(default)s)""")
+                                  help="""every created instance will contain all atom defined
+                                  in base program of the template file(s) (default: %(default)s);
+                                  alternatively, with argument '-T -', template facts can be streamed in
+                                  directly from stdin""")
         project_args.add_argument("--prj-orders", action="store_true",
                                   help='project enumeration to order-related init/2 atoms')
         project_args.add_argument("--prj-warehouse", action="store_true",
