@@ -124,12 +124,13 @@ class Network(object):
     def on_raw_data(self, raw_data):
         data = raw_data.split('.')
         for atom in data:
-            if not (len(atom) == 1 and atom[0] == '\n'):
-                if atom[0] == '%' and atom[1] == '$':
-                    atom = atom[2 :].lower()
-                    self.on_control_symbol(clingo.parse_term(atom))
-                else:
-                    self._data.append(atom)
+            if len(atom) > 0:
+                if not (len(atom) == 1 and atom[0] == '\n'):
+                    if atom[0] == '%' and atom[1] == '$':
+                        atom = atom[2 :].lower()
+                        self.on_control_symbol(clingo.parse_term(atom))
+                    else:
+                        self._data.append(atom)
         self._raw_data = ''
         if len(self._data) > 0:
             self.on_data(self._data)

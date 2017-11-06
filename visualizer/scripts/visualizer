@@ -236,7 +236,7 @@ class VisualizerWindow(QMainWindow):
         action = QAction('Exit', self)
         action.setShortcut('Ctrl+Q')
         action.setStatusTip('Leave the application')
-        action.triggered.connect(sys.exit)
+        action.triggered.connect(self.close)
         menu_file.addAction(action)
         self.addAction(action)
 
@@ -278,13 +278,13 @@ class VisualizerWindow(QMainWindow):
         self.addAction(action)
 
         action = QAction('Initialize solver', self)
-        action.setShortcut('Ctrl+I')
+        action.setShortcut('Ctrl+Z')
         action.setStatusTip('Run a solver script')
         action.triggered.connect(self._init_solver_dialog.show)
         menu_solver.addAction(action)
 
         action = QAction('Initialize simulator', self)
-        action.setShortcut('Ctrl+N')
+        action.setShortcut('Ctrl+M')
         action.setStatusTip('Run a simulator script')
         action.triggered.connect(self._init_simulator_dialog.show)
         menu_solver.addAction(action)
@@ -434,6 +434,7 @@ class VisualizerWindow(QMainWindow):
         self._order_widget.close()
         self._task_widget.close()
         self._parser_widget.close()
+        config.close_widget()
         return super(self.__class__, self).closeEvent(event)
 
 app = QApplication(sys.argv)

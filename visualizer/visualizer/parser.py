@@ -119,9 +119,11 @@ class AspParser(object):
                     if value_value.arguments is None:
                         shelf = self._model.get_item('shelf', value_value, True, True)
                         shelf.set_product_amount(ID, 0)
+                        return
                     else:
                         shelf = self._model.get_item('shelf', value_value.arguments[0], True, True)
                         shelf.set_product_amount(ID, value_value.arguments[1].number)
+                        return
 
                 self._model.add_init('init(' + str(obj) + ', ' + str(value) + ')')
 

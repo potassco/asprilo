@@ -89,8 +89,8 @@ class Model(object):
         for socket in self._sockets:
             for item in add_items:
                 socket.model_expanded(item.to_init_str())
-            if len(add_items) > 0:
-                socket.model_expanded('\n')
+            #if len(add_items) > 0:
+            #    socket.model_expanded('\n')
 
     def discard_new_items(self, item_kinds = None):
         if item_kinds == None:
@@ -173,7 +173,7 @@ class Model(object):
             return
         self._highways.remove((x,y))
 
-    def set_grid_size(self, X, Y):
+    def set_grid_size(self, X, Y, enable_nodes = False):
         if X < 1:
             X = 1
         if Y < 1:
@@ -188,12 +188,17 @@ class Model(object):
         for node in to_remove:
             self._nodes.remove(node)
 
-        self._blocked_nodes = []
-        for x in range(1, X+1):
-            for y in range(1, Y+1):
-                self._blocked_nodes.append((x,y))
-        for node in self._nodes:
-            self._blocked_nodes.remove(node)
+        if enable_nodes:
+            for x in range(self._grid_size[0] + 1, X + 1):
+                for y in range(self._grid_size[1] + 1, Y + 1):
+                    self._nodes.append((x,y))
+        else:
+            self._blocked_nodes = []
+            for x in range(1, X+1):
+                for y in range(1, Y+1):
+                    self._blocked_nodes.append((x,y))
+            for node in self._nodes:
+                self._blocked_nodes.remove(node)
         self._grid_size = (X, Y)
 
     def set_editable(self, editable):
@@ -268,11 +273,14 @@ class Model(object):
         for socket in self._sockets:
             if socket.is_waiting():
                 return self._current_step
+        for items_dic in self._items.itervalues():
+            for item in items_dic.itervalues():
+                item.on_step_update(self._current_step)
         for items_dic in self._graphic_items.itervalues():
             for item in items_dic.itervalues():
                 item.do_action(self._current_step)
 
-        if self._displayed_steps < self._current_step and len(self._sockets) > 0:
+        if self._displayed_steps < self._current_step and len(self._sockets) > 0 and self._num_steps <= self._current_step:
             self._displayed_steps = self._current_step
             iterator = iter(self._sockets)
             value = iterator.next()
@@ -317,6 +325,9 @@ class Model(object):
         if self._current_step == 0:
             return self._current_step
         self._current_step -= 1
+        for items_dic in self._items.itervalues():
+            for item in items_dic.itervalues():
+                item.on_step_undo(self._current_step)
         for items_dic in self._graphic_items.itervalues():
             for item in items_dic.itervalues():
                 item.undo_action(self._current_step)

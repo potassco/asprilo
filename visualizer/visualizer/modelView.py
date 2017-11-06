@@ -151,7 +151,7 @@ class ModelView(QGraphicsView):
             action.setStatusTip('Adds a picking Station to the selected node')
             action.triggered.connect(lambda: self._add_item('pickingStation', x, y))
             self._menu.addAction(action)           
-               
+
         self._menu.popup(QPoint(event.x(),event.y()))
 
     def mousePressEvent(self, event):

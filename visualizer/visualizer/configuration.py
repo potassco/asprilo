@@ -16,7 +16,6 @@ class ConfigEntry(object):
 class Configuration(object):
     def __init__(self, args = None):
         self._config_parser = RawConfigParser()
-        self._scroll_area = None
         self._widget = None
         self._text_edits = []
 
@@ -65,6 +64,14 @@ class Configuration(object):
                         ('visualizer', 'auto_solve') : ConfigEntry(self._read_bool_from_config, False, str, 'auto solving'),
                         ('visualizer', 'create_pngs') : ConfigEntry(self._read_bool_from_config, True, str, 'create png files'),
                         ('visualizer', 'file_filters') : ConfigEntry(self._read_str_from_config, '*.lp', str, 'file browser filter'),
+
+                        ('controls', 'step_speed_up') : ConfigEntry(self._read_str_from_config, 'Right', str, 'speed up'),
+                        ('controls', 'step_slow_down') : ConfigEntry(self._read_str_from_config, 'Left', str, 'slow down'),
+                        ('controls', 'do_step') : ConfigEntry(self._read_str_from_config, 'Up', str, 'do one step'),
+                        ('controls', 'do_backstep') : ConfigEntry(self._read_str_from_config, 'Down', str, 'undo one step'),
+                        ('controls', 'pause') : ConfigEntry(self._read_str_from_config, 'Space', str, 'pause'),
+                        ('controls', 'zoom_out') : ConfigEntry(self._read_str_from_config, '-', str, 'zoom out'),
+                        ('controls', 'zoom_in') : ConfigEntry(self._read_str_from_config, '+', str, 'zoom in'),
                         }
         self.read_file()
 
@@ -94,6 +101,9 @@ class Configuration(object):
             return 0
         except:
             return -1
+    
+    def string_to_key(self, string):
+         sequence = QKeySequence(string)
 
     def _read_str_from_config(self, section, value, default = ''):
         try: 
@@ -149,20 +159,23 @@ class Configuration(object):
         return value.current_value
 
     def create_widget(self):
-        self._scroll_area = QScrollArea()
-        self._widget = QWidget()
+        self._widget = QTabWidget()
         self._widget.setWindowTitle('Settings')
-        self._scroll_area.setWindowTitle('Settings')
-        self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self._scroll_area.setWidget(self._widget)
 
-        y = 5
+        content_widget = None
+
         for section in self._config_parser.sections():
+            y = 5
+            content_widget = QWidget()
+            scroll_area = QScrollArea()
+            scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+            scroll_area.setWidget(content_widget)
+            self._widget.addTab(scroll_area, section)
             for option in sorted(self._config_parser.options(section)):
                 if (section, option) in self._values:
 
                     entry = self._values[(section, option)]
-                    text = QLineEdit(self._widget)
+                    text = QLineEdit(content_widget)
                     if entry.display_name is None:
                         text.setText(option + ':')
                     else:
@@ -171,28 +184,27 @@ class Configuration(object):
                     text.resize(240, 30)
                     text.move(0,y)
 
-                    value_text = QLineEdit(self._widget)
+                    value_text = QLineEdit(content_widget)
                     value_text.setText(self._config_parser.get(section, option))
                     value_text.resize(240, 30)
                     value_text.move(250,y)
                     self._text_edits.append(value_text)
                     y += 35
+            ok_button = QPushButton('Ok', content_widget)
+            ok_button.clicked.connect(self.on_ok)
+            ok_button.move(20,y)
 
-        ok_button = QPushButton('Ok', self._widget)
-        ok_button.clicked.connect(self.on_ok)
-        ok_button.move(20,y)
+            cancel_button = QPushButton('Cancel', content_widget)
+            cancel_button.clicked.connect(self.on_cancel)
+            cancel_button.move(140,y)
+            content_widget.adjustSize()
 
-        cancel_button = QPushButton('Cancel', self._widget)
-        cancel_button.clicked.connect(self.on_cancel)
-        cancel_button.move(140,y)
-        self._widget.adjustSize()
-        self._scroll_area.adjustSize()
-        self._scroll_area.setFixedWidth(self._scroll_area.width())
+        self._widget.setFixedWidth(520)
 
     def show_widget(self):
-        if self._scroll_area is None:
+        if self._widget is None:
             self.create_widget()
-        self._scroll_area.show()
+        self._widget.show()
         
     def on_ok(self, event):
         it = iter(self._text_edits)
@@ -204,10 +216,14 @@ class Configuration(object):
         with open(self._file_name, 'wb') as configfile:
             self._config_parser.write(configfile)
         self.read_values()
-        self._scroll_area.hide()
+        self._widget.hide()
 
     def on_cancel(self, event):
-        self._scroll_area.hide()
+        self._widget.hide()
+
+    def close_widget(self):
+        if self._widget is not None:
+            self._widget.close()
 
 #low level configuration
 class LLConfiguration(Configuration):
