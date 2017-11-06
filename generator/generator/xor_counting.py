@@ -9,7 +9,6 @@ class Propagator:
     def __init__(self, s):
         self.__states = []
         self.__default_s = int(s)
-        print "Propagator Registered"
 
     def init(self, init):
         index = 1
