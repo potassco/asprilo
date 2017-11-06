@@ -1,9 +1,9 @@
-#script (python)
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""XOR Count Propagator for Sampling"""
+
 import math
 import random
-## This xor propagator actually does not interfere with clasp's propagation...
-## In fact we just check (count) the number of truth's assignments given by clasp respecting the parity given for each theory atom (xor constraint)
-## In case of conflict, add the nogood and let clasp to propagate again
     
 class Propagator:
     def __init__(self, s):

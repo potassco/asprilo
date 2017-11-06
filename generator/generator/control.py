@@ -382,7 +382,7 @@ class Control(object):
         basic_args.add_argument('-D', '--debug', action='store_const', dest='loglevel',
                                 const=logging.DEBUG, default=logging.WARNING,
                                 help='debug output (default: %(default)s)')
-        basic_args.add_argument("-S", "--sxor", type=int, default=None,
+        basic_args.add_argument("--xor", type=int, default=None,
                                 help="the number of xor constraints to create")
 
         batch_args = parser.add_argument_group("Batch mode options")
