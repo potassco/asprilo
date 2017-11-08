@@ -12,7 +12,7 @@ class Propagator:
 
     def init(self, init):
         index = 1
-        literals = [init.solver_literal(atom.literal) for atom in init.symbolic_atoms if abs(init.solver_literal(atom.literal)) != 1]
+        literals = [init.solver_literal(atom.literal) for atom in init.symbolic_atoms.by_signature("init",2) if abs(init.solver_literal(atom.literal)) != 1]
         if len(literals) > 0:
             # Randomly create S XOR constraints
             if self.__default_s > 0:
