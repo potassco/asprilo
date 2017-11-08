@@ -52,6 +52,10 @@ class InstanceFileBrowser(QTreeView):
     def keyPressEvent (self, event):
         if event.key() == Qt.Key_Return:
             self._load_selected()
+        elif event.key() == Qt.Key_W:
+            self.setTreePosition(self.treePosition() + 1)
+        elif event.key() == Qt.Key_S:
+            self.setTreePosition(self.treePosition() - 1)
         return super(self.__class__, self).keyPressEvent(event)
 
     def contextMenuEvent(self, event):
@@ -122,25 +126,31 @@ class ControlWidget(QWidget):
 
         self._model_view = None
         self._timestep_widget = None
+        key_string = configuration.config.get('controls', 'do_backstep')
         self.create_button('<', (20, 0),
-                            self.on_undo, Qt.Key_Down,
-                            'Do one step\n[Down]')
+                            self.on_undo,
+                            QKeySequence(key_string),
+                            'Do one step\n[' + key_string + ']')
+        key_string = configuration.config.get('controls', 'do_step')
         self.create_button('>', (100, 0),
-                            self.on_update, Qt.Key_Up,
-                            'Undo one step\n[Up]')
+                            self.on_update,
+                            QKeySequence(key_string),
+                            'Undo one step\n[' + key_string + ']')
+        key_string = configuration.config.get('controls', 'pause')
         self._pause_button = self.create_button('|>', (60, 0),
                                                 self.on_pause,
-                                                Qt.Key_Space,
-                                                'Pause/Unpause the visualisation\n[Space]')[0]
-
+                                                QKeySequence(key_string),
+                                                'Pause/Unpause the visualisation\n[' + key_string + ']')[0]
+        key_string = configuration.config.get('controls', 'step_slow_down')
         self.create_button('|<|<', (20, 35),
                             lambda: self.on_speed_up(-0.1),
-                            Qt.Key_Left,
-                            'Slow down the visualisation\n[Right]')
+                            QKeySequence(key_string),
+                            'Slow down the visualisation\n[' + key_string + ']')
+        key_string = configuration.config.get('controls', 'step_speed_up')
         self.create_button('|>|>', (60, 35),
                             lambda: self.on_speed_up(0.0909),
-                            Qt.Key_Right,
-                            'Speed up the visualisation\n[Left]')
+                            QKeySequence(key_string),
+                            'Speed up the visualisation\n[' + key_string + ']')
         self.create_button('|<', (100, 35),
                             self.on_restart, None,
                             'Restart the visualisation')
@@ -148,14 +158,16 @@ class ControlWidget(QWidget):
                             self.on_skip_to_end, None,
                             'Skip to the end of the visualisation')
 
+        key_string = configuration.config.get('controls', 'zoom_in')
         self.create_button('+', (20, 75),
                             lambda: self.on_zoom(100),
-                            Qt.Key_Plus,
-                            'Zoom in\n[+]')
+                            QKeySequence(key_string),
+                            'Zoom in\n[' + key_string + ']')
+        key_string = configuration.config.get('controls', 'zoom_out')
         self.create_button('-', (60, 75),
                             lambda: self.on_zoom(-100),
-                            Qt.Key_Minus,
-                            'Zoom out\n[-]')
+                            QKeySequence(key_string),
+                            'Zoom out\n[' + key_string + ']')
         self.setFixedHeight(105)
 
     def create_button(self, name, pos, function, shortcut, tooltip = None):
@@ -400,13 +412,14 @@ class GridSizeDialog(QWidget):
         self._width_textbox.setText('0')
         self._height_textbox = QLineEdit(self)
         self._height_textbox.setText('0')
+        self._checkbox = QCheckBox('enable new nodes', self)
         self._ok_button = QPushButton('Ok', self)
         self._cancel_button = QPushButton('Cancel', self)
         self._function = None
 
         self._ok_button.clicked.connect(self.on_ok)
         self._cancel_button.clicked.connect(self.on_cancel)
-        self.setFixedSize(320, 110)
+        self.setFixedSize(280, 150)
         self._width_text.resize(140, 30)
         self._height_text.resize(140, 30)
         self._width_textbox.resize(140,30)
@@ -415,8 +428,9 @@ class GridSizeDialog(QWidget):
         self._height_text.move(0,40)
         self._width_textbox.move(140,0)
         self._height_textbox.move(140,40)
-        self._ok_button.move(20,80)
-        self._cancel_button.move(140,80)
+        self._checkbox.move(0, 80)
+        self._ok_button.move(20,120)
+        self._cancel_button.move(140,120)
 
     def set_model(self, model):
         self._model = model
@@ -431,7 +445,9 @@ class GridSizeDialog(QWidget):
         if not self._model.get_editable():
             return
         try:
-            self._model.set_grid_size(int(self._width_textbox.text()), int(self._height_textbox.text()))
+            self._model.set_grid_size(int(self._width_textbox.text()), 
+                                      int(self._height_textbox.text()), 
+                                      self._checkbox.isChecked())
         except ValueError:
             print 'x and y must be interger values'
         if self._model_view is not None:
@@ -619,8 +635,10 @@ class OrderWidget(QSplitter):
         super(self.__class__, self).__init__(Qt.Vertical)
         self._model = None
         self._table = OrderTable(self)
+        self._table.setSortingEnabled(True)
         self.resize(600, 400)
         self.setWindowTitle('Orders')
+        self._do_update = False
 
         self._control_widget = QWidget()
         self.addWidget(self._control_widget)
@@ -628,6 +646,8 @@ class OrderWidget(QSplitter):
         self._deliver_widget = QTextEdit()
         self._deliver_widget.setReadOnly(True)
         self.addWidget(self._deliver_widget)
+
+        self._table.itemChanged.connect(self.changed_item)
 
         self._send_button = QPushButton('Send orders', self._control_widget)
         self._send_button.move(20,0)
@@ -652,6 +672,8 @@ class OrderWidget(QSplitter):
         yellow_brush = QBrush(QColor(255, 255, 100))
 
         count = 0
+        self._do_update = True
+        self._table.setSortingEnabled(False)
         for order in orders:
             for request in order.iterate_requests():
                 count = count + 1
@@ -668,13 +690,11 @@ class OrderWidget(QSplitter):
         count = 0
         for order in orders:
             for request in order.iterate_requests():
-                table_item_delivered = self._table.item(count, 4)
-                if table_item_delivered is not None:
-                    if (str(request.delivered) != str(table_item_delivered.text())
-                        and changed_requests):
-
+                item = self._table.item(count, 0)
+                if item is not None:
+                    if request.changed:
                         for ii in xrange(0, self._table.columnCount()):
-                            self._table.item(count, ii).setBackground(red_brush)
+                           self._table.item(count, ii).setBackground(red_brush)
                     else:
                         for ii in xrange(0, self._table.columnCount()):
                             self._table.item(count, ii).setBackground(white_brush)
@@ -690,25 +710,33 @@ class OrderWidget(QSplitter):
         for order in orders2:
             for request in order.iterate_requests():
 
-                self.set_item_text(count, 0, str(order.get_id()))
-                self.set_item_text(count, 1, str(order.get_station_id()))
-                self.set_item_text(count, 2, str(request.product_id))
-                self.set_item_text(count, 3, str(request.requested))
-                self.set_item_text(count, 4, str(request.delivered))
-                self.set_item_text(count, 5, str(request.requested - request.delivered))
+                self.set_item_text(count, 0, str(order.get_id()), True)
+                self.set_item_text(count, 1, str(order.get_station_id()), True)
+                self.set_item_text(count, 2, str(request.product_id), True)
+                self.set_item_text(count, 3, str(request.requested), True)
+                self.set_item_text(count, 4, str(request.delivered), True)
+                self.set_item_text(count, 5, str(request.requested - request.delivered), True)
 
                 for ii in xrange(0, self._table.columnCount()):
                     self._table.item(count, ii).setBackground(yellow_brush)
 
                 count = count + 1
+        self._table.setSortingEnabled(True)
+        self._do_update = False
         super(self.__class__, self).update()
 
-    def set_item_text(self, column, row, text):
+    def set_item_text(self, column, row, text, editable = False):
         item = self._table.item(column, row)
         if item is None:
             self._table.setItem(column, row, QTableWidgetItem(text))
+            item = self._table.item(column, row)
         else:
             item.setText(text)
+
+        if (row == 1 or row == 3) and (self._model.get_editable() or editable):
+            item.setFlags(Qt.ItemIsSelectable |  Qt.ItemIsEnabled | Qt.ItemIsEditable)
+        else:
+            item.setFlags(Qt.ItemIsSelectable |  Qt.ItemIsEnabled)
 
     def set_model(self, model):
         self._model = model
@@ -726,6 +754,29 @@ class OrderWidget(QSplitter):
         if self._model is None:
             return
         self._model.discard_new_items(['order'])
+        self.update()
+
+    def changed_item(self, item):
+        if self._do_update:
+            return
+
+        value = 0
+        order_id = self._table.item(item.row(), 0).text()
+        column = item.column()
+        order = self._model.get_item('order', order_id)
+        if order is None:
+            return
+        try:
+            value = int(item.text())
+        except ValueError as err:
+            print err
+            self.update()
+            return
+
+        if column == 1:
+            order.set_station_id(value)
+        elif column == 3:
+            order.set_requested_amount(self._table.item(item.row(), 2).text(), value)
         self.update()
 
 class ProductDialog(QWidget):
@@ -903,6 +954,7 @@ class TaskTable(QTableWidget):
         self.setHorizontalHeaderLabels(['Task ID', 'Task Group',
                                         'Task Type', 'Assigned Robot',
                                         'Checkpoint History', 'Open Checkpoints'])
+        self.setSortingEnabled(True)
         self.resizeColumnsToContents()
         self.resize(self.horizontalHeader().length() + 20, 200)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
@@ -920,7 +972,8 @@ class TaskTable(QTableWidget):
         self.setRowCount(len(tasks))
 
         count = 0
-        for task in sorted(tasks, key = lambda x: x.get_id()):
+        self.setSortingEnabled(False)
+        for task in tasks:
             task_history = ''
             task_open = ''
 
@@ -930,25 +983,14 @@ class TaskTable(QTableWidget):
             for checkpoint in task.get_open_checkpoints():
                 task_open = task_open + str(checkpoint) + ', '
 
-                table_item_history = self.item(count, 4)
-                table_item_open = self.item(count, 5)
-                if (table_item_history is not None and
-                    table_item_open is not None):
-
-                    if (task_open != str(table_item_open.text())
-                        and changed_tasks):
-
-                        for ii in xrange(0, self.columnCount()):
-                           self.item(count, ii).setBackground(red_brush)
-
-                    elif (task_history != str(table_item_history.text())
-                        and changed_tasks):
-
-                        for ii in xrange(0, self.columnCount()):
-                           self.item(count, ii).setBackground(yellow_brush)
-                    else:
-                       for ii in xrange(0, self.columnCount()):
-                            self.item(count, ii).setBackground(white_brush)
+            table_item = self.item(count, 0)
+            if (table_item is not None):
+                if (task.get_changed() and changed_tasks):
+                    for ii in xrange(0, self.columnCount()):
+                        self.item(count, ii).setBackground(red_brush)
+                else:
+                    for ii in xrange(0, self.columnCount()):
+                        self.item(count, ii).setBackground(white_brush)
 
             self.set_item_text(count, 0, str(task.get_id()))
             self.set_item_text(count, 1, str(task.get_task_group()))
@@ -957,6 +999,7 @@ class TaskTable(QTableWidget):
             self.set_item_text(count, 4, task_history)
             self.set_item_text(count, 5, task_open)
             count += 1
+        self.setSortingEnabled(True)
         super(self.__class__, self).update()
 
     def set_item_text(self, column, row, text):
@@ -1027,6 +1070,11 @@ class ParserWidget(QSplitter):
         self._parse_program_button.resize(140,30)
         self._parse_program_button.clicked.connect(self.delete_program)
 
+        self._parse_program_button = QPushButton('add empty program', self._button_widget)
+        self._parse_program_button.move(280,35)
+        self._parse_program_button.resize(140,30)
+        self._parse_program_button.clicked.connect(self.add_empty_program)
+
         self._button_widget.setFixedHeight(70)
 
         self.move(0,0)
@@ -1059,6 +1107,7 @@ class ParserWidget(QSplitter):
     def reset_grounder(self):
         if self._parser is None:
             return
+        self.commit_programs()
         self._parser.reset_grounder()
 
     def reset_program(self):
@@ -1095,6 +1144,10 @@ class ParserWidget(QSplitter):
         for entry in self._program_list:
             self._parser.set_program(entry.program_name,
                                      entry.text_field.toPlainText())
+    def add_empty_program(self):
+        if self._parser is None:
+            return
+        self._parser.add_program('new', '')
 
     def update(self):
         if self._parser is None:

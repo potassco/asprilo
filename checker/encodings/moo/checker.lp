@@ -13,11 +13,7 @@
 %   - checks for preconditions
 %   - "book-keeping" entailments for effects and related inertial abnormalities
 
-#include "../default/action-move.lp".
-#include "../default/action-pickup.lp".
-#include "../default/action-putdown.lp".
-#include "action-deliver.lp".
-
+#include "action-move.lp".
 
 % - Checks for Static Law Violations -------------------------------------------
 

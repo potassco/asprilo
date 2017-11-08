@@ -73,7 +73,9 @@ class VisualizerSocket(object):
         return 0
 
     def send(self, msg):
-        if self._s is None:
+        if self._s is None or msg is None:
+            return
+        if msg == '':
             return
         self._s.send(msg)
 
@@ -176,6 +178,7 @@ class SolverSocket(VisualizerSocket):
         self._model.set_editable(False)
         self._model.restart()
         for atom in self._model.to_init_str():        #send instance
+            atom = atom.replace('\n', '')
             self._s.send(str(atom))
         self._s.send('\n')
         self.run_connection()

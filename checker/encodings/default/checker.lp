@@ -23,6 +23,15 @@
 
 #include "static.lp".
 
-% - Goal condition -------------------------------------------------------------
 
+% - Goal condition -------------------------------------------------------------
+%
+%   Define:
+%   1. the necessary sequence of actions and preconditions to fulfill an oder; and
+%   2. the general goal that all orders are fulfilled (ie., fully processed)
+
+% Order fulfillment
+#include "fulfillment.lp".
+
+% General goal
 #include "goal.lp".

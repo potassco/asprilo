@@ -53,8 +53,7 @@ At present we support the following problem domains:
 
 -   the [default domain](specification.md)
     - checker encodings at `./checker/encodings/default/`
--   the default domain in conjunction with the ['disregard of product quantities'
-    (DPQ)](specification.md) modification
+-   the default domain in conjunction with the ['disregard of product quantities'(DPQ)](specification.md#cid-49448523-5e9b-4ed2-ac1a-6754d838b85c) modification
     - checker encodings at `./checker/encodings/dpq`
 
 

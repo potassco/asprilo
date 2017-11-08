@@ -307,7 +307,7 @@ class Shelf(VisualizerGraphicItem):
     def to_init_str(self):
         s = super(self.__class__, self).to_init_str()
         for product in self._products:
-            s += ('init(object(product,' 
+            s += ('\ninit(object(product,' 
                     + str(product[0]) + '),value(on,('
                     + str(self._id) + ',' 
                     + str(product[1]) + '))).')
@@ -573,6 +573,8 @@ class Robot(VisualizerGraphicItem):
 
         elif action.name == 'deliver' and len(value.arguments) > 2:
             try:
+                if self._carries is not None:
+                    self._carries.remove_product(value.arguments[1], value.arguments[2].number)
                 order = self._model.filter_items(item_kind = 'order', 
                             ID = value.arguments[0], 
                             return_first = True)[0]
@@ -665,6 +667,8 @@ class Robot(VisualizerGraphicItem):
 
         elif action.name == 'deliver' and len(value.arguments) > 1:
             try:
+                if self._carries is not None:
+                    self._carries.remove_product(value.arguments[1], 0)
                 order = self._model.filter_items(item_kind = 'order', 
                             ID = value.arguments[0], 
                             return_first = True)[0]

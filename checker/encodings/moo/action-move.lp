@@ -2,11 +2,7 @@
 
 % - Domain ---------------------------------------------------------------------
 
-action(move, (0,1)).
-action(move, (1,0)).
-action(move, (0,-1)).
-action(move, (-1,0)).
-
+action(move, (0,1;1,0;0,-1;-1,0)).
 
 % - Checks: Preconditions ------------------------------------------------------
 
@@ -29,14 +25,7 @@ err(move, domain, (R, T)) :-     occurs(object(robot, R), action(move, (DX,    D
 holds(object(robot, R), value(at, (X+DX, Y+DY)), T) :- occurs(object(robot, R), action(move,   (DX, DY)), T  );
                                                        holds( object(robot, R), value(at,      (X, Y)),   T-1).
 
-holds(object(shelf, S), value(at, (X,    Y   )), T) :- holds( object(robot, R), value(at,      (X, Y)),   T  );
-                                                       holds( object(robot, R), value(carries, (R, S)),   T-1).
-
-
 % - Book-Keeping: Related Inertia Abnormals ---------------------------------------
 
 ab(object(robot, R), value(at, (X, Y)), T) :- holds( object(robot, R), value(at,      (X, Y)), T-1);
                                               occurs(object(robot, R), action(move,        _), T  ).
-ab(object(shelf, S), value(at, (X, Y)), T) :- holds( object(shelf, S), value(at,      (X, Y)), T-1);
-                                              occurs(object(robot, R), action(move,        _), T  );
-                                              holds( object(robot, R), value(carries, (R, S)), T-1).
