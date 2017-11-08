@@ -22,6 +22,8 @@ class InstanceGenerator(object):
             self._solve_opts.extend(['--rand-freq={}'.format(self._args.rand_freq),
                                      '--sign-def={}'.format(self._args.sign_def),
                                      '--seed={}'.format(self._args.seed)])
+        if self._args.solve_opts:
+            self._solve_opts.extend(self._args.solve_opts)
         self._inits = None
         self._object_counters = {}
         self._instance_count = 0

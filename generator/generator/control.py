@@ -432,8 +432,12 @@ class Control(object):
                                 metavar='SEED',
                                 help="""for model randomization: the \'--seed=%(metavar)s\' flag
                                 passed to clingo (default: %(default)s)""")
-        basic_args.add_argument("-I", "--gen-inc", action='store_true', help="""use incremental instance
-                                generation; required for large instances to reduce grounding size""")
+        basic_args.add_argument("--sopts, --solve-opts", nargs=1, type=str, dest='solve_opts',
+                                help="""options pass-through of to underlying clingo process,
+                                **intended for debugging only!**""")
+        basic_args.add_argument("-I", "--gen-inc", action='store_true',
+                                help="""use incremental instance generation; required for large
+                                instances to reduce grounding size""")
         basic_args.add_argument('-V', '--verbose', action='store_const', dest='loglevel',
                                 const=logging.INFO, default=logging.WARNING,
                                 help='verbose output (default: %(default)s)')
