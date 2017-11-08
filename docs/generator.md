@@ -104,7 +104,18 @@ a detailed list and description run
     ig -x 20 -y 20 -n 360 -s 160 -p 20 -r 10 -P 12 -u 64 -o 10 --oap
     ```
 
+### Near-Uniform sampling with --xor
+To generate near-uniform samples from either real-world-like or random instances is necessary to add the flag `--xor XOR`. The value XOR is a positive integer number referring the number of XOR constraints to be added during the solving stage.
 
+A starting value for XOR would be 0, meaning an automatic calculation of the number of constraints and this value is obtained based on the total number of init/2 atoms.
+
+Is possible to add more or fewer constraints by changing the XOR value. Adding more constraints may result in a more uniform sampling but also can be more susceptible to result in unsatisfiable solution caused by inconsistencies in two or more constraints. Also, adding more constraints may hinder the solving performance. Adding fewer constraints will perform better but can return a weak sampling and not close to near-uniformity.
+
+A real-world-like small instance can be executed via
+
+    ``` bash
+    ig -x 9 -y 6 -X 3 -Y 2 -s 6 -p 1 -r 2 -H --xor 0
+    ```
 
 ## Batch Generation (TODO)
 

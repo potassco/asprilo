@@ -175,8 +175,8 @@ class InstanceGenerator(object):
         self._prg.ground([("base", [])])
 
         # Xor constraints - with Propagator
-        if self._args.sxor is not None:
-            self._prg.register_propagator(Propagator(self._args.sxor)) 
+        if self._args.xor is not None:
+            self._prg.register_propagator(Propagator(self._args.xor)) 
 
         # Projection to subsets of init/2
         if self._args.prj_orders:
