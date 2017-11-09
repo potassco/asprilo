@@ -473,19 +473,19 @@ class Control(object):
         product_args.add_argument("-P", "--products", type=check_positive,
                                   help="the number of product kinds")
         product_args.add_argument("--prs", "--products-per-shelf",
-                                  type=check_positive, default=20,
+                                  type=int, default=20,
                                   help="""the maximum number of products per shelf
-                                  (default: %(default)s)""",
+                                  (default: %(default)s); deactivate with value < 1""",
                                   dest="products_per_shelf")
         product_args.add_argument("--spr", "--shelves-per-product",
-                                  type=check_positive, default=4,
+                                  type=int, default=4,
                                   help="""the maximum number of shelves that contain the same
-                                  product (default: %(default)s)""",
+                                  product (default: %(default)s); deactivate with value < 1""",
                                   dest="shelves_per_product")
         product_args.add_argument("--pus", "--product-units-per-product-shelf",
-                                  type=check_positive, default=10,
+                                  type=int, default=5,
                                   help="""the maximum number of each product's units per shelf
-                                  (default: %(default)s)""",
+                                  (default: %(default)s); deactivate with value < 1""",
                                   dest="product_units_per_product_shelf")
 
         order_args = parser.add_argument_group("Order constraints")

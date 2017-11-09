@@ -161,7 +161,8 @@ class InstanceGenerator(object):
                                                  self._args.product_units_total,
                                                  self._args.products_per_shelf,
                                                  self._args.shelves_per_product,
-                                                 self._args.product_units_per_product_shelf])])
+                                                 self._args.product_units_per_product_shelf or
+                                                 self._args.product_units_total])])
         self._prg.ground([("orders_init", [self._args.order_min_lines,
                                            self._args.order_max_lines])])
 
@@ -202,7 +203,7 @@ class InstanceGenerator(object):
         LOG.info("Solve result: %s", str(solve_result))
         LOG.info("Search finished: %s", str(not solve_result.interrupted))
         LOG.info("Search space exhausted: %s", str(solve_result.exhausted))
-        LOG.debug("STATS:\n%s", self._prg.statistics)
+        LOG.debug("Statistics: %s", self._prg.statistics)
 
         return self._instances
 

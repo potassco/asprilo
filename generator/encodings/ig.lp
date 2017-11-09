@@ -187,8 +187,8 @@ object(product, 1..N) :- product_amount(N).
 :- max < #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 
 %% product_on(PID, SID) :- init(object(product, PID), value(on, (SID, _))).
-0 { product_on(PID, SID) : object(product, PID) } maxprs  :- object(shelf, SID).
-0 { product_on(PID, SID) : object(shelf,   SID) } maxspr  :- object(product, PID).
+0 { product_on(PID, SID) : object(product, PID) } maxprs  :- object(shelf, SID), maxprs > 0.
+0 { product_on(PID, SID) : object(shelf,   SID) } maxspr  :- object(product, PID), maxspr > 0.
 
 
 % Regarding template input: no explicit rules required!
