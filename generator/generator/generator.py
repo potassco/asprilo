@@ -202,6 +202,7 @@ class InstanceGenerator(object):
         LOG.info("Solve result: %s", str(solve_result))
         LOG.info("Search finished: %s", str(not solve_result.interrupted))
         LOG.info("Search space exhausted: %s", str(solve_result.exhausted))
+        LOG.debug("STATS:\n%s", self._prg.statistics)
 
         return self._instances
 
