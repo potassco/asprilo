@@ -4,6 +4,7 @@
 from __future__ import absolute_import
 import os
 import sys
+import math
 import argparse
 import logging
 import copy
@@ -272,9 +273,19 @@ class Control(object):
 
         # Incrementally add product units
         LOG.info("\n** INC MODE: Generating Products and Product Units *********************")
-        args_dict['products'] = self._args.products
-        self._gen_inc_stage('product_units_total', self._args.product_units_total, args)
+        # args_dict['products'] = self._args.products
+        # self._gen_inc_stage('product_units_total', self._args.product_units_total, args)
+        args_dict['product_units_total'] = 0
+        unit_inc = int(math.floor(self._args.product_units_total / self._args.products))
+        for product_cnt in xrange(1, self._args.products):
+            args_dict['products'] = product_cnt
+            if product_cnt == self._args.products:
+                args_dict['product_units_total'] = self._args.product_units_total
+            else:
+                args_dict['product_units_total'] += unit_inc
+            args_dict['template_str'] = self._gen(args)[0][0]
         args_dict['products'] = None
+        args_dict['product_units_total'] = None
 
         # Incrementally add orders
         LOG.info("\n **INC MODE: Generating Orders *****************************************")
