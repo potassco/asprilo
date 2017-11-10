@@ -44,8 +44,7 @@ class InstanceGenerator(object):
         self._instance_count += 1
         self._inits = []
         if self._args.console:
-            print "\n"
-            LOG.info("~~~~ %s. Instance ~~~~", str(self._instance_count))
+            LOG.info("\n~~~~ %s. Instance ~~~~", str(self._instance_count))
         atoms_list = model.symbols(terms=True)
         LOG.debug("Found model: %s", '.\n'.join([str(atm) for atm in model.symbols(atoms=True)]))
         atm = None
@@ -209,9 +208,12 @@ class InstanceGenerator(object):
 
     def _save(self):
         """Writes instance to file."""
-        self._inits.sort()
         file_name = ''
-        if not self._args.console:
+        if self._args.no_instance_output:
+            file_name = os.devnull
+        elif self._args.console:
+            file_name = "/dev/stdout"
+        else:
             if self._args.instance_count:
                 instance_count = self._args.instance_count
             else:
@@ -238,8 +240,6 @@ class InstanceGenerator(object):
             if not os.path.exists(dest_dir):
                 os.makedirs(dest_dir)
             file_name = (dest_dir + "/" + local_name + ".lp")
-        else:
-            file_name = "/dev/stdout"
 
         # Instance preamble
         instance = ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n"
@@ -268,6 +268,7 @@ class InstanceGenerator(object):
         # Instance facts
         instance += ("#program base.\n\n"
                      "% init\n")
+        self._inits.sort()
         for init in self._inits:
             instance += str(init) + ".\n"
         self._instances.append(instance)

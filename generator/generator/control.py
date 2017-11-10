@@ -259,7 +259,9 @@ class Control(object):
         args_dict['product_units_total'] = None
         args_dict['orders'] = None
         args_dict['num'] = 1
-        LOG.info("Creating grid with robots and picking stations based on args: %s", str(args))
+        if not self._args.inc_im:
+            args_dict['no_instance_output'] = True
+        LOG.debug("Creating grid with robots and picking stations based on args: %s", str(args))
         args_dict['template_str'] = self._gen(args)[0][0]
         args_dict['picking_stations'] = None
         args_dict['robots'] = None
@@ -276,17 +278,19 @@ class Control(object):
 
         # Incrementally add orders
         LOG.info("\n **INC MODE: Generating Orders *****************************************")
-        self._gen_inc_stage('orders', self._args.orders, args, 1)
+        self._gen_inc_stage('orders', self._args.orders, args, 1, True)
 
-    def _gen_inc_stage(self, otype, max_count, args, inc_size=20):
+    def _gen_inc_stage(self, otype, max_count, args, inc_size=20, output=False):
         """Incremental adds objects of a given type to an instance."""
         args_dict = vars(args)
         count = 0
         while count < max_count:
-            if count + inc_size <= max_count:
+            if count + inc_size < max_count:
                 count += inc_size
             else:
                 count = max_count
+                if output:
+                    args_dict['no_instance_output'] = False
             args_dict[otype] = count
             args_dict['template_str'] = self._gen(args)[0][0]
         args_dict[otype] = None
@@ -392,6 +396,8 @@ class Control(object):
                                 help="the number of instances to create (default: %(default)s)")
         basic_args.add_argument("-C", "--console",
                                 help="prints the instances to the console", action="store_true")
+        basic_args.add_argument("--no-instance-output", dest='no_instance_output',
+                                help=argparse.SUPPRESS, action="store_true")
         basic_args.add_argument("-d", "--directory", type=str, default="generatedInstances",
                                 help="the directory to safe the files (default: %(default)s)")
         basic_args.add_argument("--se", "--skip-existing", action="store_true",
@@ -438,6 +444,9 @@ class Control(object):
         basic_args.add_argument("-I", "--gen-inc", action='store_true',
                                 help="""use incremental instance generation; required for large
                                 instances to reduce grounding size""")
+        basic_args.add_argument("--im", "--inc-im", action='store_true', dest='inc_im',
+                                help="""for inc-mode, activate output of intermediate instances
+                                (default: %(default)s)""")
         basic_args.add_argument('-V', '--verbose', action='store_const', dest='loglevel',
                                 const=logging.INFO, default=logging.WARNING,
                                 help='verbose output (default: %(default)s)')
