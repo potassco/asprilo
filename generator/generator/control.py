@@ -260,7 +260,7 @@ class Control(object):
         args_dict['product_units_total'] = None
         args_dict['orders'] = None
         args_dict['num'] = 1
-        if not self._args.inc_im:
+        if not self._args.inc_im and self._args.shelves:
             args_dict['no_instance_output'] = True
         LOG.debug("Creating grid with robots and picking stations based on args: %s", str(args))
         args_dict['template_str'] = self._gen(args)[0][0]
@@ -268,23 +268,28 @@ class Control(object):
         args_dict['robots'] = None
 
         # Incrementally add shelves
-        LOG.info("\n** INC MODE: Generating Shelves ****************************************")
-        self._gen_inc_stage({'shelves' : [self._args.shelves, 20]}, args)
+        if self._args.shelves:
+            LOG.info("\n** INC MODE: Generating Shelves ****************************************")
+            self._gen_inc_stage({'shelves' : [self._args.shelves, 20]}, args,
+                                not self._args.products)
 
         # # Incrementally add product units
-        LOG.info("\n** INC MODE: Generating Products and Product Units *********************")
-        self._gen_inc_stage(
-            {'products' : [self._args.products, 1],
-             'product_units_total' :
-             [self._args.product_units_total,
-              int(math.floor(self._args.product_units_total / self._args.products))]},
-            args)
+        if self._args.products:
+            LOG.info("\n** INC MODE: Generating Products and Product Units *********************")
+            self._gen_inc_stage(
+                {'products' : [self._args.products, 1],
+                 'product_units_total' :
+                 [self._args.product_units_total,
+                  int(math.floor(self._args.product_units_total /
+                                 self._args.products))]},
+                args, not self._args.orders)
 
         # # Incrementally add orders
-        LOG.info("\n **INC MODE: Generating Orders *****************************************")
-        self._gen_inc_stage({'orders': [self._args.orders,
-                                        int(math.floor(10 / self._args.order_min_lines))]},
-                            args, True)
+        if self._args.orders:
+            LOG.info("\n **INC MODE: Generating Orders *****************************************")
+            self._gen_inc_stage({'orders': [self._args.orders,
+                                            int(math.floor(10 / self._args.order_min_lines or 1))]},
+                                args, True)
 
     def _gen_inc_stage(self, objs_settings, args, output=False):
         """Incremental adds objects of a given type to an instance."""
@@ -359,9 +364,14 @@ class Control(object):
         if self._args.shelves and self._args.shelf_coverage:
             raise ValueError("""Number of shelves specified by both quantity (-s) and
             coverage rate (--sc)""")
+        if ((self._args.products and not self._args.product_units_total) or
+                (not self._args.products and self._args.product_units_total)):
+            raise ValueError("""To specify products, at least the number of products and the product
+            units total is required""")
         if self._args.products and self._args.product_units_total:
             if self._args.products > self._args.product_units_total:
-                raise ValueError("Product_units_total must be smaller or equal to products")
+                raise ValueError("""The product units total must be smaller or equal to number of
+                products""")
         if self._args.threads > 1 and self._args.split:
             raise ValueError("""Only single threaded execution (-t 1) possible when splitting
             up (--split) instances""")
