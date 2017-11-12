@@ -269,42 +269,41 @@ class Control(object):
 
         # Incrementally add shelves
         LOG.info("\n** INC MODE: Generating Shelves ****************************************")
-        self._gen_inc_stage('shelves', self._args.shelves, args)
+        self._gen_inc_stage({'shelves' : [self._args.shelves, 20]}, args)
 
-        # Incrementally add product units
+        # # Incrementally add product units
         LOG.info("\n** INC MODE: Generating Products and Product Units *********************")
-        # args_dict['products'] = self._args.products
-        # self._gen_inc_stage('product_units_total', self._args.product_units_total, args)
-        args_dict['product_units_total'] = 0
-        unit_inc = int(math.floor(self._args.product_units_total / self._args.products))
-        for product_cnt in xrange(1, self._args.products):
-            args_dict['products'] = product_cnt
-            if product_cnt == self._args.products:
-                args_dict['product_units_total'] = self._args.product_units_total
-            else:
-                args_dict['product_units_total'] += unit_inc
-            args_dict['template_str'] = self._gen(args)[0][0]
-        args_dict['products'] = None
-        args_dict['product_units_total'] = None
+        self._gen_inc_stage(
+            {'products' : [self._args.products, 1],
+             'product_units_total' :
+             [self._args.product_units_total,
+              int(math.floor(self._args.product_units_total / self._args.products))]},
+            args)
 
-        # Incrementally add orders
+        # # Incrementally add orders
         LOG.info("\n **INC MODE: Generating Orders *****************************************")
-        self._gen_inc_stage('orders', self._args.orders, args, 1, True)
+        self._gen_inc_stage({'orders': [self._args.orders,
+                                        int(math.floor(10 / self._args.order_min_lines))]},
+                            args, True)
 
-    def _gen_inc_stage(self, otype, max_count, args, inc_size=20, output=False):
+    def _gen_inc_stage(self, objs_settings, args, output=False):
         """Incremental adds objects of a given type to an instance."""
         args_dict = vars(args)
-        count = 0
-        while count < max_count:
-            if count + inc_size < max_count:
-                count += inc_size
-            else:
-                count = max_count
-                if output:
-                    args_dict['no_instance_output'] = False
-            args_dict[otype] = count
+        maxed_objs = []
+        while len(maxed_objs) < len(objs_settings):
+            for setting in objs_settings.items():
+                otype, (max_count, inc_size) = setting
+                args_dict[otype] = args_dict[otype] or 0
+                if args_dict[otype] + inc_size < max_count:
+                    args_dict[otype] += inc_size
+                else:
+                    args_dict[otype] = max_count
+                    maxed_objs.append(otype)
+            if output and len(maxed_objs) == len(objs_settings):
+                args_dict['no_instance_output'] = False
             args_dict['template_str'] = self._gen(args)[0][0]
-        args_dict[otype] = None
+        for otype in objs_settings:
+            args_dict[otype] = None
 
     def _gen_split(self):
         """Execution with split up instances."""
