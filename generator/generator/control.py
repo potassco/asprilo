@@ -261,38 +261,60 @@ class Control(object):
         args_dict['orders'] = None
         args_dict['num'] = 1
         if not self._args.inc_im and self._args.shelves:
-            args_dict['no_instance_output'] = True
+            args_dict['write_instance'] = False
         LOG.debug("Creating grid with robots and picking stations based on args: %s", str(args))
         args_dict['template_str'] = self._gen(args)[0][0]
         args_dict['picking_stations'] = None
         args_dict['robots'] = None
+        args_dict['num'] = self._args.num
 
         # Incrementally add shelves
         if self._args.shelves:
             LOG.info("\n** INC MODE: Generating Shelves ****************************************")
-            self._gen_inc_stage({'shelves' : [self._args.shelves, 20]}, args,
-                                not self._args.products)
+            grid_template = args_dict['template_str']
+            templates = []
+            for select in xrange(self._args.num):
+                LOG.info("\n** INC MODE: Generating based on previous template %s", str(select))
+                args_dict['template_str'] = grid_template
+                args_dict['instance_count'] = select + 1
+                templates.append(self._gen_inc_stage({'shelves' : [self._args.shelves, 20]}, args,
+                                                     not self._args.products, select))
+            args_dict['instance_count'] = None
 
-        # # Incrementally add product units
+        # Incrementally add product units
         if self._args.products:
             LOG.info("\n** INC MODE: Generating Products and Product Units *********************")
-            self._gen_inc_stage(
-                {'products' : [self._args.products, 1],
-                 'product_units_total' :
-                 [self._args.product_units_total,
-                  int(math.floor(self._args.product_units_total /
-                                 self._args.products))]},
-                args, not self._args.orders)
+            prev_templates = templates
+            templates = []
+            for select in xrange(self._args.num):
+                LOG.info("\n** INC MODE: Generating based on previous template %s", str(select))
+                args_dict['template_str'] = prev_templates[select]
+                args_dict['instance_count'] = select + 1
+                templates.append(self._gen_inc_stage(
+                    {'products' : [self._args.products, 1],
+                     'product_units_total' :
+                     [self._args.product_units_total,
+                      int(math.floor(self._args.product_units_total / self._args.products))]},
+                    args, not self._args.orders, select))
+            args_dict['instance_count'] = None
 
-        # # Incrementally add orders
+        # Incrementally add orders
         if self._args.orders:
             LOG.info("\n **INC MODE: Generating Orders *****************************************")
-            self._gen_inc_stage({'orders': [self._args.orders,
-                                            int(math.floor(10 / self._args.order_min_lines or 1))]},
-                                args, True)
+            prev_templates = templates
+            templates = []
+            for select in xrange(self._args.num):
+                LOG.info("\n** INC MODE: Generating based on previous template %s", str(select))
+                args_dict['template_str'] = prev_templates[select]
+                args_dict['instance_count'] = select + 1
+                self._gen_inc_stage({'orders':
+                                     [self._args.orders,
+                                      int(math.floor(10 / self._args.order_min_lines or 1))]},
+                                    args, True, select)
+            args_dict['instance_count'] = None
 
-    def _gen_inc_stage(self, objs_settings, args, output=False):
-        """Incremental adds objects of a given type to an instance."""
+    def _gen_inc_stage(self, objs_settings, args, output=False, select=0):
+        """Incremental adds objects of a given type to an instance and returns result."""
         args_dict = vars(args)
         maxed_objs = []
         while len(maxed_objs) < len(objs_settings):
@@ -305,10 +327,16 @@ class Control(object):
                     args_dict[otype] = max_count
                     maxed_objs.append(otype)
             if output and len(maxed_objs) == len(objs_settings):
-                args_dict['no_instance_output'] = False
-            args_dict['template_str'] = self._gen(args)[0][0]
+                args_dict['write_instance'] = True
+            templates = self._gen(args)[0]
+            if len(templates) > select:
+                args_dict['template_str'] = templates[select]
+            else:
+                args_dict['template_str'] = templates[-1]
         for otype in objs_settings:
             args_dict[otype] = None
+        args_dict['write_instance'] = False
+        return args_dict['template_str']
 
     def _gen_split(self):
         """Execution with split up instances."""
@@ -372,6 +400,8 @@ class Control(object):
             if self._args.products > self._args.product_units_total:
                 raise ValueError("""The product units total must be smaller or equal to number of
                 products""")
+        if self._args.order_min_lines > self._args.order_max_lines:
+            raise ValueError("""Order lines minimum larger than maximum""")
         if self._args.threads > 1 and self._args.split:
             raise ValueError("""Only single threaded execution (-t 1) possible when splitting
             up (--split) instances""")
@@ -416,8 +446,8 @@ class Control(object):
                                 help="the number of instances to create (default: %(default)s)")
         basic_args.add_argument("-C", "--console",
                                 help="prints the instances to the console", action="store_true")
-        basic_args.add_argument("--no-instance-output", dest='no_instance_output',
-                                help=argparse.SUPPRESS, action="store_true")
+        basic_args.add_argument("--write-instance", dest='write_instance',
+                                help=argparse.SUPPRESS, action="store_false")
         basic_args.add_argument("-d", "--directory", type=str, default="generatedInstances",
                                 help="the directory to safe the files (default: %(default)s)")
         basic_args.add_argument("--se", "--skip-existing", action="store_true",

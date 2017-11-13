@@ -209,7 +209,7 @@ class InstanceGenerator(object):
     def _save(self):
         """Writes instance to file."""
         file_name = ''
-        if self._args.no_instance_output:
+        if not self._args.write_instance:
             file_name = os.devnull
         elif self._args.console:
             file_name = "/dev/stdout"
