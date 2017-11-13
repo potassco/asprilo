@@ -66,10 +66,10 @@ class Control(object):
     def _run_once(self):
         """Regular single instance generation."""
         # self._cl_parser, self._args = Control._parse_cl_args()
-        if self._args.gen_inc:
-            self._gen_inc()
-        elif self._args.split:
+        if self._args.split:
             self._gen_split()
+        elif self._args.gen_inc:
+            self._gen_inc()
         else:
             self._gen()
 
@@ -273,50 +273,56 @@ class Control(object):
             LOG.info("\n** INC MODE: Generating Shelves ****************************************")
             grid_template = args_dict['template_str']
             templates = []
+            dest_dirs = []
             for select in xrange(self._args.num):
-                LOG.info("\n** INC MODE: Generating based on previous template %s", str(select))
+                LOG.info("\n** INC MODE: ... based on previous template %s", str(select))
                 args_dict['template_str'] = grid_template
-                args_dict['instance_count'] = select + 1
-                templates.append(self._gen_inc_stage({'shelves' : [self._args.shelves, 20]}, args,
-                                                     not self._args.products, select))
-            args_dict['instance_count'] = None
+                template, _dest_dirs = self._gen_inc_stage({'shelves' : [self._args.shelves, 20]},
+                                                           args, not self._args.products, select,
+                                                           select + 1)
+                templates.append(template)
+                dest_dirs.extend(_dest_dirs)
 
         # Incrementally add product units
         if self._args.products:
             LOG.info("\n** INC MODE: Generating Products and Product Units *********************")
             prev_templates = templates
             templates = []
+            dest_dirs = []
             for select in xrange(self._args.num):
-                LOG.info("\n** INC MODE: Generating based on previous template %s", str(select))
+                LOG.info("\n** INC MODE: ... based on previous template %s", str(select))
                 args_dict['template_str'] = prev_templates[select]
-                args_dict['instance_count'] = select + 1
-                templates.append(self._gen_inc_stage(
+                template, _dest_dirs = self._gen_inc_stage(
                     {'products' : [self._args.products, 1],
                      'product_units_total' :
                      [self._args.product_units_total,
                       int(math.floor(self._args.product_units_total / self._args.products))]},
-                    args, not self._args.orders, select))
-            args_dict['instance_count'] = None
+                    args, not self._args.orders, select, select + 1)
+                templates.append(template)
+                dest_dirs.extend(_dest_dirs)
 
         # Incrementally add orders
         if self._args.orders:
             LOG.info("\n **INC MODE: Generating Orders *****************************************")
             prev_templates = templates
             templates = []
+            dest_dirs = []
             for select in xrange(self._args.num):
-                LOG.info("\n** INC MODE: Generating based on previous template %s", str(select))
+                LOG.info("\n** INC MODE: ... based on previous template %s", str(select))
                 args_dict['template_str'] = prev_templates[select]
-                args_dict['instance_count'] = select + 1
-                self._gen_inc_stage({'orders':
-                                     [self._args.orders,
-                                      int(math.floor(10 / self._args.order_min_lines or 1))]},
-                                    args, True, select)
-            args_dict['instance_count'] = None
+                template, _dest_dirs = self._gen_inc_stage(
+                    {'orders': [self._args.orders,
+                                int(math.floor(10 / self._args.order_min_lines or 1))]},
+                    args, True, select, select + 1)
+                templates.append(template)
+                dest_dirs.extend(_dest_dirs)
+        return templates, list(set(dest_dirs))
 
-    def _gen_inc_stage(self, objs_settings, args, output=False, select=0):
+    def _gen_inc_stage(self, objs_settings, args, output=False, select=0, instance_count=None):
         """Incremental adds objects of a given type to an instance and returns result."""
         args_dict = vars(args)
         maxed_objs = []
+        args_dict['instance_count'] = instance_count
         while len(maxed_objs) < len(objs_settings):
             for setting in objs_settings.items():
                 otype, (max_count, inc_size) = setting
@@ -328,7 +334,7 @@ class Control(object):
                     maxed_objs.append(otype)
             if output and len(maxed_objs) == len(objs_settings):
                 args_dict['write_instance'] = True
-            templates = self._gen(args)[0]
+            templates, dest_dirs = self._gen(args)
             if len(templates) > select:
                 args_dict['template_str'] = templates[select]
             else:
@@ -336,10 +342,15 @@ class Control(object):
         for otype in objs_settings:
             args_dict[otype] = None
         args_dict['write_instance'] = False
-        return args_dict['template_str']
+        args_dict['instance_count'] = None
+        return args_dict['template_str'], dest_dirs
 
     def _gen_split(self):
         """Execution with split up instances."""
+        if self._args.gen_inc:
+            gen_func = self._gen_inc
+        else:
+            gen_func = self._gen
         num_wh_inst, num_order_inst = self._args.split
         args_dict_bak = copy.deepcopy(vars(self._args))
 
@@ -351,7 +362,7 @@ class Control(object):
                                    namespace=self._args)
 
         LOG.info("Creating **warehouses** using solve args: %s", str(self._args))
-        dest_dirs = self._gen()[1]
+        dest_dirs = gen_func()[1]
 
         # orders instances and merge
         for winst in xrange(1, num_wh_inst+1):
@@ -370,7 +381,7 @@ class Control(object):
                 namespace=self._args)
 
             LOG.info("Creating **orders** using solve args: %s", str(self._args))
-            self._gen()
+            gen_func()
 
             # merge
             for oinst in xrange(1, len(glob.glob(dest_dirs[winst-1] + '/orders/*.lp')) + 1):
