@@ -197,6 +197,11 @@ class InstanceGenerator(object):
 
         solve_result = self._prg.solve(on_model=self.on_model)
 
+        if self._args.write_selected and self._args.write_selected > len(self._instances):
+            LOG.warn("Selected instance %s not written since not enumerated, i.e., "
+                     "only enumerated %s!",
+                     str(self._args.write_selected), str(len(self._instances)))
+
         LOG.info("Parallel mode: %s", str(self._prg.configuration.solve.parallel_mode))
         LOG.info("Generated instances: %s", str(self._instance_count))
         LOG.info("Solve result: %s", str(solve_result))
@@ -209,7 +214,8 @@ class InstanceGenerator(object):
     def _save(self):
         """Writes instance to file."""
         file_name = ''
-        if not self._args.write_instance:
+        if (not self._args.write_instance or
+                (self._args.write_selected and self._args.write_selected != self._instance_count)):
             file_name = os.devnull
         elif self._args.console:
             file_name = "/dev/stdout"
