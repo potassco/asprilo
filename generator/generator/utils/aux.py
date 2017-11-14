@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Auxiliary Functions."""
 import argparse
+import copy
 
 def check_positive(value):
     """Positive int check for argparse."""
@@ -17,3 +18,16 @@ class SmartFormatter(argparse.HelpFormatter):
             return text[2:].splitlines()
         # this is the RawTextHelpFormatter._split_lines
         return argparse.HelpFormatter._split_lines(self, text, width)
+
+def clone_args(parser, namespace):
+    """Return deep copy of given argparse.Namespace object.
+
+    :param parser:  The argparse.ArgumentParser that created the arparse.Namespace namespace.
+    :param namespace: The argparse.Namespace to clone.
+    :returns: The cloned argparse namespace.
+    :rtype: argparse.Namespace
+
+    """
+    cloned_ns = parser.parse_args()
+    vars(cloned_ns).update(copy.deepcopy(vars(namespace)))
+    return cloned_ns

@@ -9,8 +9,10 @@
 
 #program template_stub.
 % For templates, each init(object(Type, ID), value(_ ,_)) induces an object(Type, ID)
+%object(Type, ID) :- init(object(Type, ID), _).
 object(Type, ID) :- init(object(Type, ID), _).
-
+template(object(Type, ID)) :- init(object(Type, ID), _).
+template(init(object(Type, ID), value(Attr, Value))) :- init(object(Type, ID), value(Attr, Value)).
 
 
 % * Floor Nodes ************************************************************************************
@@ -33,10 +35,9 @@ reachableNode(N2) :- reachableNode(N), init(object(node, N), value(at, (X, Y))),
 % Determine dimensions, i.e., maximum x-,y-coordinates and the total number of nodes
 % - This variant also supprt
 #program floor_dimensions.
-sizeX(X) :- init(object(node, _), value(at, (X, _))), not init(object(node, _), value(at, (X + 1, _))).
-sizeY(Y) :- init(object(node, _), value(at, (_, Y))), not init(object(node, _), value(at, (_, Y + 1))).
-nodes(N) :- N = #count{ ID : init(object(node, ID), value(at, (_, _))) }.
-
+sizeX(MX) :- MX = #max{    X : init(object(node, _),  value(at, (X, _))); 1 }.
+sizeY(MY) :- MY = #max{    Y : init(object(node, _),  value(at, (_, Y))); 1 }.
+nodes(N)  :- N  = #count{ ID : init(object(node, ID), value(at, (_, _))) }.
 
 
 % * Robots *****************************************************************************************
@@ -69,7 +70,8 @@ object(robot, 1..N) :- robot_amount(N).
 % ~~ Init Facts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #program robots_init.
-1 { init(object(robot, ID), value(at, (X,Y))) : poss(robot, at(X,Y)) } 1 :- object(robot, ID).
+1 { init(object(robot, ID), value(at, (X,Y))) : poss(robot, at(X,Y)) } 1 :-              object(robot, ID),
+                                                                            not template(object(robot, ID)).
 
 
 
@@ -111,7 +113,8 @@ object(shelf, 1..N) :- shelf_amount(N).
 % ~~ Init Facts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #program shelves_init.
-1 { init(object(shelf, ID), value(at, (X,Y))) : poss(shelf, at(X,Y)) } 1 :- object(shelf, ID).
+1 { init(object(shelf, ID), value(at, (X,Y))) : poss(shelf, at(X,Y)) } 1 :-              object(shelf, ID),
+                                                                            not template(object(shelf, ID)).
 
 
 
@@ -138,7 +141,8 @@ object(pickingStation, 1..N) :- pickingStation_amount(N).
 % ~~ Init Facts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #program picking_stations_init.
-1 { init(object(pickingStation, ID), value(at, (X, Y))) : poss(pickingStation, at(X, Y)) } 1 :- object(pickingStation, ID).
+1 { init(object(pickingStation, ID), value(at, (X, Y))) : poss(pickingStation, at(X, Y)) } 1 :-              object(pickingStation, ID),
+                                                                                                not template(object(pickingStation, ID)).
 
 
 
@@ -169,21 +173,26 @@ object(product, 1..N) :- product_amount(N).
 
 #program product_units(min, max, maxprs, maxspr, maxpus).
 %  Arguments:
-%    min, max -- minimum and maximum of overall total number of product units
-%    maxprs     -- maximum number of products per shelf
-%    maxprs     -- maximum number of shelfs that contain the same product
-%    maxpus     -- maximum number of a product's units per shelf
+%    min    -- minimum of overall total number of product units
+%    max    -- maximum of overall total number of product units
+%    minpu  -- minimum number of untis for a product globally
+%    maxpu  -- maximum number of untis for a product globally
+%    maxprs -- maximum number of products per shelf
+%    maxprs -- maximum number of shelfs that contain the same product
+%    maxpus -- maximum number of a product's units per shelf
 
-1 { poss(object(product, PID), value(on, (SID, NUM))) : NUM=1..maxpus } 1 :- object(shelf, SID),  object(product, PID).
-{ init(object(product, PID), value(on, (SID, NUM))) : poss(object(product, PID), value(on, (SID, NUM))) }.
+{ init(object(product, PID), value(on, (SID, NUM))) : NUM=1..maxpus } 1 :- object(shelf, SID), object(product, PID),
+                                                                           not template(init(object(product, PID), _)).
+                                                                           %% not template(init(object(product, PID), value(on, (SID, _)))).
+%% { init(object(product, PID), value(on, (SID, NUM))) : poss(object(product, PID), value(on, (SID, NUM))) }
 
-:- object(product, PID), not init(object(product, PID), value(on, (_, _))).
+:- object(product, PID), not init(object(product, PID), value(on, _)).
 :- min > #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 :- max < #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 
-product_on(PID, SID) :- init(object(product, PID), value(on, (SID, _))).
-0 { product_on(PID, SID) : object(product, PID) } maxprs  :- object(shelf, SID).
-0 { product_on(PID, SID) : object(shelf,   SID) } maxspr  :- object(product, PID).
+%% product_on(PID, SID) :- init(object(product, PID), value(on, (SID, _))).
+0 { product_on(PID, SID) : object(product, PID) } maxprs  :- object(shelf, SID), maxprs > 0.
+0 { product_on(PID, SID) : object(shelf,   SID) } maxspr  :- object(product, PID), maxspr > 0.
 
 
 % Regarding template input: no explicit rules required!
@@ -195,9 +204,11 @@ product_on(PID, SID) :- init(object(product, PID), value(on, (SID, _))).
 object(order, 1..num).
 
 #program orders_init(minlines, maxlines).
-1 { init(object(order, OID), value(pickingStation, PSID)) : object(pickingStation, PSID) } 1 :- object(order, OID).
+1 { init(object(order, OID), value(pickingStation, PSID)) : object(pickingStation, PSID) } 1 :- object(order, OID),
+                                                                                                not template(object(order, OID)).
 %1 { init(object(order, OID), value(line, (PID, N))) : init(object(product, PID), value(on, (SID, NUM))), N=1..NUM } <= maxlines :- object(order, OID).
-minlines <= { init(object(order, OID), value(line, (PID, NUM))) : object(product, PID), NUM=1..20 } <= maxlines :- object(order, OID).
+minlines <= { init(object(order, OID), value(line, (PID, NUM))) : object(product, PID), NUM=1..20 } <= maxlines :-              object(order, OID),
+                                                                                                                   not template(object(order, OID)).
 :- 2 { init(object(order, OID), value(line, (PID, _))) }, object(product, PID), object(order, OID).
 
 % Don't order more products than available
@@ -224,7 +235,7 @@ ordered(PID, C) :- C = #sum{ NUM, OID : init(object(order, OID), value(line, (PI
 
 % * Random Layout **********************************************************************************
 
-#program random_layout(g).
+#program random_layout.
 % Arguments:
 %   g -- the maximum gaps component size
 poss(pickingStation, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
@@ -232,6 +243,7 @@ poss(robot, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 poss(shelf, at(X, Y)) :- init(object(node, _), value(at, (X, Y))).
 
 % ~~ Evenly spread out gaps ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#program grid_gaps(g).
 gap(SX * (Y-1) + X, X, Y) :- not init(object(node, _), value(at, (X, Y))), X=1..SX, Y=1..SY, sizeX(SX), sizeY(SY).
 gap_edge(ID1, ID2)  :- gap(ID1, X-1, Y),   gap(ID2, X, Y).
 gap_edge(ID1, ID2)  :- gap(ID1, X, Y-1),   gap(ID2, X, Y).
@@ -264,6 +276,7 @@ beltway(X,Y) :-  init(object(node, _), value(at, (X, Y))), Y>SY-beltway-P, Y <= 
 % Extra rows for placing picking station and robots, resp., at the top and bottom
 paddingTop(Y)    :- Y = (PN-1) / X + 1, sizeX(X), pickingStation_amount(PN).
 paddingBottom(Y) :- Y = (RN-1) / X + 1, sizeX(X), robot_amount(RN).
+paddingTop(1)    :- not pickingStation_amount(_). % padding if no picking station present
 paddingBottom(1) :- not robot_amount(_). % padding if no robots present
 
 % Draw grid
@@ -274,10 +287,12 @@ highway(X, Y) :- highway(X-x-1, Y), init(object(node, _), value(at, (X, Y))), no
                  Y > PT, Y < SY-PB, sizeY(SY), paddingTop(PT), paddingBottom(PB).
 
 % No blanks between picking stations at the top
-highway(X,Y) :- not poss(pickingStation, at(X, Y)), Y= 1..P, paddingTop(P), init(object(node, _), value(at, (X, Y))).
+highway(X,Y) :- not poss(pickingStation, at(X, Y)), Y= 1..P, paddingTop(P), init(object(node, _), value(at, (X, Y))),
+                pickingStation_amount(_).
 
 % No blanks between robots at bottom, blank nodes represent parking locations for robots
-highway(X,Y) :- not poss(robot, at(X, Y)), Y=SY-P+1..SY, paddingBottom(P), sizeY(SY), init(object(node, _), value(at, (X, Y))).
+highway(X,Y) :- not poss(robot, at(X, Y)), Y=SY-P+1..SY, paddingBottom(P), sizeY(SY), init(object(node, _), value(at, (X, Y))),
+                robot_amount(_).
 
 % Init highway nodes
 init(object(highway, (Y-1) * SX + X), value(at, (X, Y))) :- highway(X, Y), sizeX(SX).
@@ -285,6 +300,8 @@ init(object(highway, (Y-1) * SX + X), value(at, (X, Y))) :- highway(X, Y), sizeX
 % ~~ All picking station in top row(s), evenly distributed ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { poss(pickingStation, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))), Y <= (PN-1) / SX + 1,
                                         sizeX(SX), pickingStation_amount(PN).
+poss(pickingStation, at(X, Y))       :- template(init(object(pickingStation, _), value(at, (X,Y)))).
+
 :- PN < #count{ X, Y : poss(pickingStation, at(X,Y)) }, pickingStation_amount(PN).
 
 dist_pickingStations(X) :- X = (SX+2) / (PN+1), sizeX(SX), pickingStation_amount(PN). % distance between adjacent picking stations
@@ -300,21 +317,21 @@ dist_pickingStations(X) :- X = (SX+2) / (PN+1), sizeX(SX), pickingStation_amount
 % ~~ All robots in left-lower corner, next to each other ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { poss(robot, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))), Y > Y2 - ((RN - 1) / X2 + 1),
                                sizeY(Y2), sizeX(X2), robot_amount(RN).
+poss(robot, at(X,Y))        :- template(init(object(robot, _), value(at, (X, Y)))).
+    
 :- RN < #count{ X, Y : poss(robot, at(X,Y)) }, robot_amount(RN).
 :- poss(robot, at(X,Y)), X > X2, init(object(node, _), value(at, (X2, Y))), not poss(robot, at(X2,Y)).
 
-% ~~ Shelves restrictions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-%     Shelves must not:
-%       1.) be placed on highways,
-%       2.) share locations with robots or pickinstations,
-%       3.) be in top or bottom most row.
+% ~~ Shelves placement and restrictions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { poss(shelf, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))).
-:- poss(shelf, at(X, Y)), highway(X, Y).
-:- poss(shelf, at(X, Y)), poss(robot, at(X, Y)).
-:- poss(shelf, at(X, Y)), poss(pickingStation, at(X, Y)).
-:- poss(shelf, at(X, _)), sizeX(X).
-:- poss(shelf, at(_, Y)), sizeY(Y).
-:- poss(shelf, at(1, _; _, 1)).
+poss(shelf, at(X,Y))        :- template(init(object(shelf, _), value(at, (X, Y)))).
+% Shelves must not be placed ...
+:- poss(shelf, at(X, Y)), highway(X, Y).                  % on highways;
+:- poss(shelf, at(X, Y)), poss(robot, at(X, Y)).          % on robot locations;
+:- poss(shelf, at(X, Y)), poss(pickingStation, at(X, Y)). % on picking station locations;
+:- poss(shelf, at(X, _)), sizeX(X).                       % in the top row;
+:- poss(shelf, at(_, Y)), sizeY(Y).                       % in the bottom row;
+:- poss(shelf, at(1, _; _, 1)).                           % on the left and right edge.
 
 
 % * Shelves Reachability ***************************************************************************

@@ -22,9 +22,12 @@ class InstanceGenerator(object):
             self._solve_opts.extend(['--rand-freq={}'.format(self._args.rand_freq),
                                      '--sign-def={}'.format(self._args.sign_def),
                                      '--seed={}'.format(self._args.seed)])
+        if self._args.solve_opts:
+            self._solve_opts.extend(self._args.solve_opts)
         self._inits = None
         self._object_counters = {}
         self._instance_count = 0
+        self._instances = []
         self.dest_dirs = []
 
         if self._args.cluster_x is None:
@@ -41,8 +44,7 @@ class InstanceGenerator(object):
         self._instance_count += 1
         self._inits = []
         if self._args.console:
-            print "\n"
-            LOG.info("~~~~ %s. Instance ~~~~", str(self._instance_count))
+            LOG.info("\n~~~~ %s. Instance ~~~~", str(self._instance_count))
         atoms_list = model.symbols(terms=True)
         LOG.debug("Found model: %s", '.\n'.join([str(atm) for atm in model.symbols(atoms=True)]))
         atm = None
@@ -95,6 +97,8 @@ class InstanceGenerator(object):
         # Templates
         for template in self._args.template:
             self._prg.load(template)
+        if self._args.template_str:
+            self._prg.add("base", [], self._args.template_str)
         self._prg.ground([("base", [])])
         self._prg.ground([("template_stub", [])])
 
@@ -139,7 +143,9 @@ class InstanceGenerator(object):
             self._prg.ground([("highway_layout", [self._cluster_x, self._cluster_y,
                                                   self._args.beltway_width])])
         else:
-            self._prg.ground([("random_layout", [self._args.gap_size])])
+            self._prg.ground([("random_layout", [])])
+            if self._args.grid_x and self._args.grid_y and self._args.nodes:
+                self._prg.ground([("grid_gaps", [self._args.gap_size])])
 
         # Object quantities and IDs contd.: depending on layout definitions
         if self._args.shelf_coverage:
@@ -154,7 +160,8 @@ class InstanceGenerator(object):
                                                  self._args.product_units_total,
                                                  self._args.products_per_shelf,
                                                  self._args.shelves_per_product,
-                                                 self._args.product_units_per_product_shelf])])
+                                                 self._args.product_units_per_product_shelf or
+                                                 self._args.product_units_total])])
         self._prg.ground([("orders_init", [self._args.order_min_lines,
                                            self._args.order_max_lines])])
 
@@ -195,12 +202,18 @@ class InstanceGenerator(object):
         LOG.info("Solve result: %s", str(solve_result))
         LOG.info("Search finished: %s", str(not solve_result.interrupted))
         LOG.info("Search space exhausted: %s", str(solve_result.exhausted))
+        LOG.debug("Statistics: %s", self._prg.statistics)
+
+        return self._instances
 
     def _save(self):
         """Writes instance to file."""
-        self._inits.sort()
         file_name = ''
-        if not self._args.console:
+        if not self._args.write_instance:
+            file_name = os.devnull
+        elif self._args.console:
+            file_name = "/dev/stdout"
+        else:
             if self._args.instance_count:
                 instance_count = self._args.instance_count
             else:
@@ -227,35 +240,43 @@ class InstanceGenerator(object):
             if not os.path.exists(dest_dir):
                 os.makedirs(dest_dir)
             file_name = (dest_dir + "/" + local_name + ".lp")
-        else:
-            file_name = "/dev/stdout"
+
+        # Instance preamble
+        instance = ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n"
+                    "% Grid Size X:                      {}\n"
+                    "% Grid Size Y:                      {}\n"
+                    "% Number of Nodes:                  {}\n"
+                    "% Number of Highway Nodes:          {}\n"
+                    "% Number of Robots:                 {}\n"
+                    "% Number of Shelves:                {}\n"
+                    "% Number of Picking Stations:       {}\n"
+                    "% Number of Products:               {}\n"
+                    "% Number of Product Units in Total: {}\n"
+                    "% Number of Orders:                 {}\n"
+                    "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n")
+        instance = instance.format(str(self._object_counters["x"]),
+                                   str(self._object_counters["y"]),
+                                   str(self._object_counters["node"]),
+                                   str(self._object_counters["highway"]),
+                                   str(self._object_counters["robot"]),
+                                   str(self._object_counters["shelf"]),
+                                   str(self._object_counters["pickingStation"]),
+                                   str(self._object_counters["product"]),
+                                   str(self._object_counters["units"]),
+                                   str(self._object_counters["order"]))
+
+        # Instance facts
+        instance += ("#program base.\n\n"
+                     "% init\n")
+        self._inits.sort()
+        for init in self._inits:
+            instance += str(init) + ".\n"
+        self._instances.append(instance)
         try:
             with open(file_name, "w") as ofile:
-                #head
-                ofile.write("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-                ofile.write("\n% Grid Size X:                      " + str(self._object_counters["x"]))
-                ofile.write("\n% Grid Size Y:                      " + str(self._object_counters["y"]))
-                ofile.write("\n% Number of Nodes:                  " + str(self._object_counters["node"]))
-                ofile.write("\n% Number of Highway Nodes:          " + str(self._object_counters["highway"]))
-                ofile.write("\n% Number of Robots:                 " + str(self._object_counters["robot"]))
-                ofile.write("\n% Number of Shelves:                " + str(self._object_counters["shelf"]))
-                ofile.write("\n% Number of Picking Stations:       " + str(self._object_counters["pickingStation"]))
-                ofile.write("\n% Number of Products:               " + str(self._object_counters["product"]))
-                ofile.write("\n% Number of Product Units in Total: " + str(self._object_counters["units"]))
-                ofile.write("\n% Number of Orders:                 " + str(self._object_counters["order"]))
-                ofile.write("\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
-
-                #body
-                ofile.write("#program base.\n\n")
-                # if not (self._args.grid_x is None or self._args.grid_y is None):
-                #     ofile.write("timelimit("+ str(int(self._args.grid_x * self._args.grid_y * 1.5))
-                #                 + ").\n\n")
-                ofile.write("% init\n")
-                for obj in self._inits:
-                    ofile.write(str(obj) + ".\n")
+                ofile.write(instance)
         except IOError as err:
             LOG.error("IOError while trying to write instance file \'%s\': %s", file_name, err)
-        return
 
     def interrupt(self):
         '''Kill all solve call threads.'''
