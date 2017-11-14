@@ -275,7 +275,7 @@ class Control(object):
             templates = []
             dest_dirs = []
             for select in xrange(self._args.num):
-                LOG.info("\n** INC MODE: ... based on previous template %s", str(select))
+                LOG.info("\n** INC MODE: Adding shelves to previous template %s", str(select))
                 args_dict['template_str'] = grid_template
                 template, _dest_dirs = self._gen_inc_stage({'shelves' : [self._args.shelves, 20]},
                                                            args, not self._args.products, select,
@@ -289,14 +289,24 @@ class Control(object):
             prev_templates = templates
             templates = []
             dest_dirs = []
+            ratio_untits_vs_products = int(math.floor(self._args.product_units_total /
+                                                      self._args.products))
+            if 5 <= ratio_untits_vs_products < 100:
+                inc_products = int(math.floor(100 / ratio_untits_vs_products))
+                inc_product_units = 100
+            elif ratio_untits_vs_products < 5:
+                inc_products = 5
+                inc_product_units = 5 * ratio_untits_vs_products
+            else:
+                inc_products = 1
+                inc_product_units = ratio_untits_vs_products
             for select in xrange(self._args.num):
-                LOG.info("\n** INC MODE: ... based on previous template %s", str(select))
+                LOG.info("\n** INC MODE: Adding products and product units to previous template %s",
+                         str(select))
                 args_dict['template_str'] = prev_templates[select]
                 template, _dest_dirs = self._gen_inc_stage(
-                    {'products' : [self._args.products, 1],
-                     'product_units_total' :
-                     [self._args.product_units_total,
-                      int(math.floor(self._args.product_units_total / self._args.products))]},
+                    {'products' : [self._args.products, inc_products],
+                     'product_units_total' : [self._args.product_units_total, inc_product_units]},
                     args, not self._args.orders, select, select + 1)
                 templates.append(template)
                 dest_dirs.extend(_dest_dirs)
@@ -308,7 +318,7 @@ class Control(object):
             templates = []
             dest_dirs = []
             for select in xrange(self._args.num):
-                LOG.info("\n** INC MODE: ... based on previous template %s", str(select))
+                LOG.info("\n** INC MODE: Adding orders to previous template %s", str(select))
                 args_dict['template_str'] = prev_templates[select]
                 template, _dest_dirs = self._gen_inc_stage(
                     {'orders': [self._args.orders,
@@ -332,6 +342,8 @@ class Control(object):
                 else:
                     args_dict[otype] = max_count
                     maxed_objs.append(otype)
+            if maxed_objs and len(maxed_objs) < len(objs_settings):
+                continue
             if output and len(maxed_objs) == len(objs_settings):
                 args_dict['write_instance'] = True
             templates, dest_dirs = self._gen(args)
