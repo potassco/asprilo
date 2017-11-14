@@ -228,6 +228,12 @@ ordered(PID, C) :- C = #sum{ NUM, OID : init(object(order, OID), value(line, (PI
 % one object cannot be in two locations
 :- 2 { init(object(TYPE, ID), value(at, _)) }, object(TYPE, ID).
 
+% Lexicographical symmetry breaking
+sym_object(robot; shelf; pickingStation).
+sym_assign(TYPE, ID, V) :- sym_object(TYPE), init(object(TYPE, ID), value(at, (X, Y))), V = (Y-1) * SX + X, sizeX(SX).
+sym_enabled(TYPE, ID, V) :- sym_assign(TYPE, ID, V), ID <= V, 1 < ID.
+sym_enabled(TYPE, ID, V-1) :- sym_enabled(TYPE, ID, V), ID <= V.
+:- sym_assign(TYPE, ID, V), sym_object(TYPE), not sym_enabled(TYPE, ID+1, V), object(TYPE, ID+1).
 
 % - LAYOUT CONSTRAINTS -----------------------------------------------------------------------------
 
