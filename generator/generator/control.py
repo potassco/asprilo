@@ -275,7 +275,7 @@ class Control(object):
             templates = []
             dest_dirs = []
             for select in xrange(self._args.num):
-                LOG.info("\n** INC MODE: Adding shelves to previous template %s", str(select))
+                LOG.info("\n** INC MODE: Adding shelves to previous template %s", str(select + 1))
                 args_dict['template_str'] = grid_template
                 template, _dest_dirs = self._gen_inc_stage({'shelves' : [self._args.shelves, 20]},
                                                            args, not self._args.products, select,
@@ -344,8 +344,9 @@ class Control(object):
                     maxed_objs.append(otype)
             if maxed_objs and len(maxed_objs) < len(objs_settings):
                 continue
-            if output and len(maxed_objs) == len(objs_settings):
+            if (output and len(maxed_objs) == len(objs_settings)) or self._args.inc_im:
                 args_dict['write_instance'] = True
+                args_dict['write_selected'] = select + 1
             templates, dest_dirs = self._gen(args)
             if len(templates) > select:
                 args_dict['template_str'] = templates[select]
@@ -354,6 +355,7 @@ class Control(object):
         for otype in objs_settings:
             args_dict[otype] = None
         args_dict['write_instance'] = False
+        args_dict['write_selected'] = None
         args_dict['instance_count'] = None
         return args_dict['template_str'], dest_dirs
 
@@ -469,8 +471,12 @@ class Control(object):
                                 help="the number of instances to create (default: %(default)s)")
         basic_args.add_argument("-C", "--console",
                                 help="prints the instances to the console", action="store_true")
+        # Toggle instance writing, enabled by default
         basic_args.add_argument("--write-instance", dest='write_instance',
                                 help=argparse.SUPPRESS, action="store_false")
+        # Selection which instance to write
+        basic_args.add_argument("--write-selected", dest='write_selected', type=check_positive,
+                                help=argparse.SUPPRESS)
         basic_args.add_argument("-d", "--directory", type=str, default="generatedInstances",
                                 help="the directory to safe the files (default: %(default)s)")
         basic_args.add_argument("--se", "--skip-existing", action="store_true",

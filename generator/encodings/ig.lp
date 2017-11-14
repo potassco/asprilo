@@ -10,6 +10,7 @@
 #program template_stub.
 % For templates, each init(object(Type, ID), value(_ ,_)) induces an object(Type, ID)
 %object(Type, ID) :- init(object(Type, ID), _).
+template.
 object(Type, ID) :- init(object(Type, ID), _).
 template(object(Type, ID)) :- init(object(Type, ID), _).
 template(init(object(Type, ID), value(Attr, Value))) :- init(object(Type, ID), value(Attr, Value)).
@@ -230,13 +231,13 @@ ordered(PID, C) :- C = #sum{ NUM, OID : init(object(order, OID), value(line, (PI
 
 % Lexicographical symmetry breaking
 sym_object(robot; shelf; pickingStation).
-sym_assign(TYPE, ID, V) :- sym_object(TYPE), init(object(TYPE, ID), value(at, (X, Y))), V = (Y-1) * SX + X, sizeX(SX).
+sym_assign(TYPE, ID, V) :- sym_object(TYPE), init(object(TYPE, ID), value(at, (X, Y))), V = (Y-1) * SX + X, sizeX(SX), not template.
 sym_enabled(TYPE, ID, V) :- sym_assign(TYPE, ID, V), ID <= V, 1 < ID.
 sym_enabled(TYPE, ID, V-1) :- sym_enabled(TYPE, ID, V), ID <= V.
-:- sym_assign(TYPE, ID, V), sym_object(TYPE), not sym_enabled(TYPE, ID+1, V), object(TYPE, ID+1).
+:- sym_assign(TYPE, ID, V), sym_object(TYPE), not sym_enabled(TYPE, ID+1, V), object(TYPE, ID+1), not template.
+
 
 % - LAYOUT CONSTRAINTS -----------------------------------------------------------------------------
-
 
 
 % * Random Layout **********************************************************************************
@@ -324,7 +325,7 @@ dist_pickingStations(X) :- X = (SX+2) / (PN+1), sizeX(SX), pickingStation_amount
 { poss(robot, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))), Y > Y2 - ((RN - 1) / X2 + 1),
                                sizeY(Y2), sizeX(X2), robot_amount(RN).
 poss(robot, at(X,Y))        :- template(init(object(robot, _), value(at, (X, Y)))).
-    
+
 :- RN < #count{ X, Y : poss(robot, at(X,Y)) }, robot_amount(RN).
 :- poss(robot, at(X,Y)), X > X2, init(object(node, _), value(at, (X2, Y))), not poss(robot, at(X2,Y)).
 
