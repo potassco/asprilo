@@ -295,8 +295,8 @@ class Control(object):
                 inc_products = int(math.floor(100 / ratio_untits_vs_products))
                 inc_product_units = 100
             elif ratio_untits_vs_products < 5:
-                inc_products = 5
-                inc_product_units = 5 * ratio_untits_vs_products
+                inc_products = 40
+                inc_product_units = 40 * ratio_untits_vs_products
             else:
                 inc_products = 1
                 inc_product_units = ratio_untits_vs_products
