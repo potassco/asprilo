@@ -191,7 +191,7 @@ object(product, 1..N) :- product_amount(N).
 :- min > #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 :- max < #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 
-%% product_on(PID, SID) :- init(object(product, PID), value(on, (SID, _))).
+product_on(PID, SID) :- init(object(product, PID), value(on, (SID, _))).
 0 { product_on(PID, SID) : object(product, PID) } maxprs  :- object(shelf, SID), maxprs > 0.
 0 { product_on(PID, SID) : object(shelf,   SID) } maxspr  :- object(product, PID), maxspr > 0.
 
