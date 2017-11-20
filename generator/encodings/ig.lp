@@ -36,9 +36,9 @@ reachableNode(N2) :- reachableNode(N), init(object(node, N), value(at, (X, Y))),
 % Determine dimensions, i.e., maximum x-,y-coordinates and the total number of nodes
 % - This variant also supprt
 #program floor_dimensions.
-sizeX(MX) :- MX = #max{    X : init(object(node, _),  value(at, (X, _))); 1 }.
-sizeY(MY) :- MY = #max{    Y : init(object(node, _),  value(at, (_, Y))); 1 }.
-nodes(N)  :- N  = #count{ ID : init(object(node, ID), value(at, (_, _))) }.
+sizeX(MX) :- MX = #max{    X : init(object(node, _),  value(at, (X, _))); 1 }, MX > 0.
+sizeY(MY) :- MY = #max{    Y : init(object(node, _),  value(at, (_, Y))); 1 }, MY > 0.
+nodes(N)  :- N  = #count{ ID : init(object(node, ID), value(at, (_, _))) }, N > 0.
 
 
 % * Robots *****************************************************************************************
@@ -106,7 +106,8 @@ object(shelf, 1..N) :- shelf_amount(N).
 storageNode_amount(N-H-S-P) :- nodes(N),                                   % # nodes -
                                H = #count{ X, Y : highway(X, Y) },         % # highwaynodes -
                                S = #max{ M : pickingStation_amount(M); 0}, % # picking-stations -
-                               P = #max{ M : robot_amount(M); 0}.          % # robot-parking-nodes
+                               P = #max{ M : robot_amount(M); 0},          % # robot-parking-nodes
+                               H >= 0, S >= 0, P >= 0.
 
 shelf_amount(N) :- N = (M * pct / 100) + 1, storageNode_amount(M). % percentage-based shelf coverage
 object(shelf, 1..N) :- shelf_amount(N).
@@ -213,8 +214,8 @@ minlines <= { init(object(order, OID), value(line, (PID, NUM))) : object(product
 :- 2 { init(object(order, OID), value(line, (PID, _))) }, object(product, PID), object(order, OID).
 
 % Don't order more products than available
-available(PID, C) :- C = #sum{ NUM, SID : init(object(product, PID), value(on, (SID, NUM))) }, object(product, PID).
-ordered(PID, C) :- C = #sum{ NUM, OID : init(object(order, OID), value(line, (PID, NUM))) }, object(product, PID).
+available(PID, C) :- C = #sum{ NUM, SID : init(object(product, PID), value(on, (SID, NUM))) }, object(product, PID), C > 0.
+ordered(PID, C) :- C = #sum{ NUM, OID : init(object(order, OID), value(line, (PID, NUM))) }, object(product, PID), C > 0.
 :- ordered(PID, OC), available(PID, AC), OC > AC.
 
 % Regarding template input: no explicit rules required!
