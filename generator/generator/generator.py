@@ -100,7 +100,8 @@ class InstanceGenerator(object):
         if self._args.template_str:
             self._prg.add("base", [], self._args.template_str)
         self._prg.ground([("base", [])])
-        self._prg.ground([("template_stub", [])])
+        if self._args.template or self._args.template_str:
+            self._prg.ground([("template_stub", [])])
 
         LOG.info("Grounding...")
 
