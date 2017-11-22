@@ -142,7 +142,8 @@ class InstanceGenerator(object):
         # Layouts
         if self._args.highway_layout:
             self._prg.ground([("highway_layout", [self._cluster_x, self._cluster_y,
-                                                  self._args.beltway_width])])
+                                                  self._args.beltway_width,
+                                                  self._args.ph_pickstas, self._args.ph_robots])])
         else:
             self._prg.ground([("random_layout", [])])
             if self._args.grid_x and self._args.grid_y and self._args.nodes:
@@ -180,6 +181,7 @@ class InstanceGenerator(object):
 
         # General rules
         self._prg.ground([("base", [])])
+        self._prg.ground([("symmetry", [])])
 
         # Projection to subsets of init/2
         if self._args.prj_orders:

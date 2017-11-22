@@ -251,20 +251,46 @@ class Control(object):
         LOG.info(("** INCREMENTAL MODE ****************************************************\n"
                   "Incremental instance generation for initial args: %s"), str(self._args))
 
-        # Generate instance that contains only the grid, robots and picking station
-        LOG.info("\n** INC MODE: Generating Grid, Robots, Picking Stations ****************")
+        # Generate instance that contains only the grid
         args = clone_args(self._cl_parser, self._args)
         args_dict = vars(args)
+        args_dict['picking_stations'] = None
+        args_dict['robots'] = None
         args_dict['shelves'] = None
         args_dict['products'] = None
         args_dict['product_units_total'] = None
         args_dict['orders'] = None
         args_dict['num'] = 1
+        if not self._args.inc_im and self._args.picking_stations:
+            args_dict['write_instance'] = False
+        else:
+            args_dict['write_instance'] = True
+        LOG.info("\n** INC MODE: Generating Grid *******************************************")
+        LOG.debug("Creating grid based on args: %s", str(args))
+        templates, dest_dirs = self._gen(args)
+        args_dict['template_str'] = templates[0]
+
+        # Add picking stations to instance
+        args_dict['picking_stations'] = self._args.picking_stations
+        if not self._args.inc_im and self._args.robots:
+            args_dict['write_instance'] = False
+        else:
+            args_dict['write_instance'] = True
+        LOG.info("\n** INC MODE: Generating Picking Stations ********************************")
+        LOG.debug("Creating picking stations based on args: %s", str(args))
+        templates, dest_dirs = self._gen(args)
+        args_dict['template_str'] = templates[0]
+        args_dict['picking_stations'] = None
+
+        # Add robots to instance
+        args_dict['robots'] = self._args.robots
         if not self._args.inc_im and self._args.shelves:
             args_dict['write_instance'] = False
-        LOG.debug("Creating grid with robots and picking stations based on args: %s", str(args))
+        else:
+            args_dict['write_instance'] = True
+        LOG.info("\n** INC MODE: Generating Robots ******************************************")
+        LOG.debug("Creating robots based on args: %s", str(args))
         args_dict['template_str'] = self._gen(args)[0][0]
-        args_dict['picking_stations'] = None
         args_dict['robots'] = None
         args_dict['num'] = self._args.num
 
@@ -277,9 +303,9 @@ class Control(object):
             for select in xrange(self._args.num):
                 LOG.info("\n** INC MODE: Adding shelves to previous template %s", str(select + 1))
                 args_dict['template_str'] = grid_template
-                template, _dest_dirs = self._gen_inc_stage({'shelves' : [self._args.shelves, 20]},
-                                                           args, not self._args.products, select,
-                                                           select + 1)
+                template, _dest_dirs = self._add_objs_inc({'shelves' : [self._args.shelves, 20]},
+                                                          args, not self._args.products, select,
+                                                          select + 1)
                 templates.append(template)
                 dest_dirs.extend(_dest_dirs)
 
@@ -304,7 +330,7 @@ class Control(object):
                 LOG.info("\n** INC MODE: Adding products and product units to previous template %s",
                          str(select))
                 args_dict['template_str'] = prev_templates[select]
-                template, _dest_dirs = self._gen_inc_stage(
+                template, _dest_dirs = self._add_objs_inc(
                     {'products' : [self._args.products, inc_products],
                      'product_units_total' : [self._args.product_units_total, inc_product_units]},
                     args, not self._args.orders, select, select + 1)
@@ -320,7 +346,7 @@ class Control(object):
             for select in xrange(self._args.num):
                 LOG.info("\n** INC MODE: Adding orders to previous template %s", str(select))
                 args_dict['template_str'] = prev_templates[select]
-                template, _dest_dirs = self._gen_inc_stage(
+                template, _dest_dirs = self._add_objs_inc(
                     {'orders': [self._args.orders,
                                 int(math.floor(10 / self._args.order_min_lines or 1))]},
                     args, True, select, select + 1)
@@ -328,7 +354,7 @@ class Control(object):
                 dest_dirs.extend(_dest_dirs)
         return templates, list(set(dest_dirs))
 
-    def _gen_inc_stage(self, objs_settings, args, output=False, select=0, instance_count=None):
+    def _add_objs_inc(self, objs_settings, args, output=False, select=0, instance_count=None):
         """Incremental adds objects of a given type to an instance and returns result."""
         args_dict = vars(args)
         maxed_objs = []
@@ -617,6 +643,18 @@ class Control(object):
         layout_hw_args.add_argument("-B", "--beltway-width", type=check_positive, default=1,
                                     help="""for highway layout: the width of the beltway surrounding
                                     all shelf clusters (default: %(default)s)""")
+        layout_hw_args.add_argument("--ph-pickstas", type=check_positive, dest="ph_pickstas",
+                                    default=1,
+                                    help="""required for adequate clearance of grid nodes at the
+                                    top if the amount of picking stations is not specified:
+                                    i.e., states the number of picking stations expected to be added
+                                    to the instance in the future (default: %(default)s)""")
+        layout_hw_args.add_argument("--ph-robots", type=check_positive, dest="ph_robots",
+                                    default=1,
+                                    help="""required for adequate clearance of grid nodes at the
+                                    top if the amount of robots is not specified: i.e., the number of
+                                    robots expected to be added to the instance in the future
+                                    (default: %(default)s)""")
 
         project_args = parser.add_argument_group("Template and projection options")
         project_args.add_argument("-T", "--template", nargs='*', type=str, default=[],

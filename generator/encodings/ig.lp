@@ -226,10 +226,11 @@ ordered(PID, C) :- C = #sum{ NUM, OID : init(object(order, OID), value(line, (PI
 
 #program base.
 % two objects of the same kind can´t be on the same node
-:- init(object(TYPE, ID), value(at, (X, Y))), init(object(TYPE, ID2), value(at, (X, Y))), ID != ID2.
+:- init(object(TYPE, ID), value(at, (X, Y))), init(object(TYPE, ID2), value(at, (X, Y))), ID < ID2.
 % one object cannot be in two locations
 :- 2 { init(object(TYPE, ID), value(at, _)) }, object(TYPE, ID).
 
+#program symmetry.
 % Lexicographical symmetry breaking
 sym_object(robot; shelf; pickingStation).
 sym_assign(TYPE, ID, V) :- sym_object(TYPE), init(object(TYPE, ID), value(at, (X, Y))), V = (Y-1) * SX + X, sizeX(SX), not template.
@@ -269,7 +270,12 @@ gap_max(ID)         :- g { gap_reach(ID, _) } g, gap(ID, _, _).
 
 % * Highway Layout *********************************************************************************
 
-#program highway_layout(x, y, beltway). % x/y storage cluster dimension; beltway-width
+#program highway_layout(x, y, beltway, ph_robots, ph_pickstas).
+%  Arguments:
+%    x/y           -- storage cluster dimension
+%    beltway       -- beltway-width
+%    ph_robs       -- placeholder for amount of robots: i.e., the amount of robots to be added in the future
+%    ph_pickstas   -- placeholder for amount of picking stations: i.e., the amount of robots to be added in the future
 
 % ~~ Create Manhattan-like grid of highway nodes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -282,10 +288,12 @@ beltway(X,Y) :-  init(object(node, _), value(at, (X, Y))), Y > P, Y <= beltway+P
 beltway(X,Y) :-  init(object(node, _), value(at, (X, Y))), Y>SY-beltway-P, Y <= SY-P, sizeY(SY), paddingBottom(P).
 
 % Extra rows for placing picking station and robots, resp., at the top and bottom
-paddingTop(Y)    :- Y = (PN-1) / X + 1, sizeX(X), pickingStation_amount(PN).
-paddingBottom(Y) :- Y = (RN-1) / X + 1, sizeX(X), robot_amount(RN).
-paddingTop(1)    :- not pickingStation_amount(_). % padding if no picking station present
-paddingBottom(1) :- not robot_amount(_). % padding if no robots present
+ph_robots(ph_robots).
+ph_pickstas(ph_pickstas).
+robot_amount_rel(RN)          :- RN = #max{ M : robot_amount(M); N : ph_robots(N); 1 }, RN > 0.
+pickingStation_amount_rel(PN) :- PN = #max{ M : pickingStation_amount(M); N : ph_pickstas(N); 1 }, PN > 0.
+paddingTop(Y)                 :- Y = (PN-1) / X + 1, sizeX(X), pickingStation_amount_rel(PN).
+paddingBottom(Y)              :- Y = (RN-1) / X + 1, sizeX(X), robot_amount_rel(RN).
 
 % Draw grid
 highway(X, Y) :- beltway(X,Y).
@@ -311,6 +319,7 @@ init(object(highway, (Y-1) * SX + X), value(at, (X, Y))) :- highway(X, Y), sizeX
 poss(pickingStation, at(X, Y))       :- template(init(object(pickingStation, _), value(at, (X,Y)))).
 
 :- PN < #count{ X, Y : poss(pickingStation, at(X,Y)) }, pickingStation_amount(PN).
+:- PN > #count{ X, Y : poss(pickingStation, at(X,Y)) }, pickingStation_amount(PN).
 
 dist_pickingStations(X) :- X = (SX+2) / (PN+1), sizeX(SX), pickingStation_amount(PN). % distance between adjacent picking stations
 :- poss(pickingStation, at(X, Y)), init(object(node, _), value(at, (X2, Y))), dist_pickingStations(X - X2),
@@ -323,15 +332,18 @@ dist_pickingStations(X) :- X = (SX+2) / (PN+1), sizeX(SX), pickingStation_amount
    sizeX(SX), pickingStation_amount(PN), dist_pickingStations(1).
 
 % ~~ All robots in left-lower corner, next to each other ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{ poss(robot, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))), Y > Y2 - ((RN - 1) / X2 + 1),
-                               sizeY(Y2), sizeX(X2), robot_amount(RN).
-poss(robot, at(X,Y))        :- template(init(object(robot, _), value(at, (X, Y)))).
+%% { poss(robot, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))), Y > Y2 - ((RN - 1) / X2 + 1),
+%%                                sizeY(Y2), sizeX(X2), robot_amount(RN), not highway(X, Y).
+xcoord(1..SX)                :- sizeX(SX).
+poss(robot, at(1,   SY ), 1) :- sizeY(SY), robot_amount(_).
+poss(robot, at(X+1, Y  ), N) :- poss(robot, at(X,  Y), N-1), xcoord(X+1), robot_id_dom(N).
+poss(robot, at(1,   Y-1), N) :- poss(robot, at(SX, Y), N-1), sizeX(SX  ), robot_id_dom(N).
 
-:- RN < #count{ X, Y : poss(robot, at(X,Y)) }, robot_amount(RN).
-:- poss(robot, at(X,Y)), X > X2, init(object(node, _), value(at, (X2, Y))), not poss(robot, at(X2,Y)).
+poss(robot, at(X,    Y))     :- poss(robot, at(X,  Y),   _).
+poss(robot, at(X,    Y))     :- template(init(object(robot, _), value(at, (X, Y)))).
 
 % ~~ Shelves placement and restrictions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{ poss(shelf, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))).
+{ poss(shelf, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))), shelf_amount(_).
 poss(shelf, at(X,Y))        :- template(init(object(shelf, _), value(at, (X, Y)))).
 % Shelves must not be placed ...
 :- poss(shelf, at(X, Y)), highway(X, Y).                  % on highways;
