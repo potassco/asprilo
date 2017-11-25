@@ -185,8 +185,6 @@ object(product, 1..N) :- product_amount(N).
 
 { init(object(product, PID), value(on, (SID, NUM))) : NUM=1..maxpus } 1 :- object(shelf, SID), object(product, PID),
                                                                            not template(init(object(product, PID), _)).
-                                                                           %% not template(init(object(product, PID), value(on, (SID, _)))).
-%% { init(object(product, PID), value(on, (SID, NUM))) : poss(object(product, PID), value(on, (SID, NUM))) }
 
 :- object(product, PID), not init(object(product, PID), value(on, _)).
 :- min > #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
@@ -332,8 +330,6 @@ dist_pickingStations(X) :- X = (SX+2) / (PN+1), sizeX(SX), pickingStation_amount
    sizeX(SX), pickingStation_amount(PN), dist_pickingStations(1).
 
 % ~~ All robots in left-lower corner, next to each other ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-%% { poss(robot, at(X, Y)) } 1 :- init(object(node, _), value(at, (X, Y))), Y > Y2 - ((RN - 1) / X2 + 1),
-%%                                sizeY(Y2), sizeX(X2), robot_amount(RN), not highway(X, Y).
 xcoord(1..SX)                :- sizeX(SX).
 poss(robot, at(1,   SY ), 1) :- sizeY(SY), robot_amount(_).
 poss(robot, at(X+1, Y  ), N) :- poss(robot, at(X,  Y), N-1), xcoord(X+1), robot_id_dom(N).
