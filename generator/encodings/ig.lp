@@ -182,8 +182,11 @@ object(product, 1..N) :- product_amount(N).
 %    maxprs -- maximum number of products per shelf
 %    maxprs -- maximum number of shelfs that contain the same product
 %    maxpus -- maximum number of a product's units per shelf
-
-{ init(object(product, PID), value(on, (SID, NUM))) : NUM=1..maxpus } 1 :- object(shelf, SID), object(product, PID),
+_maxpus(maxpus).
+_max(max).
+maxpus(L       ) :- L = #min{ M : _maxpus(M); N : _max(N)}, L > 0, maxpus > 0.
+maxpus(max     ) :- maxpus <= 0.
+{ init(object(product, PID), value(on, (SID, NUM))) : NUM=1..M, maxpus(M) } 1 :- object(shelf, SID), object(product, PID),
                                                                            not template(init(object(product, PID), _)).
 
 :- object(product, PID), not init(object(product, PID), value(on, _)).
