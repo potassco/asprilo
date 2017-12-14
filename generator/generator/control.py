@@ -114,99 +114,103 @@ class Control(object):
         yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, odict_constructor)
         content = yaml.load(batch)
         LOG.debug("Content parsed from YAML batch file: %s", str(content))
-        invocations, global_settings = self._collect_invocs(content, None, parent_path)
+        invocations, global_settings = self._getinvocs(content, parent_path)
         LOG.debug("Global settings: %s", str(global_settings))
-        LOG.debug("Invocations: %s", str(invocations))
-        #exit(1)
+        LOG.debug("Invocations:\n%s", '\n'.join(str(inv) for inv in invocations or [None]))
+        # exit(1)
         return invocations, global_settings
 
-    def _collect_invocs(self, content, path=None, parent_path='.'):
-        invocations = []
+    def _getinvocs(self, content, parent_path):
         global_settings = []
-        path = path or []
-        warehouse_invoc = []
-        LOG.debug("Current path: %s", str(path))
+        invocations = []
         if isinstance(content, OrderedDict):
             for key, val in content.items():
-                if key == 'pre':
-                    LOG.debug("Warehouse leaf found %s", str(val))
-                    warehouse_invoc, _ = self._collect_invocs(val, path, parent_path)
-                    # If po missing or --who given, add invocation directly
-                    if (content.keys().index(key) is len(content) - 1 or
-                            self._args.pre_only or
-                            self.args.pre_too):
-                        invocations.extend(warehouse_invoc)
-                elif key == 'var':
-                    if self._args.pre_only:
-                        continue
-                    else:
-                        LOG.debug("Products-Orders leaf found %s", str(val))
-                        invs, _ = self._collect_invocs(val, path, parent_path)
-                        invocations.extend([list(*warehouse_invoc) + inv for inv in invs])
-                elif isinstance(val, OrderedDict):
-                    path.append(key)
-                    invs, gls = self._collect_invocs(val, path, parent_path)
-                    invocations.extend(invs)
-                    global_settings.extend(gls)
-                    if path and content.keys().index(key) is len(content) - 1:
-                        path.pop()
-                else: # leaf level
-                    if path and isinstance(path[-1], list):
-                        path[-1].append((key, val))
-                    else:
-                        path.append([(key, val)])
-                    if content.keys().index(key) is len(content) - 1: # last leaf
-                        if path and path[0] == 'global_settings':
-                            global_settings.extend(self._convert_path_to_args(path, parent_path,
-                                                                              True))
-                            path.pop()
-                        elif path and path[0] == 'var':
-                            invocations.append(self._convert_path_to_args(path[1:], parent_path,
-                                                                          True))
-                            LOG.debug("Added the following path to invocations: %s", str(path[1:]))
-                        elif path and path[0] == 'run_configs':
-                            invocations.append(self._convert_path_to_args(path[1:], parent_path))
-                            LOG.debug("Added the following path to invocations: %s", str(path[1:]))
-                            path.pop()
-                        path.pop()
-        elif isinstance(content, list): #list of product-order settings
-            for po_conf in content:
-                invs, gls = self._collect_invocs(po_conf, ['var'], parent_path)
-                invocations.extend(invs)
-                global_settings.extend(gls)
+                if key == 'global_settings':
+                    LOG.debug("Global settings found: %s", str(val))
+                    global_settings.extend(self._conv_args_dict(val, parent_path))
+                elif key == 'run_configs':
+                    LOG.debug("Runs config found: %s", str(val))
+                    invocations = self._walk_runs_config(val, parent_path)
+                elif key in ['args', 'conf']:
+                    raise ValueError("Wrong batch file format")
+        else:
+            raise ValueError("Wrong batch file format")
         return invocations, global_settings
 
-    def _convert_path_to_args(self, path, parent_path='.', leafs_only=False):
-        """Converts path to list of input args for _parse_cl_args."""
-        args = ['-d', parent_path]
-        for part in path:
-            if isinstance(part, list): #Leaf level
-                leaf_args = []
-                rel_template_path = False
-                for elm in [elm for tup in part for elm in tup]:
-                    if isinstance(elm, list):
-                        leaf_args += [str(itm) for itm in elm]
-                    elif isinstance(elm, bool):
-                        if elm is False:
-                            leaf_args.pop()
-                        else:
-                            pass
-                    elif rel_template_path:
-                        leaf_args += [os.path.join(parent_path, elm)]
-                        rel_template_path = False
-                    elif (elm == '-T' or elm == '--template') and self._args.template_relative:
-                        rel_template_path = True
-                        leaf_args += [str(elm)]
-                    else:
-                        leaf_args += [str(elm)]
-                if leafs_only:
-                    args = leaf_args
-                    break
+    def _walk_runs_config(self, content, parent_path, invocations=None):
+        LOG.debug("Input invocations:\n%s", '\n'.join(str(inv) for inv in invocations or [None]))
+        invocations = invocations or [['-d', parent_path]]
+        if isinstance(content, OrderedDict):
+            output_invocs = []
+            found_args_list = []
+            nested = False
+            if content.has_key('args'):
+                val = content['args']
+                LOG.debug("Args found: %s", str(val))
+                if isinstance(val, list):
+                    for args in val:
+                        found_args_list.extend(
+                            self._get_extended_invocations(invocations, parent_path, None, args))
+                elif isinstance(val, OrderedDict):
+                    found_args_list = self._get_extended_invocations(invocations, parent_path,
+                                                                     None, val)
                 else:
-                    args.extend(leaf_args)
+                    raise ValueError("For key 'args', the value must be a list or dict.")
+            for key, val in [(key, val) for key, val in content.items() if key != 'args']:
+                LOG.debug("Config found: %s", key)
+                nested = True
+                subconf_invocs = None
+                if key == 'conf':
+                    subconf_invocs = self._walk_runs_config(val, parent_path, found_args_list)
+                else:
+                    if found_args_list:
+                        subconf_invocs = self._get_extended_invocations(invocations[1:],
+                                                                        parent_path, key, None)
+                    else:
+                        subconf_invocs = self._get_extended_invocations(invocations, parent_path,
+                                                                        key, None)
+                    for args in found_args_list:
+                        _args = copy.deepcopy(args)
+                        _args[1] = os.path.join(_args[1], key)
+                        subconf_invocs.append(_args)
+                    subconf_invocs = self._walk_runs_config(val, parent_path, subconf_invocs)
+                output_invocs.extend(subconf_invocs)
+            if not nested:
+                output_invocs.extend(found_args_list)
+        else:
+            raise ValueError("Wrong batch file format")
+        LOG.debug("Output invocations:\n%s", '\n'.join(str(inv) for inv in invocations or [None]))
+        return output_invocs
+
+    def _conv_args_dict(self, adict, parent_path):
+        args = []
+        rel_template_path = False
+        for elm in [elm for tup in adict.items() for elm in tup]:
+            if isinstance(elm, list):
+                args += [str(itm) for itm in elm]
+            elif isinstance(elm, bool):
+                if elm is False:
+                    args.pop()
+                else:
+                    pass
+            elif rel_template_path:
+                args += [os.path.join(parent_path, elm)]
+                rel_template_path = False
+            elif (elm == '-T' or elm == '--template') and self._args.template_relative:
+                rel_template_path = True
+                args += [str(elm)]
             else:
-                args[1] = os.path.join(args[1], str(part))
+                args += [str(elm)]
         return args
+
+    def _get_extended_invocations(self, invocations, parent_path, rel_path=None, args=None):
+        args = args or OrderedDict()
+        rel_path = rel_path or ''
+        _invocations = copy.deepcopy(invocations)
+        for inv in _invocations:
+            inv[1] = os.path.join(inv[1], rel_path)
+            inv.extend(self._conv_args_dict(args, parent_path))
+        return _invocations
 
     def _gen(self, args=None):
         """Regular instance generation.

@@ -1,0 +1,57 @@
+# Referential instance set compartmentalized into relevant sub-domains.
+
+global_settings: { '-N': 4, '--prs': 1, '--spr': 1, '--pus': 1, '--olmin': 1, '--olmax': 1  }
+
+run_configs:
+  conf:
+    name: standard
+    # = Standard Warehouse Layout ======================================================================
+    #
+    #     Typical warehouse layout with rectangular shelf clusters, symmetrically placed in a
+    #     Manhattan-style grid
+    #
+    conf:
+      name: rectangles
+      conf:
+        name: 2x3x5
+        conf: 
+          name: 25sc
+          pars:
+            - { '-x':  19, '-y':  9} # '-X':   5, '-Y':  2 '-p':   3, '-s':  60, '-P': 60, '-u': 60, '-H': True }
+          conf:
+            name: r5
+            pars:
+              - { '-r':  5, '-p':  5 }
+          conf:
+            name: r10
+            pars:
+              - { '-r': 10, '-o': 10 }
+          conf:
+            name: r15
+            pars:
+              - { '-r': 15, '-o': 15 }
+            name: r19
+            pars:
+              - { '-r': 19, '-o': 19 }
+      conf:
+        name: 4x5x8
+        conf:
+          name: 100sc
+          pars:
+            - { '-x':  46, '-y':  15, '-X':   8, '-Y':  2, '-p':  10, '-s': 320, '-P': 320, '-u': 320, '-H': True }
+          conf:
+            name: r12
+            pars:
+              - { '-r': 12, '-o': 12 }
+          conf:
+            name: r23
+            pars:
+              - { '-r': 23, '-o': 23 }
+          conf:
+            name: r35
+            pars:
+              - { '-r': 35, '-o': 35 }
+          conf:
+            name: r46
+            pars:
+              - { '-r': 46, '-o': 46 }
