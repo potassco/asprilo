@@ -296,18 +296,18 @@ pickingStation_amount_rel(PN) :- PN = #max{ M : pickingStation_amount(M); N : ph
 paddingTop(Y)                 :- Y = (PN-1) / X + 1, sizeX(X), pickingStation_amount_rel(PN).
 paddingBottom(Y)              :- Y = (RN-1) / X + 1, sizeX(X), robot_amount_rel(RN).
 
-% Draw grid
+% Draw highway
 highway(X, Y) :- beltway(X,Y).
 highway(X, Y) :- highway(X, Y-y-1), init(object(node, _), value(at, (X, Y))), not beltway(X,   Y-y), not beltway(X, Y),
                  Y > PT, Y < SY-PB, sizeY(SY), paddingTop(PT), paddingBottom(PB).
 highway(X, Y) :- highway(X-x-1, Y), init(object(node, _), value(at, (X, Y))), not beltway(X-x-2, Y), not beltway(X, Y),
                  Y > PT, Y < SY-PB, sizeY(SY), paddingTop(PT), paddingBottom(PB).
 
-% No blanks between picking stations at the top
+% ... withn no blanks between picking stations at the top
 highway(X,Y) :- not poss(pickingStation, at(X, Y)), Y= 1..P, paddingTop(P), init(object(node, _), value(at, (X, Y))),
                 pickingStation_amount(_).
 
-% No blanks between robots at bottom, blank nodes represent parking locations for robots
+% ,,, with no blanks between robots at bottom, blank nodes represent parking locations for robots
 highway(X,Y) :- not poss(robot, at(X, Y)), Y=SY-P+1..SY, paddingBottom(P), sizeY(SY), init(object(node, _), value(at, (X, Y))),
                 robot_amount(_).
 

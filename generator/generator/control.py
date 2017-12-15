@@ -649,16 +649,17 @@ class Control(object):
                                     all shelf clusters (default: %(default)s)""")
         layout_hw_args.add_argument("--ph-pickstas", type=check_positive, dest="ph_pickstas",
                                     default=1,
-                                    help="""required for adequate clearance of grid nodes at the
-                                    top if the amount of picking stations is not specified:
-                                    i.e., states the number of picking stations expected to be added
-                                    to the instance in the future (default: %(default)s)""")
+                                    help="""placeholder for picking stations, i.e., the number of
+                                    picking stations expected to be added to the instance in the
+                                    future; required for adequate clearance of grid nodes at the top
+                                    if the amount of picking stations is not specified (default:
+                                    %(default)s)""")
         layout_hw_args.add_argument("--ph-robots", type=check_positive, dest="ph_robots",
                                     default=1,
-                                    help="""required for adequate clearance of grid nodes at the
-                                    top if the amount of robots is not specified: i.e., the number of
-                                    robots expected to be added to the instance in the future
-                                    (default: %(default)s)""")
+                                    help="""placeholder for robots, i.e., the number of robots
+                                    expected to be added to the instance in the future; required for
+                                    adequate clearance of grid nodes at the top if the amount of
+                                    robots is not specified (default: %(default)s)""")
 
         project_args = parser.add_argument_group("Template and projection options")
         project_args.add_argument("-T", "--template", nargs='*', type=str, default=[],

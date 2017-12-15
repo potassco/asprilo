@@ -14,6 +14,7 @@ class InstanceGenerator(object):
 
         self._args = args
         self._prg = None
+        self._observer = None
         self._solve_opts = ["-t {0}".format(self._args.threads),
                             "--project",
                             # "--opt-mode=optN",
@@ -91,6 +92,11 @@ class InstanceGenerator(object):
         LOG.debug("Used args for grounding & solving: %s", str(self._args))
 
         self._prg = clingo.Control(self._solve_opts)
+
+        # Register observer for debugging
+        # self._prg.register_observer(self._observer) TODO: Implement observer class
+
+        # Problem encoding
         self._prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                     '../encodings/ig.lp'))
 
