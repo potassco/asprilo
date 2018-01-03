@@ -3,16 +3,35 @@
 """Instance Generator Core."""
 
 import os
+import signal
 import logging
+from abc import ABCMeta, abstractmethod
+
 import clingo
 
 LOG = logging.getLogger('custom')
 
 class InstanceGenerator(object):
+    """Abstract instance generator class."""
 
-    def __init__(self, args):
+    def __init__(self, conf_args, *args):
+        """Init.
 
-        self._args = args
+        :param conf_args: argspace.Namespace holding all configuration settings
+
+        """
+        self._args = conf_args
+
+    @abstractmethod
+    def generate(self):
+        """Generates and returns the instances based on its configuration settings."""
+        pass
+
+class BasicGenerator(InstanceGenerator):
+    """Most basic instance generator implementation."""
+
+    def __init__(self, conf_args):
+        super(BasicGenerator, self).__init__(conf_args)
         self._prg = None
         self._observer = None
         self._solve_opts = ["-t {0}".format(self._args.threads),
@@ -40,7 +59,7 @@ class InstanceGenerator(object):
         else:
             self._cluster_y = self._args.cluster_y
 
-    def on_model(self, model):
+    def _on_model(self, model):
         """Call back method for clingo."""
         self._instance_count += 1
         self._inits = []
@@ -87,7 +106,44 @@ class InstanceGenerator(object):
                         self._object_counters["units"] = (self._object_counters["units"] +
                                                           value_value.arguments[1].number)
 
-    def solve(self):
+    def generate(self):
+        """Regular instance generation.
+
+        :param args: Optional argparse.Namespace.
+
+        """
+        sig_handled = [False] # Outter flag to indicate sig handler usage
+
+        class TimeoutError(Exception):
+            """Time out exception."""
+            pass
+
+        def sig_handler(signum, frame):
+            """Custom signal handler."""
+            sig_handled[0] = True
+            if signum == signal.SIGINT:
+                LOG.warn("\n! Received Keyboard Interruption (Ctrl-C).\n")
+                raise KeyboardInterrupt
+            elif signum == signal.SIGALRM:
+                LOG.warn("Solve call timed out!")
+                raise TimeoutError()
+
+        signal.signal(signal.SIGINT, sig_handler)
+        signal.signal(signal.SIGALRM, sig_handler)
+        igen = BasicGenerator(self._args)
+        try:
+            signal.alarm(self._args.wait)
+            instances = igen._solve()
+            return instances, igen.dest_dirs
+        except Exception as exc:
+            if sig_handled[0]:
+                pass
+            else:
+                LOG.error("%s: %s", type(exc).__name__, exc)
+        finally:
+            igen.interrupt()
+
+    def _solve(self):
         """Grounds and solves the relevant programs for instance generation."""
         LOG.debug("Used args for grounding & solving: %s", str(self._args))
 
@@ -199,12 +255,12 @@ class InstanceGenerator(object):
 
         LOG.info("Solving...")
 
-        # solve_future = self._prg.solve_async(self.on_model)
+        # solve_future = self._prg.solve_async(self._on_model)
         # solve_future.wait(self._args.wait)
         # solve_future.cancel()
         # solve_result = solve_future.get()
 
-        solve_result = self._prg.solve(on_model=self.on_model)
+        solve_result = self._prg.solve(on_model=self._on_model)
 
         if self._args.write_selected and self._args.write_selected > len(self._instances):
             LOG.warn("Selected instance %s not written since not enumerated, i.e., "
