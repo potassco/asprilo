@@ -3,8 +3,10 @@
 """Instance Generator Core."""
 
 from __future__ import absolute_import
+import os
 import logging
 import math
+import clingo
 from generator.utils.aux import clone_args
 from generator.generator import BasicGenerator, InstanceGenerator
 
@@ -16,6 +18,7 @@ class IncrementalGenerator(InstanceGenerator):
     def __init__(self, conf_args, cl_parser):
         super(IncrementalGenerator, self).__init__(conf_args)
         self._cl_parser = cl_parser
+        self._selected_facts = []
 
     def _gen_basic(self, conf_args):
         return BasicGenerator(conf_args).generate()
@@ -35,7 +38,7 @@ class IncrementalGenerator(InstanceGenerator):
         args_dict['product_units_total'] = None
         args_dict['orders'] = None
         args_dict['num'] = 1
-        if not self._args.inc_im and self._args.picking_stations:
+        if not self._args.inc_im:
             args_dict['write_instance'] = False
         else:
             args_dict['write_instance'] = True
@@ -43,46 +46,59 @@ class IncrementalGenerator(InstanceGenerator):
         LOG.debug("Creating grid based on args: %s", str(args))
         templates, dest_dirs = self._gen_basic(args)
         args_dict['template_str'] = templates[0]
+        args_dict['grid_x'] = None
+        args_dict['grid_y'] = None
 
         # Add picking stations to instance
-        args_dict['picking_stations'] = self._args.picking_stations
-        if not self._args.inc_im and self._args.robots:
-            args_dict['write_instance'] = False
-        else:
-            args_dict['write_instance'] = True
-        LOG.info("\n** INC MODE: Generating Picking Stations ********************************")
-        LOG.debug("Creating picking stations based on args: %s", str(args))
-        templates, dest_dirs = self._gen_basic(args)
-        args_dict['template_str'] = templates[0]
-        args_dict['picking_stations'] = None
+        if self._args.picking_stations:
+            input_instance = args_dict['template_str']
+            args_dict['template_str'] = FactFilter(input_instance, 'picking_stations', [1]).apply()
+            args_dict['picking_stations'] = self._args.picking_stations
+            if not self._args.inc_im:
+                args_dict['write_instance'] = False
+            else:
+                args_dict['write_instance'] = True
+            LOG.info("\n** INC MODE: Generating Picking Stations ********************************")
+            LOG.debug("Creating picking stations based on args: %s", str(args))
+            templates, dest_dirs = self._gen_basic(args)
+            templates[0] += input_instance
+            args_dict['template_str'] = templates[0]
+            args_dict['picking_stations'] = None
 
         # Add robots to instance
-        args_dict['robots'] = self._args.robots
-        if not self._args.inc_im and self._args.shelves:
-            args_dict['write_instance'] = False
-        else:
-            args_dict['write_instance'] = True
-        LOG.info("\n** INC MODE: Generating Robots ******************************************")
-        LOG.debug("Creating robots based on args: %s", str(args))
-        args_dict['template_str'] = self._gen_basic(args)[0][0]
-        args_dict['robots'] = None
+        if self._args.robots:
+            args_dict['robots'] = self._args.robots
+            if not self._args.inc_im:
+                args_dict['write_instance'] = False
+            else:
+                args_dict['write_instance'] = True
+            LOG.info("\n** INC MODE: Generating Robots ******************************************")
+            LOG.debug("Creating robots based on args: %s", str(args))
+            templates, dest_dirs = self._gen_basic(args)
+            templates[0] += input_instance
+            args_dict['robots'] = None
+
+       # self._dump_instances([args_dict['template_str']]) #TODO generalize for all stages and num > 1
         args_dict['num'] = self._args.num
+        args_dict['highway_layout'] = False
 
         # Incrementally add shelves
         if self._args.shelves:
             LOG.info("\n** INC MODE: Generating Shelves ****************************************")
-            grid_template = args_dict['template_str']
+            input_instance = templates[0]
+            grid_template = FactFilter(input_instance, 'shelves', []).apply()
+            # grid_template = args_dict['template_str']
             templates = []
             dest_dirs = []
             for select in xrange(self._args.num):
                 LOG.info("\n** INC MODE: Adding shelves to previous template %s", str(select + 1))
                 args_dict['template_str'] = grid_template
                 template, _dest_dirs = self._add_objs_inc({'shelves' : [self._args.shelves, 20]},
-                                                          args, not self._args.products, select,
-                                                          select + 1)
-                templates.append(template)
+                                                          args, select, select + 1)
+                templates.append(template + input_instance)
                 dest_dirs.extend(_dest_dirs)
-
+        # print "templates: " + str(templates)
+        # exit(1)
         # Incrementally add product units
         if self._args.products:
             LOG.info("\n** INC MODE: Generating Products and Product Units *********************")
@@ -107,7 +123,7 @@ class IncrementalGenerator(InstanceGenerator):
                 template, _dest_dirs = self._add_objs_inc(
                     {'products' : [self._args.products, inc_products],
                      'product_units_total' : [self._args.product_units_total, inc_product_units]},
-                    args, not self._args.orders, select, select + 1)
+                    args, select, select + 1)
                 templates.append(template)
                 dest_dirs.extend(_dest_dirs)
 
@@ -126,15 +142,10 @@ class IncrementalGenerator(InstanceGenerator):
                     args, True, select, select + 1)
                 templates.append(template)
                 dest_dirs.extend(_dest_dirs)
+        self._dump_instances(templates)
         return templates, list(set(dest_dirs))
 
-    def _get_relevant_facts_for_shelves(self, instance):
-        """Returns nodes where shelves may be placed on."""
-        # prg = clingo.Control()
-        # for self._args.ph_pickstas
-        pass
-
-    def _add_objs_inc(self, objs_settings, args, output=False, select=0, instance_count=None):
+    def _add_objs_inc(self, objs_settings, args, select=0, instance_count=None):
         """Incremental adds objects of a given type to an instance and returns result."""
         args_dict = vars(args)
         maxed_objs = []
@@ -150,7 +161,7 @@ class IncrementalGenerator(InstanceGenerator):
                     maxed_objs.append(otype)
             if maxed_objs and len(maxed_objs) < len(objs_settings):
                 continue
-            if (output and len(maxed_objs) == len(objs_settings)) or self._args.inc_im:
+            if (len(maxed_objs) == len(objs_settings) and self._args.inc_im):
                 args_dict['write_instance'] = True
                 args_dict['write_selected'] = select + 1
             templates, dest_dirs = self._gen_basic(args)
@@ -164,3 +175,58 @@ class IncrementalGenerator(InstanceGenerator):
         args_dict['write_selected'] = None
         args_dict['instance_count'] = None
         return args_dict['template_str'], dest_dirs
+
+    def _dump_instances(self, instances):
+        """Writes instance to file."""
+        args = clone_args(self._cl_parser, self._args)
+        args_dict = vars(args)
+        args_dict['picking_stations'] = None
+        args_dict['robots'] = None
+        args_dict['shelves'] = None
+        args_dict['products'] = None
+        args_dict['product_units_total'] = None
+        args_dict['orders'] = None
+        args_dict['grid_x'] = None
+        args_dict['grid_y'] = None
+        args_dict['num'] = 1
+        args_dict['highway_layout'] = None
+        args_dict['write_instance'] = True
+        for idx, instance in enumerate(instances):
+            args_dict['template_str'] = instance
+            args_dict['instance_count'] = idx + 1
+            BasicGenerator(args).generate()
+
+
+
+class FactFilter(object):
+    """Selects relevant facts for incremental generator stages."""
+
+    def __init__(self, instance, stage, stage_args):
+        """Init.
+
+        :param str instance: Input ASP instance
+        :param str stage: ASP program name for filtering facts of next incremental generation stage
+        :param list stage_args: List of ASP program integer parameters required for grounding
+
+        """
+        self._instance = instance
+        self._stage = stage
+        self._stage_args = stage_args
+        self._selected_facts = ''
+
+    def apply(self):
+        "Returns filtered facts."
+        prg = clingo.Control()
+        prg.add('base', [], self._instance)
+        prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                              '../encodings/inc_filter.lp'))
+        prg.ground([('base', [])])
+        prg.ground([(self._stage, self._stage_args)])
+        prg.ground([('project', [])])
+        self._selected_facts = ''
+        prg.solve(on_model=self._stash_selected_facts)
+        LOG.debug("Relevant facts for adding %s: %s", self._stage, self._selected_facts)
+        return self._selected_facts
+
+    def _stash_selected_facts(self, model):
+        self._selected_facts = '.\n'.join([str(atm) for atm in model.symbols(terms=True)]) + "."
