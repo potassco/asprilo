@@ -1,11 +1,18 @@
 % = FILTER ENCODINGS FOR INCREMENTAL GENERATION ====================================================
 
 
-#program picking_stations(max_top_row).
+#program picking_stations().
 %  Arguments:
 %    max_top_row -- Maximum y-coordinate reserved for picking stations
-select(object(node, ID), value(at, (X, Y))) :- init(object(node, ID), value(at, (X, Y))), Y <= max_top_row.
+highway_layout :- init(object(highway, _), _).
+max_top_row(YY-1) :- YY = #min{ Y : init(object(highway, ID), value(at, (_, Y))) }, YY > 0.
+select(object(node, ID), value(at, (X, Y))) :- init(object(node, ID), value(at, (X, Y))), Y <= MY, max_top_row(MY).
 
+#program robots().
+%  Arguments:
+%    min_bottom_row -- Minimum y-coordinate reserved for robots
+min_bottom_row(YY+1) :- YY = #max{ Y : init(object(highway, ID), value(at, (_, Y))) }, YY > 0.
+select(object(node, ID), value(at, (X, Y))) :- init(object(node, ID), value(at, (X, Y))), Y >= MY, min_bottom_row(MY).
 
 %% #program shelves(padding_bot, padding_top).
 #program shelves.

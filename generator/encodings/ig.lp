@@ -271,11 +271,11 @@ gap_max(ID)         :- g { gap_reach(ID, _) } g, gap(ID, _, _).
 
 % * Highway Layout *********************************************************************************
 
-#program highway_layout(x, y, beltway, ph_robots, ph_pickstas).
+#program highway_layout(x, y, beltway, ph_pickstas, ph_robots).
 %  Arguments:
 %    x/y           -- storage cluster dimension
 %    beltway       -- beltway-width
-%    ph_robs       -- placeholder for amount of robots: i.e., the amount of robots to be added in the future
+%    ph_robots     -- placeholder for amount of robots: i.e., the amount of robots to be added in the future
 %    ph_pickstas   -- placeholder for amount of picking stations: i.e., the amount of robots to be added in the future
 
 % ~~ Create Manhattan-like grid of highway nodes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

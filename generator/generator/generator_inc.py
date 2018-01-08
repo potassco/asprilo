@@ -45,14 +45,13 @@ class IncrementalGenerator(InstanceGenerator):
         LOG.info("\n** INC MODE: Generating Grid *******************************************")
         LOG.debug("Creating grid based on args: %s", str(args))
         templates, dest_dirs = self._gen_basic(args)
-        args_dict['template_str'] = templates[0]
         args_dict['grid_x'] = None
         args_dict['grid_y'] = None
 
         # Add picking stations to instance
         if self._args.picking_stations:
-            input_instance = args_dict['template_str']
-            args_dict['template_str'] = FactFilter(input_instance, 'picking_stations', [1]).apply()
+            input_instance = templates[0]
+            args_dict['template_str'] = FactFilter(input_instance, 'picking_stations', []).apply()
             args_dict['picking_stations'] = self._args.picking_stations
             if not self._args.inc_im:
                 args_dict['write_instance'] = False
@@ -62,11 +61,11 @@ class IncrementalGenerator(InstanceGenerator):
             LOG.debug("Creating picking stations based on args: %s", str(args))
             templates, dest_dirs = self._gen_basic(args)
             templates[0] += input_instance
-            args_dict['template_str'] = templates[0]
             args_dict['picking_stations'] = None
-
         # Add robots to instance
         if self._args.robots:
+            input_instance = templates[0]
+            args_dict['template_str'] = FactFilter(input_instance, 'robots', []).apply()
             args_dict['robots'] = self._args.robots
             if not self._args.inc_im:
                 args_dict['write_instance'] = False
