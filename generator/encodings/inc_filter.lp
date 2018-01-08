@@ -14,7 +14,6 @@ select(object(node, ID), value(at, (X, Y))) :- init(object(node, ID), value(at, 
 min_bottom_row(YY+1) :- YY = #max{ Y : init(object(highway, ID), value(at, (_, Y))) }, YY > 0.
 select(object(node, ID), value(at, (X, Y))) :- init(object(node, ID), value(at, (X, Y))), Y >= MY, min_bottom_row(MY).
 
-%% #program shelves(padding_bot, padding_top).
 #program shelves.
 % Filter nodes occupied by another shelf ...
 blocking_otype(shelf).
@@ -24,10 +23,15 @@ blocking_otype(highway; pickingStation; robot) :- init(object(highway, _), _).
 occupied(ID) :- init(object(node, ID), value(at, XY)), init(object(O, _), value(at, XY)), blocking_otype(O).
 select(object(node, ID), V) :- init(object(node, ID), V), not occupied(ID).
 
+#program products.
+% Select all shelves
+select(object(shelf, ID), V) :- init(object(shelf, ID), V).
 
+#program orders.
+% Select all product and picking station facts
+select(object(product, ID), V) :- init(object(product, ID), V).
+select(object(pickingStation, ID), V) :- init(object(pickingStation, ID), V).
 
-%select(node, ID) :- init(object(node, ID), _).
-%select(O, V) :- init(O, V).
 %% % * Output only selected facts *********************************************************************
 
 #program project.

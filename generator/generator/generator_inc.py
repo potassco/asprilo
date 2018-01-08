@@ -96,12 +96,12 @@ class IncrementalGenerator(InstanceGenerator):
                                                           args, select, select + 1)
                 templates.append(template + input_instance)
                 dest_dirs.extend(_dest_dirs)
-        # print "templates: " + str(templates)
-        # exit(1)
         # Incrementally add product units
         if self._args.products:
             LOG.info("\n** INC MODE: Generating Products and Product Units *********************")
             prev_templates = templates
+            filtered_templates = [FactFilter(instance, 'products', []).apply()
+                                  for instance in prev_templates]
             templates = []
             dest_dirs = []
             ratio_untits_vs_products = int(math.floor(self._args.product_units_total /
@@ -118,28 +118,30 @@ class IncrementalGenerator(InstanceGenerator):
             for select in xrange(self._args.num):
                 LOG.info("\n** INC MODE: Adding products and product units to previous template %s",
                          str(select))
-                args_dict['template_str'] = prev_templates[select]
+                args_dict['template_str'] = filtered_templates[select]
                 template, _dest_dirs = self._add_objs_inc(
                     {'products' : [self._args.products, inc_products],
                      'product_units_total' : [self._args.product_units_total, inc_product_units]},
                     args, select, select + 1)
-                templates.append(template)
+                templates.append(template + prev_templates[select])
                 dest_dirs.extend(_dest_dirs)
 
         # Incrementally add orders
         if self._args.orders:
             LOG.info("\n **INC MODE: Generating Orders *****************************************")
             prev_templates = templates
+            filtered_templates = [FactFilter(instance, 'orders', []).apply()
+                                  for instance in prev_templates]
             templates = []
             dest_dirs = []
             for select in xrange(self._args.num):
                 LOG.info("\n** INC MODE: Adding orders to previous template %s", str(select))
-                args_dict['template_str'] = prev_templates[select]
+                args_dict['template_str'] = filtered_templates[select]
                 template, _dest_dirs = self._add_objs_inc(
                     {'orders': [self._args.orders,
                                 int(math.floor(10 / self._args.order_min_lines or 1))]},
-                    args, True, select, select + 1)
-                templates.append(template)
+                    args, select, select + 1)
+                templates.append(template + prev_templates[select])
                 dest_dirs.extend(_dest_dirs)
         self._dump_instances(templates)
         return templates, list(set(dest_dirs))
