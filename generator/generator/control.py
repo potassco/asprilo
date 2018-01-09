@@ -40,7 +40,11 @@ class Control(object):
             self._args_dict['template_str'] = sys.stdin.read()
         self._check_related_cl_args()
         if not parent:
-            setup_logger(self._args.loglevel)
+            if self._args.grounding_stats and self._args.loglevel is logging.WARNING:
+                setup_logger(logging.INFO)
+                LOG.info("Implying verbose output due to \'--gstats\' flag")
+            else:
+                setup_logger(self._args.loglevel)
 
     @property
     def args(self):
@@ -54,6 +58,8 @@ class Control(object):
 
     def run(self):
         """Main method to dispatch instance generation."""
+        if self._args.grounding_stats:
+            LOG.warn("Grounding stats activated! --> FOR ANALYTICAL PURPOSE ONLY, NOT SUITED FOR PRODUCTION!")
         if not self._args.batch and os.path.isdir(self._args.directory):
             if self._args.skip_existing:
                 LOG.warn("Skipping, since directory \'%s\' exists!", self._args.directory)
@@ -358,6 +364,16 @@ class Control(object):
         basic_args.add_argument('-D', '--debug', action='store_const', dest='loglevel',
                                 const=logging.DEBUG, default=logging.WARNING,
                                 help='debug output (default: %(default)s)')
+        # basic_args.add_argument('--gstats', action='store_true', dest='grounding_stats',
+        #                         help="""WARNING: FOR DEBUGGING ONLY, DO NOT USE FOR PRODUCTION!
+        #                         Shows grounding size statistics for each program part of the instance
+        #                         generator encoding. (default: %(default)s)""")
+        basic_args.add_argument('--gstats', nargs='?', const='stats', dest='grounding_stats', metavar="OPT",
+                                help=("R|WARNING: FOR ANALYTICAL PURPOSE ONLY, DO NOT USE FOR PRODUCTION!\n"
+                                "Shows grounding size statistics for each program part of the instance\n"
+                                "generator encoding, takes optional argument %(metavar)s:\n"
+                                "  stats : shows the grounding size statistics (implied by default)\n"
+                                "  atoms : additionally shows the grounded program and output atoms & terms"))
 
         batch_args = parser.add_argument_group("Batch mode options")
         batch_args.add_argument("-j", "--batch", type=str, metavar="JOB",
