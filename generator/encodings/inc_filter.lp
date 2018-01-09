@@ -5,14 +5,17 @@
 %  Arguments:
 %    max_top_row -- Maximum y-coordinate reserved for picking stations
 highway_layout :- init(object(highway, _), _).
-max_top_row(YY-1) :- YY = #min{ Y : init(object(highway, ID), value(at, (_, Y))) }, YY > 0.
-select(object(node, ID), value(at, (X, Y))) :- init(object(node, ID), value(at, (X, Y))), Y <= MY, max_top_row(MY).
+max_top_row(YY-1) :- YY = #min{ Y : init(object(highway, ID), value(at, (_, Y))) }, YY > 0, highway_layout.
+select(object(node, ID), value(at, (X, Y))) :- init(object(node, ID), value(at, (X, Y))), Y <= MY, max_top_row(MY), highway_layout.
+select(object(node, ID), value(at, (X, Y))) :- init(object(node, ID), value(at, (X, Y))), not init(object(pickingStation, _), value(at, (X, Y))), not highway_layout.
 
 #program robots().
 %  Arguments:
 %    min_bottom_row -- Minimum y-coordinate reserved for robots
-min_bottom_row(YY+1) :- YY = #max{ Y : init(object(highway, ID), value(at, (_, Y))) }, YY > 0.
-select(object(node, ID), value(at, (X, Y))) :- init(object(node, ID), value(at, (X, Y))), Y >= MY, min_bottom_row(MY).
+highway_layout :- init(object(highway, _), _).
+min_bottom_row(YY+1) :- YY = #max{ Y : init(object(highway, ID), value(at, (_, Y))) }, YY > 0, highway_layout.
+select(object(node, ID), value(at, (X, Y))) :- init(object(node, ID), value(at, (X, Y))), Y >= MY, min_bottom_row(MY), highway_layout.
+select(object(node, ID), value(at, (X, Y))) :- init(object(node, ID), value(at, (X, Y))), not init(object(robot, _), value(at, (X, Y))), not highway_layout.
 
 #program shelves.
 % Filter nodes occupied by another shelf ...

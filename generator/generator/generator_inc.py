@@ -117,7 +117,7 @@ class IncrementalGenerator(InstanceGenerator):
                 inc_product_units = ratio_untits_vs_products
             for select in xrange(self._args.num):
                 LOG.info("\n** INC MODE: Adding products and product units to previous template %s",
-                         str(select))
+                         str(select + 1))
                 args_dict['template_str'] = filtered_templates[select]
                 template, _dest_dirs = self._add_objs_inc(
                     {'products' : [self._args.products, inc_products],
@@ -135,7 +135,7 @@ class IncrementalGenerator(InstanceGenerator):
             templates = []
             dest_dirs = []
             for select in xrange(self._args.num):
-                LOG.info("\n** INC MODE: Adding orders to previous template %s", str(select))
+                LOG.info("\n** INC MODE: Adding orders to previous template %s", str(select + 1))
                 args_dict['template_str'] = filtered_templates[select]
                 template, _dest_dirs = self._add_objs_inc(
                     {'orders': [self._args.orders,
@@ -143,6 +143,7 @@ class IncrementalGenerator(InstanceGenerator):
                     args, select, select + 1)
                 templates.append(template + prev_templates[select])
                 dest_dirs.extend(_dest_dirs)
+        LOG.info("\n **INC MODE: Writing complete instances to output ***************************")
         self._dump_instances(templates)
         return templates, list(set(dest_dirs))
 
@@ -195,6 +196,7 @@ class IncrementalGenerator(InstanceGenerator):
         for idx, instance in enumerate(instances):
             args_dict['template_str'] = instance
             args_dict['instance_count'] = idx + 1
+            LOG.info("\n **INC MODE: Writing instance %s", idx+1)
             BasicGenerator(args).generate()
 
 
