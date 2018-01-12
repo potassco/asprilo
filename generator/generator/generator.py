@@ -6,8 +6,8 @@ import os
 import signal
 import logging
 from abc import ABCMeta, abstractmethod
-
 import clingo
+from observer import Observer
 
 LOG = logging.getLogger('custom')
 
@@ -33,7 +33,7 @@ class BasicGenerator(InstanceGenerator):
     def __init__(self, conf_args):
         super(BasicGenerator, self).__init__(conf_args)
         self._prg = None
-        self._observer = None
+        self._observer = Observer()
         self._solve_opts = ["-t {0}".format(self._args.threads),
                             "--project",
                             # "--opt-mode=optN",
@@ -149,8 +149,8 @@ class BasicGenerator(InstanceGenerator):
 
         self._prg = clingo.Control(self._solve_opts)
 
-        # Register observer for debugging
-        # self._prg.register_observer(self._observer) TODO: Implement observer class
+        # Register ground program observer to analyze grounding size impact per program parts
+        self._prg.register_observer(self._observer)
 
         # Problem encoding
         self._prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -161,97 +161,96 @@ class BasicGenerator(InstanceGenerator):
             self._prg.load(template)
         if self._args.template_str:
             self._prg.add("base", [], self._args.template_str)
-        self._prg.ground([("base", [])])
+        self._ground([("base", [])])
         if self._args.template or self._args.template_str:
-            self._prg.ground([("template_stub", [])])
+            self._ground([("template_stub", [])])
 
         LOG.info("Grounding...")
 
         # Nodes
         if self._args.grid_x and self._args.grid_y:
             if self._args.nodes is None:
-                self._prg.ground([("nodes", [self._args.grid_x, self._args.grid_y,
-                                             self._args.grid_x * self._args.grid_y])])
+                self._ground([("nodes", [self._args.grid_x, self._args.grid_y,
+                                         self._args.grid_x * self._args.grid_y])])
             else:
-                self._prg.ground([("nodes", [self._args.grid_x, self._args.grid_y,
-                                             self._args.nodes])])
+                self._ground([("nodes", [self._args.grid_x, self._args.grid_y,
+                                         self._args.nodes])])
 
         # Floor dimensions and total number nodes (grounded independently to also support floor
         # templates)
-        self._prg.ground([("floor_dimensions", [])])
+        self._ground([("floor_dimensions", [])])
 
         # Object quantities and IDs
         if self._args.robots:
-            self._prg.ground([("robots_cl", [self._args.robots, self._args.robots])])
-        self._prg.ground([("robots", [])])
+            self._ground([("robots_cl", [self._args.robots, self._args.robots])])
+        self._ground([("robots", [])])
 
         if self._args.shelves:
-            self._prg.ground([("shelves_cl", [self._args.shelves, self._args.shelves])])
-        self._prg.ground([("shelves", [])])
+            self._ground([("shelves_cl", [self._args.shelves, self._args.shelves])])
+        self._ground([("shelves", [])])
 
         if self._args.picking_stations:
-            self._prg.ground([("picking_stations_cl",
-                               [self._args.picking_stations, self._args.picking_stations])])
-        self._prg.ground([("picking_stations", [])])
+            self._ground([("picking_stations_cl",
+                           [self._args.picking_stations, self._args.picking_stations])])
+        self._ground([("picking_stations", [])])
 
         if self._args.products:
-            self._prg.ground([("products_cl", [self._args.products, self._args.products])])
-        self._prg.ground([("products", [])])
+            self._ground([("products_cl", [self._args.products, self._args.products])])
+        self._ground([("products", [])])
 
         if self._args.orders:
-            self._prg.ground([("orders", [self._args.orders])])
+            self._ground([("orders", [self._args.orders])])
 
         # Layouts
         if self._args.highway_layout:
-            self._prg.ground([("highway_layout", [self._cluster_x, self._cluster_y,
-                                                  self._args.beltway_width,
-                                                  self._args.ph_pickstas, self._args.ph_robots])])
+            self._ground([("highway_layout", [self._cluster_x, self._cluster_y,
+                                              self._args.beltway_width,
+                                              self._args.ph_pickstas, self._args.ph_robots])])
         else:
-            self._prg.ground([("random_layout", [])])
+            self._ground([("random_layout", [])])
             if self._args.grid_x and self._args.grid_y and self._args.nodes:
-                self._prg.ground([("grid_gaps", [self._args.gap_size])])
+                self._ground([("grid_gaps", [self._args.gap_size])])
 
         # Object quantities and IDs contd.: depending on layout definitions
         if self._args.shelf_coverage:
-            self._prg.ground([("shelf_coverage", [self._args.shelf_coverage])])
+            self._ground([("shelf_coverage", [self._args.shelf_coverage])])
 
         # Object inits
-        self._prg.ground([("robots_init", [])])
-        self._prg.ground([("shelves_init", [])])
-        self._prg.ground([("picking_stations_init", [])])
+        self._ground([("robots_init", [])])
+        self._ground([("shelves_init", [])])
+        self._ground([("picking_stations_init", [])])
         if self._args.product_units_total:
-            self._prg.ground([("product_units", [self._args.product_units_total,
-                                                 self._args.product_units_total,
-                                                 self._args.products_per_shelf,
-                                                 self._args.shelves_per_product,
-                                                 self._args.product_units_per_product_shelf or
-                                                 self._args.product_units_total])])
-        self._prg.ground([("orders_init", [self._args.order_min_lines,
-                                           self._args.order_max_lines])])
+            self._ground([("product_units", [self._args.product_units_total,
+                                             self._args.product_units_total,
+                                             self._args.products_per_shelf,
+                                             self._args.shelves_per_product,
+                                             self._args.product_units_per_product_shelf or
+                                             self._args.product_units_total])])
+        self._ground([("orders_init", [self._args.order_min_lines,
+                                       self._args.order_max_lines])])
 
         # Layouts contd.: constraints related to interior object placement
         # TODO: simplify grounding order of layouts, constraints, object inits program parts
         # - use init/2 instead of poss/2 in layout constraints above
         if self._args.reachable_shelves:
-            self._prg.ground([("reachable_shelves", [])])
-
+            self._ground([("reachable_shelves", [])])
 
         # Order constraints & optimizations
         if self._args.order_all_products:
-            self._prg.ground([("order_all_products", [])])
-        # self._prg.ground([("orders_different", [])])
+            self._ground([("order_all_products", [])])
+        # self._ground([("orders_different", [])])
 
         # General rules
-        self._prg.ground([("base", [])])
-        self._prg.ground([("symmetry", [])])
+        self._ground([("base", [])])
+        self._ground([("symmetry", [])])
 
         # Projection to subsets of init/2
         if self._args.prj_orders:
-            self._prg.ground([("project_orders", [])])
+            self._ground([("project_orders", [])])
         elif self._args.prj_warehouse:
-            self._prg.ground([("project_warehouse", [])])
+            self._ground([("project_warehouse", [])])
         else:
-            self._prg.ground([("project_all", [])])
+            self._ground([("project_all", [])])
 
         LOG.info("Solving...")
 
@@ -273,6 +272,9 @@ class BasicGenerator(InstanceGenerator):
         LOG.info("Search finished: %s", str(not solve_result.interrupted))
         LOG.info("Search space exhausted: %s", str(solve_result.exhausted))
         LOG.debug("Statistics: %s", self._prg.statistics)
+
+        if self._args.grounding_stats:
+            self._get_grounding_stats("AFTER CONCLUDING SOLVE CALL", self._args.grounding_stats)
 
         return self._instances
 
@@ -352,3 +354,38 @@ class BasicGenerator(InstanceGenerator):
     def interrupt(self):
         '''Kill all solve call threads.'''
         self._prg.interrupt()
+
+    def _ground(self, parts, context=None):
+        """For grounding self._prg, wrapper of clingo.Control.ground to include optional statistics.
+
+        """
+        self._prg.ground(parts, context)
+        if self._args.grounding_stats:
+            description = 'parts: ' + str(parts)
+            if context:
+                description += '| context: ' + str(context)
+            self._get_grounding_stats(description, self._args.grounding_stats)
+
+
+    def _get_grounding_stats(self, description=None, show='stats'):
+        """Returns grounding size statistics for current ASP program."""
+        self._prg.ground([("project_all", [])])
+        self._prg.solve()
+        ctx = self._observer.finalize()
+        prg = clingo.Control()
+        prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                              '../encodings/grnd_stats.lp'))
+        if show == 'stats':
+            prg.add('base', [], '#show stats/2. #show stats_total/1.')
+        elif show == 'atoms':
+            pass
+        else:
+            raise ValueError("Unsupported grounding stats option \'{}\'".format(show))
+        prg.add("observed", [], "o(@get()).")
+        prg.ground([('base', []), ("observed", [])], ctx)
+        def __on_model(model):
+            LOG.info(("Grounding size stats for program %s:\n"
+                      "                                                %s\n"),
+                     description,
+                     ", ".join([str(sym) for sym in model.symbols(shown=True)]))
+        prg.solve(on_model=__on_model)
