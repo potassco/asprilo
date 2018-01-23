@@ -417,6 +417,12 @@ class Control(object):
                                   help="""the maximum number of each product's units per shelf
                                   (default: %(default)s); deactivate with value < 1""",
                                   dest="product_units_per_product_shelf")
+        product_args.add_argument('--prsno', action='store_true', dest='product_shelf_no',
+                                  help="""Move-only generation speed up: Use shelves as product
+                                  storage in numerical order""")
+        product_args.add_argument('--prsid', action='store_true', dest='product_shelf_id',
+                                  help="""Move-only generation speed up: place products only on
+                                  shelves with smaller ID than their own""")
 
         order_args = parser.add_argument_group("Order constraints")
         order_args.add_argument("-o", "--orders", type=check_positive,
@@ -432,6 +438,10 @@ class Control(object):
         order_args.add_argument("--oap", "--order-all-products", action="store_true",
                                 help="Each product should at least be ordered once.",
                                 dest="order_all_products")
+        order_args.add_argument('--oprid', action='store_true', dest='order_product_id',
+                                help="""Move-only generation speed up: orders contains
+                                only products with IDs greater than their own""")
+
 
         layout_args = parser.add_argument_group(
             "Layout constrains",

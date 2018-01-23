@@ -232,12 +232,20 @@ class BasicGenerator(InstanceGenerator):
         # Layouts contd.: constraints related to interior object placement
         # TODO: simplify grounding order of layouts, constraints, object inits program parts
         # - use init/2 instead of poss/2 in layout constraints above
+
+        # Shelf and product constraints
         if self._args.reachable_shelves:
             self._ground([("reachable_shelves", [])])
+        if self._args.product_shelf_no:
+            self._ground([("shelves_used_in_numerical_order", [])])
+        if self._args.product_shelf_id:
+            self._ground([("products_on_shelves_with_smaller_id", [])])
 
         # Order constraints & optimizations
         if self._args.order_all_products:
             self._ground([("order_all_products", [])])
+        if self._args.order_product_id:
+            self._ground([("order_products_with_greater_id", [])])
         # self._ground([("orders_different", [])])
 
         # General rules
