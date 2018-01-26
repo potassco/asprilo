@@ -193,9 +193,8 @@ maxpus(max     ) :- maxpus <= 0.
 :- min > #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 :- max < #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 
-:- { product_on(PID, SID) : object(product, PID) } > maxprs, object(shelf, SID).
-:- { product_on(PID, SID) : object(shelf,   SID) } > maxspr, object(product, PID).
-
+:- { init(object(product, PID), value(on, (SID, NUM))) } > maxprs, object(shelf,   SID).
+:- { init(object(product, PID), value(on, (SID, NUM))) } > maxspr, object(product, PID).
 
 % Regarding template input: no explicit rules required!
 
