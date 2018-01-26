@@ -228,8 +228,9 @@ class BasicGenerator(InstanceGenerator):
                                              self._args.product_units_total])])
         self._ground([("orders_init", [self._args.order_min_lines,
                                        self._args.order_max_lines,
-                                       self._args.product_units_per_product_shelf *
-                                       self._args.shelves_per_product])])
+                                       (self._args.product_units_per_product_shelf *
+                                        self._args.shelves_per_product) or
+                                       self._args.product_units_total])])
 
         # Layouts contd.: constraints related to interior object placement
         # TODO: simplify grounding order of layouts, constraints, object inits program parts
