@@ -360,8 +360,6 @@ poss(shelf, at(X,Y))        :- template(init(object(shelf, _), value(at, (X, Y))
 :- poss(shelf, at(1, _; _, 1)).                           % on the left and right edge.
 
 
-% - SHELF AND PRODUCT CONSTRAINTS ------------------------------------------------------------------------------
-
 % * Shelves Reachability ***************************************************************************
 
 %     All shelves have to be reachable from each pickingstation w/o moving other shelves
@@ -378,26 +376,16 @@ reachable(object(shelf, ID), node(X, Y)) :-  init(object(shelf, ID), value(at, (
 
 :- init(object(pickingStation, StationID), value(at, (X,Y))), not reachable(object(shelf, ShelfID), node(X, Y)), object(shelf, ShelfID).
 
-% * MOO speed up: enforce that shelves are used in numerical order wrt their IDs *******************
-#program shelves_used_in_numerical_order().
-used_shelf(SID) :- init(object(product, _), value(on, (SID, _))).
-:- object(shelf, SID1), object(shelf, SID2), used_shelf(SID2), not used_shelf(SID1), SID1<SID2.
-
-% * MOO speed up: enforce that products are only contained by shelves with smaller ID than their own
-#program products_on_shelves_with_smaller_id.
-:- init(object(product, PID), value(on, (SID,_))), PID < SID.
 
 
 % - ORDER CONSTRAINTS AND OPTIMIZATIONS ------------------------------------------------------------
+
 
 % * All Products Have To Be Ordered At Least Once **************************************************
 
 #program order_all_products.
 :- object(product, PID), not init(object(order, _), value(line, (PID, _))).
 
-% * MOO speed up: orders must only contain products with greater ID than their own *****************
-#program order_products_with_greater_id.
-:- init(object(order, OID), value(line, (PID, _))), OID < PID.
 
 % * Assign Orders To Pickingstations Evenly ********************************************************
 
@@ -410,7 +398,6 @@ used_shelf(SID) :- init(object(product, _), value(on, (SID, _))).
 #program orders_different.
 #minimize{ PID, OID, OID2 : init(object(order, OID), value(line, (PID, _))),
                             init(object(order, OID2), value(line, (PID, _))) }.
-
 
 
 
