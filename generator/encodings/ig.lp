@@ -186,8 +186,10 @@ _maxpus(maxpus).
 _max(max).
 maxpus(L       ) :- L = #min{ M : _maxpus(M); N : _max(N)}, L > 0, maxpus > 0.
 maxpus(max     ) :- maxpus <= 0.
-{ init(object(product, PID), value(on, (SID, NUM))) : NUM=1..M, maxpus(M) } 1 :- object(shelf, SID), object(product, PID),
-                                                                           not template(init(object(product, PID), _)).
+%% { init(object(product, PID), value(on, (SID, NUM))) : NUM=1..M, maxpus(M) } 1 :- object(shelf, SID), object(product, PID),
+%%                                                                            not template(init(object(product, PID), _)).
+{ product_on(PID, SID) } 1 :- object(shelf, SID), object(product, PID), not template(init(object(product, PID), _)).
+{ init(object(product, PID), value(on, (SID, NUM))): NUM=1..M, maxpus(M) } = 1 :- product_on(PID, SID).
 
 :- object(product, PID), not init(object(product, PID), value(on, _)).
 :- min > #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
@@ -206,7 +208,11 @@ product_on(PID, SID) :- init(object(product, PID), value(on, (SID, _))).
 #program orders(num).
 object(order, 1..num).
 
-#program orders_init(minlines, maxlines).
+#program orders_init(minlines, maxlines, maxpupr).
+% Arguments:
+%   {min|max}lines -- minimum and maximum order lines per order
+%   maxpupr        -- maximum units per product
+
 1 { init(object(order, OID), value(pickingStation, PSID)) : object(pickingStation, PSID) } 1 :- object(order, OID),
                                                                                                 not template(object(order, OID)).
 %1 { init(object(order, OID), value(line, (PID, N))) : init(object(product, PID), value(on, (SID, NUM))), N=1..NUM } <= maxlines :- object(order, OID).
@@ -215,9 +221,12 @@ minlines <= { init(object(order, OID), value(line, (PID, NUM))) : object(product
 :- 2 { init(object(order, OID), value(line, (PID, _))) }, object(product, PID), object(order, OID).
 
 % Don't order more products than available
-available(PID, C) :- C = #sum{ NUM, SID : init(object(product, PID), value(on, (SID, NUM))) }, object(product, PID), C > 0.
-ordered(PID, C) :- C = #sum{ NUM, OID : init(object(order, OID), value(line, (PID, NUM))) }, object(product, PID), C > 0.
-:- ordered(PID, OC), available(PID, AC), OC > AC.
+%% available(PID, C) :- C = #sum{ NUM, SID : init(object(product, PID), value(on, (SID, NUM))) }, object(product, PID), C > 0.
+%% ordered(PID, C) :- C = #sum{ NUM, OID : init(object(order, OID), value(line, (PID, NUM))) }, object(product, PID), C > 0.
+%% :- ordered(PID, OC), available(PID, AC), OC > AC.
+:- AC = #sum{ NUM, SID : init(object(product, PID), value(on, (SID, NUM))) },
+   OC = #sum{ NUM, OID : init(object(order, OID), value(line, (PID, NUM))) },
+   object(product, PID), OC > AC, AC > 0, OC > 0, AC < maxpupr, OC < maxpupr.
 
 % Regarding template input: no explicit rules required!
 
