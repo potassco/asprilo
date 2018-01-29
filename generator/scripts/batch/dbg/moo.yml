@@ -1,0 +1,48 @@
+# Referential instance set compartmentalized into relevant sub-domains.
+
+global_settings: { '-N': 3, '--prs': 1, '--spr': 1, '--pus': 1, '--olmin': 1, '--olmax': 1  }
+
+run_configs:
+
+# = Standard Warehouse Layout ======================================================================
+#
+#     Typical warehouse layout with rectangular shelf clusters, symmetrically placed in a
+#     Manhattan-style grid
+#
+  standard:
+    #- Rectangular shelf clusters of fixed height 2 ------------------------------------------------
+    rectangles:
+      # - Format: #rows x #columns x storage-cluster-length
+      # - Starting with 1x2x4
+      # - Scale increments:
+      #    - #rows = k * (k-1) / 2 + 1
+      #    - #columns = #rows + 1
+      #    - storage-cluster-length = #rows + 3
+      #    for k = 1, 2, 3, 4, ...
+      1x2x4:
+        100sc:
+          args: { '-x':  11, '-y':   6, '-X':   4, '-Y':  2, '-p':  1, '-s': 16, '-P': 16, '-u': 16, '-H': True }
+          r4:
+            args:
+              - { '-r': 4, '-o': 4 }
+          r8:
+            args:
+              - { '-r': 8, '-o': 8 }
+      2x3x5:
+        100sc:
+          args: { '-x':  19, '-y':  9, '-X':   5, '-Y':  2, '-p':   3, '-s':  60, '-P': 60, '-u': 60, '-H': True }
+          r5:
+            args:
+              - { '-r':  5, '-o':  5 }
+          r10:
+            args:
+              - { '-r': 10, '-o': 10 }
+      # 4x5x8:
+      #   100sc:
+      #     args: { '-x':  46, '-y':  15, '-X':   8, '-Y':  2, '-p':  10, '-s': 320, '-P': 320, '-u': 320, '-H': True }
+      #     r12:
+      #       args:
+      #         - { '-r': 12, '-o': 12 }
+      #     r23:
+      #       args:
+      #         - { '-r': 23, '-o': 23 }

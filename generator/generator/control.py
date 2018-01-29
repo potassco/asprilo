@@ -257,6 +257,15 @@ class Control(object):
             if self._args.products > self._args.product_units_total:
                 raise ValueError("""The product units total must be smaller or equal to number of
                 products""")
+            elif (self._args.product_units_total >
+                  self._args.products *
+                  self._args.product_units_per_product_shelf *
+                  self._args.shelves_per_product):
+                raise ValueError("""The product units total must equal or less than the
+                multiplication of
+                1.) the number of products
+                2.) the maximum number of units per product and shelf (i.e., --pus value)
+                3.) the maximum number of shelves per product (i.e., --prs value).""")
         if self._args.order_min_lines > self._args.order_max_lines:
             raise ValueError("""Order lines minimum larger than maximum""")
         if self._args.threads > 1 and self._args.split:
