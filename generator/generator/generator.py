@@ -304,7 +304,7 @@ class BasicGenerator(InstanceGenerator):
                                     "pr" + str(self._object_counters["product"]),
                                     "u" + str(self._object_counters["units"]),
                                     "o" + str(self._object_counters["order"]),
-                                    "N" + str(instance_count)]))
+                                    "N" + str(instance_count).zfill(3)]))
             if self._args.instance_dir:
                 dir_suffix = local_name
             else:
