@@ -15,7 +15,7 @@ err(deliver, notAtPS, (R, T)) :-     occurs(object(robot,          R), action(de
                                  not holds(object( pickingStation, _), value( at,      (X, Y)   ), T-1).
 
 % Robot not carrying a shelf
-err(delive, noShelf, (R, T))  :-     occurs(object(robot, R), action(deliver, (_, _, _)), T);
+err(deliver, noShelf, (R, T))  :-     occurs(object(robot, R), action(deliver, (_, _, _)), T);
                                      { holds( object(robot, R), value( carries, S ), T-1) :
                                        holds( object(shelf, S), _                  , T-1) } < 1.
 
