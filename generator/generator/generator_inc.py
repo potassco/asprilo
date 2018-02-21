@@ -96,6 +96,7 @@ class IncrementalGenerator(InstanceGenerator):
                                                           args, select, select + 1)
                 templates.append(template + input_instance)
                 dest_dirs.extend(_dest_dirs)
+
         # Incrementally add product units
         if self._args.products:
             LOG.info("\n** INC MODE: Generating Products and Product Units *********************")
@@ -106,6 +107,7 @@ class IncrementalGenerator(InstanceGenerator):
             dest_dirs = []
             ratio_untits_vs_products = int(math.floor(self._args.product_units_total /
                                                       self._args.products))
+            args_dict['conditional_min_products_per_shelf'] = True
             if 5 <= ratio_untits_vs_products < 100:
                 inc_products = int(math.floor(100 / ratio_untits_vs_products))
                 inc_product_units = 100
@@ -139,7 +141,7 @@ class IncrementalGenerator(InstanceGenerator):
                 args_dict['template_str'] = filtered_templates[select]
                 template, _dest_dirs = self._add_objs_inc(
                     {'orders': [self._args.orders,
-                                int(math.floor(10 / self._args.order_min_lines or 1))]},
+                                int(math.floor(10 / self._args.min_order_lines or 1))]},
                     args, select, select + 1)
                 templates.append(template + prev_templates[select])
                 dest_dirs.extend(_dest_dirs)

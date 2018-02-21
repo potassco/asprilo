@@ -38,13 +38,13 @@ class Control(object):
         if self._args.template == ['-']:
             self._args_dict['template'] = []
             self._args_dict['template_str'] = sys.stdin.read()
-        self._check_related_cl_args()
         if not parent:
             if self._args.grounding_stats and self._args.loglevel is logging.WARNING:
                 setup_logger(logging.INFO)
                 LOG.info("Implying verbose output due to \'--gstats\' flag")
             else:
                 setup_logger(self._args.loglevel)
+        self._check_related_cl_args()
 
     @property
     def args(self):
@@ -245,32 +245,66 @@ class Control(object):
         return SplitGenerator(self._args, self._cl_parser).generate()
 
     def _check_related_cl_args(self):
-        """Checks consistency wrt. related command line args."""
-        if self._args.shelves and self._args.shelf_coverage:
-            raise ValueError("""Number of shelves specified by both quantity (-s) and
-            coverage rate (--sc)""")
-        if ((self._args.products and not self._args.product_units_total) or
-                (not self._args.products and self._args.product_units_total)):
-            raise ValueError("""To specify products, at least the number of products and the product
-            units total is required""")
-        if self._args.products and self._args.product_units_total:
-            if self._args.products > self._args.product_units_total:
-                raise ValueError("""The product units total must be smaller or equal to number of
-                products""")
-            elif (self._args.product_units_total >
-                  self._args.products *
-                  self._args.product_units_per_product_shelf *
-                  self._args.shelves_per_product):
-                raise ValueError("""The product units total must equal or less than the
-                multiplication of
-                1.) the number of products
-                2.) the maximum number of units per product and shelf (i.e., --pus value)
-                3.) the maximum number of shelves per product (i.e., --prs value).""")
-        if self._args.order_min_lines > self._args.order_max_lines:
-            raise ValueError("""Order lines minimum larger than maximum""")
-        if self._args.threads > 1 and self._args.split:
-            raise ValueError("""Only single threaded execution (-t 1) possible when splitting
-            up (--split) instances""")
+        """Checks consistency of related command line args."""
+        try:
+            if self._args.shelves and self._args.shelf_coverage:
+                raise ValueError("""Number of shelves specified by both quantity (-s) and
+                coverage rate (--sc)""")
+            if ((self._args.products and not self._args.product_units_total) or
+                    (not self._args.products and self._args.product_units_total)):
+                raise ValueError("""To specify products, at least the number of products and the
+                product units total is required""")
+            if (self._args.product_units_per_product_shelf and
+                    (self._args.min_product_units_per_product_shelf !=
+                     self._cl_parser.get_default('min_product_units_per_product_shelf') or
+                     self._args.max_product_units_per_product_shelf !=
+                     self._cl_parser.get_default('max_product_units_per_product_shelf'))):
+                raise ValueError("""The exact value of product units per shelf (--pus) must not be
+                stated together with a min (--pusmin) and/or max (--pusmax) value!""")
+            if (self._args.products_per_shelf and
+                    (self._args.min_products_per_shelf !=
+                     self._cl_parser.get_default('min_products_per_shelf') or
+                     self._args.max_products_per_shelf !=
+                     self.cl_parser.get_default('max_products_per_shelf'))):
+                raise ValueError("""The exact value of products per shelf (--prs) must not be stated
+                together with a min (--prsmin) and/or max (--prsmax) value!""")
+            if (self._args.shelves_per_product and
+                    (self._args.min_shelves_per_product !=
+                     self._cl_parser.get_default('min_shelves_per_product') or
+                     self._args.max_shelves_per_product !=
+                     self._cl_parser.get_default('max_shelves_per_product'))):
+                raise ValueError("""The exact value of shelves per product (--spr) must not be
+                stated together with a min (--sprmin) and/or max (--sprmax) value!""")
+            if (self._args.order_lines and
+                    (self._args.min_order_lines !=
+                     self._cl_parser.get_default('min_order_lines') or
+                     self._args.max_order_lines !=
+                     self._cl_parser.get_default('max_order_lines'))):
+                raise ValueError("""The exact value of lines per order (--ol) must not be stated
+                together with a min (--olmin) and/or max (--olmax) value!""")
+            if self._args.products and self._args.product_units_total:
+                if self._args.products > self._args.product_units_total:
+                    raise ValueError("""The product units total must be smaller or equal to number
+                    of products""")
+                elif (self._args.product_units_total >
+                      self._args.products *
+                      (self._args.product_units_per_product_shelf or
+                       self._args.max_product_units_per_product_shelf) *
+                      (self._args.shelves_per_product or
+                       self._args.max_shelves_per_product)):
+                    raise ValueError("""The product units total must equal or less than the
+                    multiplication of
+                    1.) the number of products (i.e., -P value)
+                    2.) the maximum number of units per product and shelf (i.e., --pusmax value)
+                    3.) the maximum number of shelves per product (i.e., --maxspr value).""")
+            if self._args.min_order_lines > self._args.max_order_lines:
+                raise ValueError("""Order lines minimum larger than maximum""")
+            if self._args.threads > 1 and self._args.split:
+                raise ValueError("""Only single threaded execution (-t 1) possible when splitting
+                up (--split) instances""")
+        except ValueError as verr:
+            LOG.error("Conflicting command line arguments! %s", verr)
+            exit(1)
 
     @staticmethod
     def _parse_cl_args(args=None, namespace=None):
@@ -306,8 +340,6 @@ class Control(object):
                                 dest='shelf_coverage')
         basic_args.add_argument("-p", "--picking-stations", type=check_positive,
                                 help="the number of picking stations")
-        basic_args.add_argument("-u", "--product-units-total", type=check_positive,
-                                help="the total number of product units stored in the warehouse")
         basic_args.add_argument("-N", "--num", type=int, default=1,
                                 help="the number of instances to create (default: %(default)s)")
         basic_args.add_argument("-C", "--console",
@@ -411,33 +443,83 @@ class Control(object):
         product_args = parser.add_argument_group("Product constraints")
         product_args.add_argument("-P", "--products", type=check_positive,
                                   help="the number of product kinds")
-        product_args.add_argument("--prs", "--products-per-shelf",
-                                  type=int, default=20,
+        product_args.add_argument("-u", "--product-units-total", type=check_positive,
+                                  help="the total number of product units stored in the warehouse")
+        # #product-units per shelf
+        product_args.add_argument("--pusmin", "--min-product-units-per-product-shelf",
+                                  type=int, default=1, metavar='PUSMIN',
+                                  help="""for each product an shelf it is stored on,
+                                  the minimum number of stored units (default: %(default)s)""",
+                                  dest="min_product_units_per_product_shelf")
+        product_args.add_argument("--pusmax", "--max-product-units-per-product-shelf",
+                                  type=int, default=10, metavar='PUSMAX',
+                                  help="""for each product and shelf it stored on,
+                                  the maximum number of stored units (default: %(default)s);
+                                  deactivate with value < 1""",
+                                  dest="max_product_units_per_product_shelf")
+        product_args.add_argument("--pus", "--product-units-per-product-shelf",
+                                  type=int, default=None, metavar='PUS',
+                                  help="""for each product and shelf it is stored on,
+                                  the exact number of stored units (default: %(default)s);
+                                  shorthand for \'--pusmin %(metavar)s --pusmax %(metavar)s\'""",
+                                  dest="product_units_per_product_shelf")
+        # #products per shelf
+        product_args.add_argument("--prsmin", "--min-products-per-shelf",
+                                  type=int, default=0, metavar='MINPRS',
+                                  help="""the minimum number of products per shelf
+                                  (default: %(default)s)""",
+                                  dest="min_products_per_shelf")
+        product_args.add_argument("--prsmax", "--max-products-per-shelf",
+                                  type=int, default=20, metavar='MAXPRS',
                                   help="""the maximum number of products per shelf
                                   (default: %(default)s); deactivate with value < 1""",
+                                  dest="max_products_per_shelf")
+        product_args.add_argument("--prs", "--products-per-shelf",
+                                  type=int, default=None, metavar='PRS',
+                                  help="""the number of products per shelf
+                                  (default: %(default)s); shorthand for
+                                   \'--prsmin %(metavar)s --prsmax %(metavar)s\'""",
                                   dest="products_per_shelf")
-        product_args.add_argument("--spr", "--shelves-per-product",
-                                  type=int, default=4,
+        # Conditional usage flag for --minprs required by incremental mode implementation
+        product_args.add_argument("--conditional-min-products-per-shelf",
+                                  dest='conditional_min_products_per_shelf',
+                                  help=argparse.SUPPRESS, action="store_true")
+
+        # #shelves per product
+        product_args.add_argument("--sprmin", "--min-shelves-per-product",
+                                  type=int, default=1, metavar='MINSPR',
                                   help="""the maximum number of shelves that contain the same
                                   product (default: %(default)s); deactivate with value < 1""",
+                                  dest="min_shelves_per_product")
+        product_args.add_argument("--sprmax", "--max-shelves-per-product",
+                                  type=int, default=4, metavar='MAXSPR',
+                                  help="""the maximum number of shelves that contain the same
+                                  product (default: %(default)s); deactivate with value < 1""",
+                                  dest="max_shelves_per_product")
+        product_args.add_argument("--spr", "--shelves-per-product",
+                                  type=int, default=None, metavar='SPR',
+                                  help="""the maximum number of shelves that contain the same
+                                  product (default: %(default)s); shorthand for
+                                   \'--sprmin %(metavar)s --sprmax %(metavar)s\'""",
                                   dest="shelves_per_product")
-        product_args.add_argument("--pus", "--product-units-per-product-shelf",
-                                  type=int, default=5,
-                                  help="""the maximum number of each product's units per shelf
-                                  (default: %(default)s); deactivate with value < 1""",
-                                  dest="product_units_per_product_shelf")
 
         order_args = parser.add_argument_group("Order constraints")
         order_args.add_argument("-o", "--orders", type=check_positive,
                                 help="the number of orders")
-        order_args.add_argument("--olmin", "--order-min-lines", type=check_positive,
-                                default=1,
-                                help="Specifies minimum of lines per order (default: %(default)s)",
-                                dest="order_min_lines")
-        order_args.add_argument("--olmax", "--order-max-lines", type=check_positive,
-                                default=1,
-                                help="Specifies maximum of lines per order (default: %(default)s)",
-                                dest="order_max_lines")
+        order_args.add_argument("--olmin", "--min-order-lines", type=check_positive,
+                                default=1, metavar='MINOL',
+                                help="the minimum number of lines per order (default: %(default)s)",
+                                dest="min_order_lines")
+        order_args.add_argument("--olmax", "--max-order-lines", type=check_positive,
+                                default=1, metavar='MAXOL',
+                                help="the maximum number of lines per order (default: %(default)s)",
+                                dest="max_order_lines")
+        order_args.add_argument("--ol", "--order-lines", type=check_positive,
+                                default=None, metavar='OL',
+                                help="""the exact number lines per order (default: %(default)s);
+                                shorthand for \'--olmin %(metavar)s --olmax %(metavar)s\'""",
+                                dest="order_lines")
+        #TODO: olpu
         order_args.add_argument("--oap", "--order-all-products", action="store_true",
                                 help="Each product should at least be ordered once.",
                                 dest="order_all_products")
