@@ -173,28 +173,32 @@ object(product, 1..N) :- product_amount(N).
 
 % ~~ Number and init atoms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#program product_units(min, max, maxprs, maxspr, maxpus).
+#program product_units(min, max, minpus, maxpus, minprs, maxprs, minspr, maxspr, cnd_minprs).
 %  Arguments:
-%    min    -- minimum of overall total number of product units
-%    max    -- maximum of overall total number of product units
-%    minpu  -- minimum number of untis for a product globally
-%    maxpu  -- maximum number of untis for a product globally
-%    maxprs -- maximum number of products per shelf
-%    maxprs -- maximum number of shelfs that contain the same product
-%    maxpus -- maximum number of a product's units per shelf
-_maxpus(maxpus).
-_max(max).
-maxpus(L       ) :- L = #min{ M : _maxpus(M); N : _max(N)}, L > 0, maxpus > 0.
-maxpus(max     ) :- maxpus <= 0.
+%    min        -- minimum of overall total number of product units
+%    max        -- maximum of overall total number of product units
+%    minpus     -- minimum number of a product's units per shelf
+%    maxpus     -- maximum number of a product's units per shelf
+%    minprs     -- minimum number of products per shelf
+%    maxprs     -- maximum number of products per shelf
+%    minspr     -- minimum number of shelfs that contain the same product
+%    maxspr     -- maximum number of shelfs that contain the same product
+%    cnd_minprs -- flags conditional usage of minprs constraint, required for incremental mode
+minpus(minpus).
+maxpus(maxpus).
 { product_on(PID, SID) } 1 :- object(shelf, SID), object(product, PID), not template(init(object(product, PID), _)).
-{ init(object(product, PID), value(on, (SID, NUM))): NUM=1..M, maxpus(M) } = 1 :- product_on(PID, SID).
+{ init(object(product, PID), value(on, (SID, NUM))): NUM=M..N, minpus(M), maxpus(N) } = 1 :- product_on(PID, SID).
 
 :- object(product, PID), not init(object(product, PID), value(on, _)).
 :- min > #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 :- max < #sum{NUM, PID, SID : init(object(product, PID), value(on, (SID, NUM)))}.
 
-:- { init(object(product, PID), value(on, (SID, NUM))) } > maxprs, object(shelf,   SID).
-:- { init(object(product, PID), value(on, (SID, NUM))) } > maxspr, object(product, PID).
+activate_minprs :- minprs < { init(object(product, PID), value(on, (SID, NUM))) }, object(shelf,   SID), cnd_minprs = 1.
+activate_minprs :- cnd_minprs = 0.
+:- minprs > { init(object(product, PID), value(on, (SID, NUM))) }, object(shelf,   SID), activate_minprs.
+:- maxprs < { init(object(product, PID), value(on, (SID, NUM))) }, object(shelf,   SID).
+:- minspr > { init(object(product, PID), value(on, (SID, NUM))) }, object(product, PID).
+:- maxspr < { init(object(product, PID), value(on, (SID, NUM))) }, object(product, PID).
 
 % Regarding template input: no explicit rules required!
 

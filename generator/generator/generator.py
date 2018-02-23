@@ -220,17 +220,47 @@ class BasicGenerator(InstanceGenerator):
         self._ground([("shelves_init", [])])
         self._ground([("picking_stations_init", [])])
         if self._args.product_units_total:
-            self._ground([("product_units", [self._args.product_units_total,
-                                             self._args.product_units_total,
-                                             self._args.products_per_shelf,
-                                             self._args.shelves_per_product,
-                                             self._args.product_units_per_product_shelf or
-                                             self._args.product_units_total])])
-        self._ground([("orders_init", [self._args.order_min_lines,
-                                       self._args.order_max_lines,
-                                       (self._args.product_units_per_product_shelf *
-                                        self._args.shelves_per_product) or
-                                       self._args.product_units_total])])
+            self._ground([("product_units", [
+                # min
+                self._args.product_units_total,
+                # max
+                self._args.product_units_total,
+                # minpus
+                self._args.product_units_per_product_shelf or
+                self._args.min_product_units_per_product_shelf or 1,
+                # maxpus
+                self._args.product_units_per_product_shelf or
+                self._args.max_product_units_per_product_shelf or
+                self._args.product_units_total,
+                # minprs
+                self._args.products_per_shelf or
+                self._args.min_products_per_shelf or 0,
+                # maxprs
+                self._args.products_per_shelf or
+                self._args.max_products_per_shelf or
+                self._args.products,
+                # minspr
+                self._args.shelves_per_product or
+                self._args.min_shelves_per_product or 0,
+                # maxspr
+                self._args.shelves_per_product or
+                self._args.max_shelves_per_product or
+                self._args.shelves,
+                # cnd_minpsr
+                1 if self._args.conditional_min_products_per_shelf else 0])])
+        self._ground([("orders_init", [
+            # minlines
+            self._args.order_lines or
+            self._args.min_order_lines or 1,
+            # maxlines
+            self._args.order_lines or
+            self._args.max_order_lines,
+            # maxpupr
+            ((self._args.product_units_per_product_shelf or
+              self._args.max_product_units_per_product_shelf) *
+             (self._args.shelves_per_product or
+              self._args.max_shelves_per_product)) or
+            self._args.product_units_total])])
 
         # Layouts contd.: constraints related to interior object placement
         # TODO: simplify grounding order of layouts, constraints, object inits program parts
