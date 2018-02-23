@@ -10,12 +10,14 @@ output:
 
 # What is ASPRILO?
 
-**ASPRILO** is a benchmark suite for [answer set programming (ASP)](https://en.wikipedia.org/wiki/Answer_set_programming), based on typical scenarios in
-intra-logistics and warehouse automation with multiple mobile robots. Specifically, the diverse
-and complex nature of those settings makes them an ideal test bed for methods and technologies in
+**ASPRILO** is a benchmark suite for [answer set programming
+(ASP)](https://en.wikipedia.org/wiki/Answer_set_programming), based on typical scenarios in
+intra-logistics and warehouse automation with multiple mobile robots. Specifically, the diverse and
+complex nature of those settings makes them an ideal test bed for methods and technologies in
 ASP. Beyond that, ASPRILO also supports any other solving approach that complies with its I/O
 interface.
 
+<iframe width="560" height="315" src="https://youtu.be/GHRwpWzL0j8" frameborder="0" allowfullscreen></iframe>
 
 # Key Components
 
@@ -29,7 +31,10 @@ Essentially, ASPRILO provides the following components:
     - [visualizer](visualizer.md) to display instances and plans
     - [referential set of test instances](benchmarkset.md)
 
-
 # Development
 
 The source code of the project is available at <https://github.com/potassco/asprilo>
+
+# Experiments
+
+Information about our experiments with ASPRILO can be found [here](experiments.md).

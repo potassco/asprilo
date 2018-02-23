@@ -17,20 +17,20 @@ This is the problem specification of [ASPRILO](index.md). Subsequently, we
 - provide a example instance and plan
 
 
-# Default Problem Domain (DEF)<a id="cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b"></a>
+# Domain A: The General Problem<a id="cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b"></a>
 
 ASPRILO's benchmark scenario is inspired by intra-logistics and warehouse automation systems based
-on multiple mobile robots and shelves. Its main goal is order fulfilment in a warehouse, i.e.,
-order picking and sortation for a given set of product orders. Specifically, the warehouse floor
-is laid out as a 2-dimensional grid. Products are stored in shelves, each located in a single grid
+on multiple mobile robots and shelves. Its main goal is order fulfilment in a warehouse, i.e., order
+picking and sortation for a given set of product orders. Specifically, the warehouse floor is laid
+out as a 2-dimensional grid. Products are stored in shelves, each located in a single grid
 node. Mobile robots can move and navigate through the warehouse along the grid. Moreover, they can
-carry and relocate shelves, as well as bring them to picking stations to deliver
-products. Initially, all orders are known. An order is fulfilled if all its requested product
-units are delivered to a picking station. The overall goal is hence to provide a plan in form of a
-sequence of sets of robot actions such that all orders will be filled. In other words, the plan
-should be based off a discrete time signal and each robot may perform a single action per time
-point, i.e., robots may act concurrently. In the following, we provide a more detailed overview of
-the *key components* of the problem.
+carry and relocate shelves, as well as bring them to picking stations to deliver products. Customer
+orders are all provided at the start, each assigned to a picking station. An order is fulfilled if
+all its requested product units are delivered to its assigned picking station. The overall goal is
+hence to provide a plan in form of a sequence of sets of robot actions such that all orders will be
+filled. In other words, the plan should be based off a discrete time signal and each robot may
+perform a single action per time point, i.e., robots generally act concurrently. In the following,
+we provide a more detailed overview of the *key components* of the problem.
 
 
 ## Warehouse Floor Layout<a id="cid-7e4e0e03-fa41-4809-8f83-b8e6a19986d7"></a>
@@ -42,31 +42,31 @@ The warehouse floor is typically laid out as a *grid*, i.e.,
   rectangles connected by smaller passages, a cross-shaped grid, etc.
 
 The grid may also contain special *highway nodes* that must never be occupied by a parked shelf.
-Besides, we refer to grid nodes also as *storage nodes* if they are neither occupied by a
-picking station nor are a highway node.
+Besides, we refer to grid nodes also as *storage nodes* if they are neither occupied by a picking
+station nor are a highway node.
 
 
 ## Products<a id="org7835632"></a>
 
-A *product* is a type of physical good that owns an unique identifier (e.g. part number,
-universal product code). Products are typically handled in certain quantities, i.e., number of *units*,
+A *product* is a type of physical good that owns an unique identifier (e.g. part number, universal
+product code). Products are typically handled in certain quantities, i.e., number of *units*,
 e.g. 20 units of the product with unique identifier '7324552'.
 
 
 ## Shelves<a id="org5668d0c"></a>
 
-*Shelves* store product units in limited quantities. Further, they occupy exactly one grid node
-when parked.
+*Shelves* store product units in limited quantities. Further, they occupy exactly one grid node when
+parked.
 
 
 ## Robots<a id="org2f92cab"></a>
 
-Mobile *robots* can freely move along the grid (even under shelves) as long as the grid node is
-not already occupied by another robot.  Further, they can *pick up* a shelf when under it,
-*carry* it while moving, and *put it down* eventually. While carrying a shelf, their movement is
-restricted to fields clear of other shelves and robots. At a picking station, robots can *deliver*
-product units from their shelf to the totes of the station. Moreover, robots occupy exactly one
-grid node at each time point.
+Mobile *robots* can freely move along the grid (even under shelves) as long as the grid node is not
+already occupied by another robot.  Further, they can *pick up* a shelf when under it, *carry* it
+while moving, and *put it down* eventually. While carrying a shelf, their movement is restricted to
+fields clear of other shelves and robots. At a picking station, robots can *deliver* product units
+from their shelf to the totes of the station. Moreover, robots occupy exactly one grid node at each
+time point.
 
 
 ## Picking Stations<a id="org0a65cc2"></a>
@@ -85,12 +85,13 @@ e.g. an order with 3 lines:
 - 2 notebooks
 - 1 file folder
 
-All orders are known initially (instead of arriving over time). Further, an order contains each
-at most one order line per product. An order is *fulfilled* if all its requested product units
-are delivered to a picking station.
+All orders are known initially (instead of arriving over time) and have a picking station assigned
+to them. Further, an order contains at most one order line per product. An order line is *fulfilled*
+if all its requested product units are delivered to the picking station assigned to the order. An
+order is fulfilled if all its order lines are fulfilled.
 
 
-# Key Characteristics of Instances (Default Problem Domain)<a id="org9cfe104"></a>
+# Key Characteristics of Instances<a id="org9cfe104"></a>
 
 Here, we present the characteristics (without any claim of completeness) that we consider relevant
 to distinguish problem instances. This is a preliminary step for our subsequent problem
@@ -104,8 +105,8 @@ our instance characteristics for the default problem, and later expand on those 
 
 ## Warehouse Characteristics<a id="cid-1ff2ac2f-a6f1-4ddd-b0f0-5e3d2af2d4d0"></a>
 
-Besides the problem scope, the key aspects of the warehouse boil down to its floor plan
-layout for which we can identify the following criteria.
+Besides the problem scope, the key aspects of the warehouse boil down to its floor plan layout for
+which we can identify the following criteria.
 
 
 ### Floor Topology Type<a id="cid-b3c44568-d34b-4c4d-bac0-a1483b4a99e8"></a>
@@ -118,39 +119,30 @@ For the floor topology, we distinguish between two basic graph types:
 
 ### Floor Topology Layout<a id="org8cea9ca"></a>
 
-In case the [floor topology type](#cid-b3c44568-d34b-4c4d-bac0-a1483b4a99e8) is a grid, the topology layout is a rectangular grid graph by
-default. Further, we can consider more complex grid shapes, e.g. several rectangles connected by
-smaller corridors, a cross-shaped grid, a T-shaped grid, etc.
+In case the [floor topology type](#cid-b3c44568-d34b-4c4d-bac0-a1483b4a99e8) is a grid, the topology
+layout is a rectangular grid graph by default. Further, we can consider more complex grid shapes,
+e.g. several rectangles connected by smaller corridors, a cross-shaped grid, a T-shaped grid, etc.
 
 If the topology type is a general graph, we do not regard its layout at present.
 
 
-### Interiors Layout: Placement of Highway Nodes, Shelves and Picking Stations<a id="cid-d70674e1-8273-4abb-8ebf-b05f261c621a"></a>
+### Structured Layout of Highway Nodes, Shelves and Picking Stations<a id="cid-d70674e1-8273-4abb-8ebf-b05f261c621a"></a>
 
-Here, we distinguish whether highway nodes, shelves and picking stations are placed randomly on
-the grid or if a distinct pattern for the interiors layout is employed. For instance, a most
-typical pattern (see Fig. [224](#orge332373)) for rectangular warehouse grids is as follows:
+Here, we distinguish whether highway nodes, shelves and picking stations are placed randomly on the
+grid or if a distinct pattern for the interiors layout is employed. That is, a most typical
+pattern (see Fig. [224](#orge332373)) for rectangular warehouse grids is as follows:
 
-- shelves are placed in the center of the grid, divided up equally into rectangular clusters
-- picking stations evenly distributed around the edge of the grid;
-- one belt-way highway at the edge of the grid encompassing the shelves in the center;
-- many smaller lanes through the fields with shelves in the center of the grid.
+-   "Manhattan-style" placement of shelves and highway nodes, i.e.
+    - shelves are grouped into rectangular storage areas with size in y-dimension fixed to 2 grid nodes
+    - storage areas are aligned as rows and columns on the grid
+    - all storage areas are encompassed by highway nodes
+-   picking stations are evenly distributed at the top row of the grid;
+-   robots are initially parked in the lowest row of the grid, filling up the grid nodes from the left;
 
-In the following, we refer to this pattern as *default interiors layout*.
+In the following, we refer to this pattern as *structured layout*.
 
-
-### Reachability of Shelves<a id="org3a09c86"></a>
-
-A shelf is *reachable* if it can be carried to each picking station without moving other shelves
-to clear path. A warehouse fulfills the *shelf-reachability* criterion if all shelves are
-reachable.
-
-
-### Floor Size<a id="orgfdb512c"></a>
-
-We consider the floor size in terms of number of grid nodes. Naturally, in the case that the
-floor is a regular grid (instead of a partial one), it suffices to specify the x- and
-y-dimensions of the grid to entail the number of grid nodes.
+**Storage Zones Characteristics**: When employing the structured layout, we also consider the number of rows and columns formed by storage zones
+as well as the storage zone's size (i.e., occupied grid nodes) in x-dimension.
 
 
 ### Quantities of Interior Objects<a id="orgdf94892"></a>
@@ -163,10 +155,18 @@ We consider the quantities of interior objects, i.e., the number of
 - robots
 
 
-### Dimensions of Shelf Clusters<a id="org992f834"></a>
+### Reachability of Shelves<a id="org3a09c86"></a>
 
-In conjunction with the [interiors layout](#cid-d70674e1-8273-4abb-8ebf-b05f261c621a), we consider the dimension of rectangular shelf cluster
-in x- and y-directions.
+A shelf is *reachable* if it can be carried to each picking station without moving other shelves
+to clear path. A warehouse fulfills the *shelf-reachability* criterion if all shelves are
+reachable.
+
+
+### Floor Size<a id="orgfdb512c"></a>
+
+We consider the floor size in terms of number of grid nodes. Naturally, in the case that the floor
+is a regular grid (instead of a partial one), it suffices to specify the x- and y-dimensions of the
+grid to entail the number of grid nodes.
 
 
 ### Ratio Between The Number of Shelves and Storage Nodes<a id="orgeb55f10"></a><sup><a id="fnr.1.100" class="footref" href="#fn.1">1</a></sup>
@@ -189,15 +189,9 @@ We consider the total of number of orders posed by the instance.
 We consider the minimum, maximum and floored average number of lines per order.
 
 
-### Ratio Between the Number of Ordered and Overall Products<a id="orga80bd44"></a><sup><a id="fnr.1.100" class="footref" href="#fn.1">1</a></sup>
-
-We consider the floored ratio between the number of ordered and overall available products in the
-warehouse. This is not be confused with the number of ordered and available product units.
-
-
 # Problem Domain Modifications<a id="cid-bbacc203-29c4-489f-8661-95cf4b599fdd"></a>
 
-Based on the [default problem domain](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b), we can envision various additional modifications. For each,
+Based on [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b), we can envision various additional modifications. For each,
 we will subsequently describe it and enumerate the additional and changed instance characteristics
 in comparison to the default problem. Besides, we will also point out if a modification changes
 the overall goal of the problem.
@@ -241,403 +235,6 @@ a picking station: specifically, a robot
   and available quantities on the shelf) deliveries are concurrently executed in a single time step
 - when carrying a shelf, can only put it down at the same node where it was originally picked-up.
 
-
-## Product Capacity for Robots and Shelves Based on Quantity (CAQ)<a id="cid-9828decd-6d59-4ccc-94c2-847b3a6b7a08"></a>
-
-Robots and Shelves have a maximum quantity of products they can carry.
-
-
-### Additional Warehouse Characteristics<a id="org8d63c1e"></a>
-
-1.  Mean Capacity of Shelves
-
-    Mean (average, median, geometric, etc.) capacity of shelves.
-
-2.  Mean Capacity of Robots
-
-    Mean (average, median, geometric, etc.) capacity of robots.
-
-
-## Product Capacity for Robots and Shelves Based on Weight (CAW)<a id="cid-87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe"></a>
-
-Products have specifics weights, and robots and shelves have a maximum weight capacity they can carry.
-
-
-### Additional Warehouse Characteristics<a id="org5da56b0"></a>
-
-1.  Mean Capacity of Shelves
-
-    Mean (average, median, geometric, etc.) capacity of shelves.
-
-2.  Mean Capacity of Robots
-
-    Mean (average, median, geometric, etc.) capacity of robots.
-
-
-## Product Capacity for Robots and Shelves Based on Volume (CAV)<a id="cid-8c423d59-0c08-422f-b94d-720a0b6908e2"></a>
-
-Products have specific volumes (i.e., the amount of enclosed space), and robots and shelves have a
-maximum volume of products they can carry.
-
-
-### Additional Warehouse Characteristics<a id="orgb914777"></a>
-
-1.  Mean Capacity of Shelves
-
-    Mean (average, median, geometric, etc.) capacity of shelves.
-
-2.  Mean Capacity of Robots
-
-    Mean (average, median, geometric, etc.) capacity of robots.
-
-
-## Energy Management (EMA)<a id="cid-d8cd3118-7e68-4f20-8c1e-d868d32a96a3"></a>
-
-Robots have electrical batteries and a consume energy for each action. Before a robot runs out of
-energy, it has to move to a *charging stations* to recharge its battery. Those stations occupy a
-floor node and a single robot can enter them at a time. Further, each charging station has a
-distinct charge rate.
-
-
-### Additional Warehouse Characteristics<a id="org8776f3e"></a>
-
-1.  Placement/Number/Ratio of Charging Stations
-
-    We consider
-
-    - placement layout of charging stations (e.g. all stations evenly distributed across the floor
-      vs. all located within a small area of the floor)
-    - number of charging stations
-    - ratio of charging stations w.r.t robots and floor size.
-
-2.  Mean Robots' Battery Capacity
-
-    Mean (average, median, geometric, etc.) robots' battery capacity.
-
-3.  Mean Robots' Recharge Speed
-
-    Mean (average, median, geometric, etc.) amount of energy a robot can recharge at a charging station at each time step.
-
-4.  Mean Battery Capacity
-
-    Mean (average, median, geometric, etc.) battery capacity of a robot.
-
-5.  Mean Robots' Energy Consumption
-
-    Mean (average, median, geometric, etc.) amount of energy consumed by robot actions independent
-    of the type of action.
-
-
-### Changed Warehouse Characteristics<a id="org1e7765f"></a>
-
-1.  Interiors Layout: Placement of Charging Stations
-
-    In addition to the default problem's interiors layout, the placement of the charging stations
-    stations have to be considered too.
-
-    TODO: default pattern
-
-
-## Replenishment (REP)<a id="cid-d84e72a4-2202-4331-8636-b56dd264c641"></a>
-
-The warehouse, i.e., its shelf are periodically replenished by suppliers. To that end the
-warehouse needs to order products from suppliers who deliver those with a certain delay to the
-replenishment stations in the warehouse. To retrieve product units from a replenishment station,
-a robot can bring a shelf to it for restocking. Further, each shelf has only a limited capacity
-to store products.
-
-
-### Changed Warehouse Characteristics<a id="org8ce9d9d"></a>
-
-1.  Interiors Layout: Placement of Replenishment Stations
-
-    In addition to the default problem's interiors layout, the placement of the replenishment
-    stations have to be considered too.
-
-    TODO: default pattern
-
-
-## Orders Expire After Timeout (OEX)<a id="cid-88ef4c01-95a6-45f6-9d2c-b3b3c493964e"></a>
-
-Each order expires after a specific timeout, i.e., number of time steps. The countdown starts
-upon the arrival of the order. An order cannot be fulfilled after it has expired.
-
-
-### Additional Order Set Characteristics<a id="org5b91c2b"></a>
-
-1.  Mean Expiration Timeout for Orders
-
-    Mean (average, median, geometric, etc.) expiration timeout for orders.
-
-
-## Orders Assigned To Picking Stations (OPS)<a id="cid-58b1d9d1-786b-4f92-b233-ddeb1e29dbb9"></a>
-
-Each order is assigned to a specific picking stations to which its order lines have to be
-delivered.
-
-
-## Online Processing of Orders, Orders Expire After Timeout (OOP)<a id="cid-1610eaee-45fb-476f-8184-403d386311b9"></a>
-
-The set of orders is streamed in over time where each time step corresponds to an amount of
-seconds. Further, we assume that [orders expire as described before](#cid-88ef4c01-95a6-45f6-9d2c-b3b3c493964e) and hence the planning system
-has to process them online.
-
-
-### Additional Order Set Characteristics<a id="orgebbc73a"></a>
-
-1.  Mean Number of Expiring Order Lines per Second
-
-    Mean (average, median, geometric, etc.) number of expiring order lines per second.
-
-
-### Change of Overall Problem Goal<a id="org50b14eb"></a>
-
-At each time point, all unfulfilled orders must not expire.
-
-
-# Supported Combinations of Modifications<a id="org925d771"></a>
-
-In the table below, we list all (planned to be) supported combinations of modifications.  Further,
-our supported combinations are chosen such that they represent a well-ordered set
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 1:</span> Supported combinations of problem modifications</caption>
-
-<colgroup>
-<col  class="org-right" />
-</colgroup>
-
-<colgroup>
-<col  class="org-left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-right">&ldquo;Distance&rdquo; to DEF</th>
-<th scope="col" class="org-left">Combinations</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td class="org-right">0</td>
-<td class="org-left">DEF</td>
-</tr>
-
-
-<tr>
-<td class="org-right">-1</td>
-<td class="org-left">DEF + DPQ</td>
-</tr>
-
-
-<tr>
-<td class="org-right">-2</td>
-<td class="org-left">DEF + DPQ + ICD</td>
-</tr>
-
-
-<tr>
-<td class="org-right">- &infin;</td>
-<td class="org-left">DEF + DPQ + ICD + MOO</td>
-</tr>
-</tbody>
-</table>
-
-
-## Principally Possible Combinations<a id="org16bf433"></a>
-
-In table below, we illustrate pair-wise combinations of problem modifications that we consider
-possible in principle but not necessarily (planned to be) supported by our tools.
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-<caption class="t-above"><span class="table-number">Table 2:</span> Principally possible pairwise combinations of problem modifications.</caption>
-
-<colgroup>
-<col  class="org-left" />
-</colgroup>
-
-<colgroup>
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-left">&#xa0;</th>
-<th scope="col" class="org-left">DPQ</th>
-<th scope="col" class="org-left">CAQ</th>
-<th scope="col" class="org-left">CAW</th>
-<th scope="col" class="org-left">CAV</th>
-<th scope="col" class="org-left">EMA</th>
-<th scope="col" class="org-left">REP</th>
-<th scope="col" class="org-left">OEX</th>
-<th scope="col" class="org-left">OPS</th>
-<th scope="col" class="org-left">OOP</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td class="org-left">DPQ</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-</tr>
-
-
-<tr>
-<td class="org-left">CAQ</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-</tr>
-
-
-<tr>
-<td class="org-left">CAW</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-</tr>
-
-
-<tr>
-<td class="org-left">CAV</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-</tr>
-
-
-<tr>
-<td class="org-left">EMA</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-</tr>
-
-
-<tr>
-<td class="org-left">REP</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-</tr>
-
-
-<tr>
-<td class="org-left">OEX</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-</tr>
-
-
-<tr>
-<td class="org-left">OPS</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&check;</td>
-</tr>
-
-
-<tr>
-<td class="org-left">OOP</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&check;</td>
-<td class="org-left">&#xa0;</td>
-</tr>
-</tbody>
-</table>
-
-A combination of more than two modifications is possible if there is a possible pairwise
-combination for all modifications in question.
-
-
-# Classification of Instances<a id="org657fc1d"></a>
-
-Having a clear notion of the problem's domain and key characteristics, we are now ready to
-systematically categorize its instances. In particular, we hierarchically classify sub-problems
-and their instances based on their
-
-1. problem scope ([default domain](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b) and [potential
-   modifications](#cid-bbacc203-29c4-489f-8661-95cf4b599fdd))
-2. [warehouse characteristics](#cid-1ff2ac2f-a6f1-4ddd-b0f0-5e3d2af2d4d0) (in context of the problem
-   scope)
-3. [order set characteristics](#cid-119945ff-c477-4214-98fd-a3078f9bf457) (in context of the problem
-   scope and warehouse characteristics)
-
-in descending order, also illustrated in Fig. [91](#org666e47f).
-
-![img](img/dot_classification.png "Hierarchical classification of instances.")
 
 
 # Input Format<a id="org46f96aa"></a>
@@ -768,7 +365,7 @@ TODO: floor encoding for general topology graphs
 [Robots](#org2f92cab) use object-type `robot` for their specification. Their attributes are defined depending
 on the problem domain scope as follows:
 
-1.  Attributes Related to [Default Domain](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
+1.  Attributes Related to [Domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
 
     -   The grid position of a robot is indicated by attribute `at`, e.g.
 
@@ -836,7 +433,7 @@ on the problem domain scope as follows:
 
 [Shelves](#org5668d0c) use object-type `shelf` for their specification.
 
-1.  Attributes Related to [Default Domain](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
+1.  Attributes Related to [Domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
 
     -   The grid position of a shelf is indicated by attribute `at`, e.g.
 
@@ -888,7 +485,7 @@ on the problem domain scope as follows:
 
 [Products](#org7835632) use object-type `product` for their specification.
 
-1.  Attributes Related to [Default Domain](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
+1.  Attributes Related to [Domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
 
     -   A shelf on which a product is stored on is indicated by attribute `on`, e.g.,
 
@@ -939,7 +536,7 @@ on the problem domain scope as follows:
 
 [Orders](#org9eaff1c) use object-type `order` for their specification.
 
-1.  Attributes Related to [Default Domain](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
+1.  Attributes Related to [Domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
 
     -   Lines of an order, i.e., requests of products in a certain quantity, are indicated by
         attribute `line`, e.g.,
@@ -982,7 +579,7 @@ on the problem domain scope as follows:
 
 [Picking stations](#org0a65cc2) use object-type `pickingStation` for their specification.
 
-1.  Attributes Related to [Default Domain](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
+1.  Attributes Related to [Domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
 
     -   The grid position of a picking station is indicated by attribute `at`, e.g.
 
@@ -1060,7 +657,7 @@ where
         - tells the robot to put down the shelf at its current location
         - takes an empty `<action-args>` tuple
     -   `deliver`
-        -   for the [default domain](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b) (i.e. plans that consider product quantities):
+        -   for [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b) (i.e. plans that consider product quantities):
             -   tells the robot to deliver a certain amount of units of a product to (partially) fill a specific order
             -   is only applicable if robot is at a picking station
             -   takes as `<action-args>` a triple comprised by
@@ -1078,7 +675,7 @@ where
 
 # Example Instance and Plan<a id="org3cd67c7"></a>
 
-This is an example rooted in the [default problem domain](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b). All files related to this example can be
+This is an example rooted in [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b). All files related to this example can be
 found in `./examples/default`.
 
 
@@ -1248,7 +845,7 @@ circles, picking stations as yellow and black striped squares, and highway nodes
 
 # Alternative Problem Domain Family: XAPF<a id="orga28d8ac"></a>
 
-In place of the [default problem domain](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b), we can use
+In place of the [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b), we can use
 [**XAPF**](xapf.md), a family of multi-agent path-finding problems such as:
 
 - *(Anonymous) Multi-Agent Path Finding (MAPF)*
