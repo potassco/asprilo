@@ -317,7 +317,7 @@ class Control(object):
          :type namespace: An existing argparse.Namespace object to use instead of new one.
 
         """
-        parser = argparse.ArgumentParser(prog='ig',
+        parser = argparse.ArgumentParser(prog='gen',
                                          formatter_class=SmartFormatter,
                                          add_help=False)
         basic_args = parser.add_argument_group("Basic options")
