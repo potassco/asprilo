@@ -1,6 +1,6 @@
 # Referential instance set compartmentalized into relevant sub-domains.
 
-global_settings: { '-N': 10, '--olmin': 1, '--olmax': 10 }
+global_settings: { '-N': 10, '--olmin': 1, '--ol': 4 }
 
 run_configs:
 
@@ -18,59 +18,6 @@ run_configs:
   #    - storage-cluster-length = #rows + 3
   #    for k = 1, 2, 3, 4, ...
   structured:
-
-
-      # - Scale robots and orders ------------------------------------------------------------------
-      scale-robots-orders:
-        1x2x4:
-          50sc:
-            args: { '-x':  11, '-y':   6, '-X':   4, '-Y':  2, '-s':   8, '-p':   1, '-H': True }
-            r05:
-              args:
-                - { '-r':  5, '-o':  5 }
-            r10:
-              args:
-                - { '-r': 10, '-o': 10 }
-            r15:
-              args:
-                - { '-r': 15, '-o': 15 }
-            r19:
-              args:
-                - { '-r': 19, '-o': 19 }
-
-          100sc:
-            args: { '-x':  11, '-y':   6, '-X':   4, '-Y':  2, '-s':  16, '-p':   1, '-H': True }
-        2x3x5:
-          100sc:
-            args: { '-x':  19, '-y':  9, '-X':   5, '-Y':  2, '-p':   3, '-s':  60, '-P': 60, '-u': 60, '-H': True }
-            r05:
-              args:
-                - { '-r':  5, '-o':  5 }
-            r10:
-              args:
-                - { '-r': 10, '-o': 10 }
-            r15:
-              args:
-                - { '-r': 15, '-o': 15 }
-            r19:
-              args:
-                - { '-r': 19, '-o': 19 }
-        4x5x8:
-          100sc:
-            args: { '-x':  46, '-y':  15, '-X':   8, '-Y':  2, '-p':  10, '-s': 320, '-P': 320, '-u': 320, '-H': True }
-            r12:
-              args:
-                - { '-r': 12, '-o': 12 }
-            r23:
-              args:
-                - { '-r': 23, '-o': 23 }
-            r35:
-              args:
-                - { '-r': 35, '-o': 35 }
-            r46:
-              args:
-                - { '-r': 46, '-o': 46 }
-
 
     # - Scale robots, pick stations, units, orders -------------------------------------------------
     scale-robots-pickstations-units-orders:
