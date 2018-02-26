@@ -189,51 +189,40 @@ We consider the total of number of orders posed by the instance.
 We consider the minimum, maximum and floored average number of lines per order.
 
 
-# Problem Domain Modifications<a id="cid-bbacc203-29c4-489f-8661-95cf4b599fdd"></a>
+# Problem Domain Simplifications<a id="cid-bbacc203-29c4-489f-8661-95cf4b599fdd"></a>
 
-Based on [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b), we can envision various additional modifications. For each,
-we will subsequently describe it and enumerate the additional and changed instance characteristics
-in comparison to the default problem. Besides, we will also point out if a modification changes
-the overall goal of the problem.
+For our general [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b), we envision various
+simplification. We will subsequently describe each by stating the changes in comparison to the
+default problem.
 
-In the heading of a paragraph that describes a modification, its acronym is given in parentheses.
-Further, if the modification represents a simplification of the default domain, it is additionally
-labelled as such within the parentheses too.
+## Domain B: Disregard of Product Quantities<a id="cid-49448523-5e9b-4ed2-ac1a-6754d838b85c"></a>
 
-
-## Disregard of Product Quantities (DPQ/Simplification)<a id="cid-49448523-5e9b-4ed2-ac1a-6754d838b85c"></a>
-
-This is a simplification of the default domain in sense that we completely ignore product
-quantities.  That is, we pretend that products on shelves are available in infinite quantities
-and hence order lines only specify the product but not its quantity, since the latter is
-consequently redundant. With that, a shelf at a picking station can fill an order if it holds the
-required product.
+This is a simplification of [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b) in sense that we
+completely ignore product quantities. With that, a shelf at a picking station can fill an order if
+it holds the required product.
 
 
-### Changed Order Characteristics<a id="orgac25e17"></a>
+## Domain C: Simultaneous Deliveries<a id="cid-f8d8f6b9-771a-4b1d-a20d-1ce03f96086b"></a>
 
-1.  Ratio Between the Number of Ordered and Overall Products
-
-    Not applicable here.
-
-
-## Instant Concurrent Deliveries (ICD/Simplification)<a id="cid-f8d8f6b9-771a-4b1d-a20d-1ce03f96086b"></a>
-
-This is a simplification of the default domain in the sense that for a robot at a picking
-station, all deliveries can be processed in parallel and within a single time step.
+This is a simplification of [domain B](#cid-49448523-5e9b-4ed2-ac1a-6754d838b85c) in the sense that
+for a robot at a picking station, all deliveries can be processed in parallel and within a single
+time step.
 
 
-## Movements Only (MOO/Simplification)<a id="cid-8dcd778b-8504-449d-9811-39ec61c50cbb"></a>
+## Domain M: Movements Only <a id="cid-8dcd778b-8504-449d-9811-39ec61c50cbb"></a>
 
-This is a simplification of the default domain in the sense the only action that robots can
-perform is move, i.e., there are no pickup, putdown or delivery actions in plans.  With that, we
-need to define when a robot *implicitly* picks up or puts down a shelf as well as delivers items at
-a picking station: specifically, a robot
+This is a exhaustive simplification of [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b) in
+the sense the only action that robots can perform is move, i.e., there are no pickup, putdown or
+delivery actions in plans. Further, the following constraints apply:
 
-- picks up a shelf as soon as he is beneath one and not carrying it already;
-- when at a picking station and carrying a shelf, all possible (with respect to unfilled order lines
-  and available quantities on the shelf) deliveries are concurrently executed in a single time step
-- when carrying a shelf, can only put it down at the same node where it was originally picked-up.
+- the number of robots orders is identical
+- the number of shelves and products is identical
+- for each product, there is globally only one unit stored on a single shelf
+- each order has exactly one order line that requests exactly one unit of a product
+- there are no tow orders that request the same product
+
+An order line is fulfilled if a robot is located under the shelf that contains the order
+line's requested product at the end of the plan execution.
 
 
 
