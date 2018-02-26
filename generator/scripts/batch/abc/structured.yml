@@ -3,7 +3,7 @@
 global_settings: { '-N': 10, '--olmin': 1, '--ol': 4 }
 
 run_configs:
-  dom-a:
+  abc:
     structured:
       # = Standard Warehouse Layout ======================================================================
       #
