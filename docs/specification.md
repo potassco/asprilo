@@ -324,18 +324,6 @@ on the problem domain scope as follows:
 
         states that robot 2 is carrying shelf 5.
 
--   Example (TODO)
-
-        init(object(robot, 1), value(maxEnergy, 250)).
-        init(object(robot, 1), value(subtype, 3)).
-        init(object(subtype(robot), 3), value(maxWeight, 500)).
-
-    states that
-
-    1. robots 1 has a battery with maximum energy capacity of 250
-    2. robot 1 is of object-subtype 3 (as explained in [Object-Subtypes](#cid-035d4a73-f8d3-482b-b091-6dddef6d65ae))
-    3. robots of object-subtype 3 can carry a payload of up to 500 weight
-
 
 ### Shelves<a id="org7a787ee"></a>
 
@@ -348,18 +336,6 @@ on the problem domain scope as follows:
             init(object(shelf, 1), value(at, (2,3))).
 
         states that shelf 1 is at location (2,3).
-
--   Example(TODO)
-
-        init(object(shelf, 3), value(maxVolume, 200)).
-        init(object(shelf, 3), value(subtype, 1)).
-        init(object(subtype(shelf), 1), value(maxWeight, 23)).
-
-    states that
-
-    1. shelf 3 has a maximum volume capacity of 200.
-    2. shelf 3 is of object-subtype 1 (as explained in Sec. [Object-Subtypes](#cid-035d4a73-f8d3-482b-b091-6dddef6d65ae))
-    3. shelves of object-subtype 1 have a maximum weight capacity of 23.
 
 
 ### Products<a id="orgd712db6"></a>
@@ -382,19 +358,6 @@ on the problem domain scope as follows:
             init(object(product, 45), value(on, 5).
 
         states that product 45 is on shelf 5 in unlimited quantity.
-
--   Example(TODO)
-
-        init(object(product, 1), value(volume, 5)).
-        init(object(product, 1), value(subtype, 3)).
-        init(object(subtype(product), 3), value(weight, 10)).
-
-    states that
-
-    1. product 1 has volume 5
-    2. products 1 is of object-subtype 3 (as explained in
-       Sec. [Object-Subtypes](#cid-035d4a73-f8d3-482b-b091-6dddef6d65ae))
-    3. products of object-subtype 3 have a weight of 10.
 
 
 ### Orders<a id="org6bda5e4"></a>
@@ -419,24 +382,12 @@ on the problem domain scope as follows:
 
         states that order 7 is assigned to picking station 4.
 
--   Example(TODO)
-
-        init(object(order, 1), value(line, (5, 30))).
-        init(object(order, 1), value(pickingStation, 2)).
-        init(object(order, 1), value(expirationTimeOut, 12)).
-
-    states that
-
-    1. order 1 has and order line for 30 units of product 5.
-    2. order 1 is assigned to picking station 2.
-    3. order 1 expires after 12 time steps.
-
 
 ### Picking Stations<a id="orgbc6f688"></a>
 
 [Picking stations](#org0a65cc2) use object-type `pickingStation` for their specification.
 
-1.  Attributes Related to [Domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
+-   Related to All Domains:
 
     -   The grid position of a picking station is indicated by attribute `at`, e.g.
 
@@ -444,49 +395,6 @@ on the problem domain scope as follows:
 
         states that pickingStation 1 is at location (2,3).
 
-
-### Charging Stations (Introduced by [Energy Management](#cid-d8cd3118-7e68-4f20-8c1e-d868d32a96a3))<a id="orgbc6f688"></a>
-
-Charging stations use object-type `chargingStation` for their specification.
-
-1.  Attributes Related to [Energy Management](#cid-d8cd3118-7e68-4f20-8c1e-d868d32a96a3)
-
-    -   The grid position of a charging station is indicated by attribute `at`, e.g.
-
-            init(object(chargingStation, 1), value(at, (2,3))).
-
-        states that chargingStation 1 is at location (2,3).
-
-    -   The charge rate of a charging station is indicated by attribute `chargeRate`, e.g.
-
-            init(object(chargingStation, 1), value(chargeRate, (5,2))).
-
-        states that chargingStation 1 charges 5 battery levels in 2 time steps.
-
-2.  Example
-
-        init(object(chargingStation, 1), value(at, (2, 3))).
-        init(object(chargingStation, 1), value(subtype, 2).
-        init(object(subtype(charginStation), 2), value(chargeRate, (5, 2)).
-
-    states that
-
-    1. charging station 1 is located at (2,3).
-    2. charging station 1 is of object-subtype 2.
-    3. charging stations of object-subtype 2 have a charge rate of 5 battery levels in 2 time steps.
-
-
-### Restocking Station (Introduced by [Replenishment](#cid-d84e72a4-2202-4331-8636-b56dd264c641))<a id="org0d0175c"></a>
-
-Restocking stations use object-type `restockingStation` for their specification.
-
-1.  Attributes Related to [Replenishment](#cid-d84e72a4-2202-4331-8636-b56dd264c641)
-
-    -   The grid position of a restocking station is indicated by attribute `at`, e.g.
-
-            init(object(restockingStation, 1), value(at, (2,3))).
-
-        states that restockingStation 1 is at location (2,3).
 
 
 # Output Format<a id="org544aa9b"></a>
@@ -521,12 +429,12 @@ where
                 1. the object ID of the order
                 2. the object ID by the Product
                 3. the number of product units
-        -   in case [product quantities are ignored](#cid-49448523-5e9b-4ed2-ac1a-6754d838b85c):
+        -   in case that [product quantities are ignored](#cid-49448523-5e9b-4ed2-ac1a-6754d838b85c):
             -   tells the robot to deliver a product to fill a specific order
             -   is only applicable if robot is at a picking station
             -   takes as `<action-args>` a tuple comprised by
-                4. the object ID of the order
-                5. the object ID by the Product
+                1. the object ID of the order
+                2. the object ID by the Product
 -   `<time step>` is an integer constant equal to the time step when the action should be performed
 
 
