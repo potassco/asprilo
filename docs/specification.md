@@ -231,22 +231,17 @@ line's requested product at the end of the plan execution.
 
 ## General Concepts: Object-Types and Attributes<a id="cid-f23fad45-7955-4f07-87ff-5370456e374b"></a>
 
-At first, we need to agree on a general encoding schema for instances. In particular, we
-introduce
-
-- [object types](#cid-c06c73df-12c0-4fd6-977a-8f1ad64309be) which are all predetermined by the domain; as well as
-- concrete [object](#cid-045df828-ed63-4a81-aa62-eba5c612e9f1) and
-  [object-subtype](#cid-035d4a73-f8d3-482b-b091-6dddef6d65ae) definitions which are both specified
-  by instances.
+At first, we need to agree on a general encoding scheme for instances. To that end, we introduce
+the expected [object types](#cid-c06c73df-12c0-4fd6-977a-8f1ad64309be) with their attributes.
 
 
 ### Object-Types<a id="cid-c06c73df-12c0-4fd6-977a-8f1ad64309be"></a>
 
-For the technical specification of problem instances, we first need to identify the
-*objects-types* relevant to the problem. Specifically, an object-type represents a subset of the
-objects in the problem domain. Additionally, it defines a set of *attributes* common to its
-objects. Further, applicable object-types and attributes may vary depending on the problem
-scope. For example, we determine the following object-types for the default problem:
+For the technical specification of problem instances, we first need to identify the relevant
+*objects-types*. Specifically, an object-type represents a subset of the objects in the problem
+domain. Additionally, it defines a set of *attributes* common to its objects. Further, applicable
+object-types and attributes may vary depending on the problem scope. For example, we determine the
+following object-types for [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b):
 
 - `grid-node` with attribute `at`
 - `robot` with attribute `at`
@@ -260,7 +255,7 @@ The complete list of [expected object types and their attributes](#cid-c279ce9c-
 
 ### Object Definitions<a id="cid-045df828-ed63-4a81-aa62-eba5c612e9f1"></a>
 
-All instance data (except object-subtypes) is represented as `init/2` facts of the format
+All instance data is represented as `init/2` facts of the format
 
     init(object(<object-type>, <object-id>), value(<attribute>, <value>)).
 
@@ -273,42 +268,6 @@ where
         init(object(robot, 34), value(at, (2,3))).
 
     states that the robot 34 is at x/y-location (2,3).
-
-
-### Object-Subtype Definitions<a id="cid-035d4a73-f8d3-482b-b091-6dddef6d65ae"></a>
-
-    init(subtype(<object-type>, <subtype-id>), value(<attribute>, <value>))
-
-Object-Subtypes refine object-types in terms of a common characteristics, e.g. shelves with same
-capacity, robots with same maximum payload weight, products of the category 'food', etc. To
-define an object-subtype of a given object-type, one uses facts of the form
-
-    init(subtype(<object-type>, <subtype-id>), value(<attribute>, <value>)).
-
-where
-
--   function `subtype` refers to a subtype by its parent object-type <object-type> and its
-    relative identifier <subtype-id>, e.g. `subtype(robot, 3)` for a subtype of `robot` with RID 3
--   function `value` specifies that the subtype's attribute `<attribute>` has value `<value>`,
-    e.g.for a given object-type `robot`
-
-        init(subtype(robot, 3), value(maxEnergy, 250)).
-
-    states that robots of object-subtype 3 have a battery with maximum energy capacity of 250.
-
-To declare that an object-type belongs to a object-subtype the attribute `subtype` is
-used, e.g.
-
-    init(object(robot, 34), value(subtype, 3)).
-
-states that robot 34 is of object-subtype 3 and hence &ldquo;inherits&rdquo; the maximum energy capacity of
-
-1.
-
-In general, any `value` to `attribute` assignment of an object may be determined by an
-associated object-subtype, except for `subtype` itself. However, for each object and `attribute`,
-there may only exists at most one `value` assignment, including the assignments inherited from
-the object's subtypes.
 
 
 ## Expected Object Types and Attributes<a id="cid-c279ce9c-c2ab-4e3f-9ec3-df2dd3a38188"></a>
@@ -344,68 +303,28 @@ object-type `grid` or objec-type `node` for its specification.
         sense that `grid` facts can always be translated to corresponding `node` facts.
 
 
-### Warehouse Floor (Grid Topology)<a id="orgbe2b0f0"></a>
-
-TODO: floor encoding for general topology graphs
-
-
 ### Robots<a id="org11e6b31"></a>
 
 [Robots](#org2f92cab) use object-type `robot` for their specification. Their attributes are defined depending
 on the problem domain scope as follows:
 
-1.  Attributes Related to [Domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
+-   Related to All Domains:
 
     -   The grid position of a robot is indicated by attribute `at`, e.g.
 
             init(object(robot, 1), value(at, (2,3))).
 
         states that robot 1 is at location (2,3).
+
+-   Related to All Domains Except For Domain M:
+
     -   A situation where a robot initially carries a shelf is indicated by attribute ~carries, e.g.
 
             init(object(robot, 2), value(carries, 5)).
 
         states that robot 2 is carrying shelf 5.
 
-2.  Attributes Related to [Energy-Management](#cid-d8cd3118-7e68-4f20-8c1e-d868d32a96a3)
-
-    -   The battery level of a robot is indicated by attribute `energy`, e.g.
-
-            init(object(robot, 1), value(energy, 23)).
-
-        states that robot 1 has battery level 23.
-    -   The maximum energy capacity of robot's battery is indicated by attribute `maxEnergy`, e.g.
-
-            init(object(robot, 1), value(maxEnergy, 250)).
-
-        states that robots 1 has a battery with maximum energy capacity of 250.
-
-3.  Attributes Related to [Quantity-Based Product Capacities](#cid-9828decd-6d59-4ccc-94c2-847b3a6b7a08)
-
-    -   The maximum number of product units a robot can carry is indicated by attribute `maxQuantity`,
-        e.g.
-
-            init(object(robot, 1), value(maxQuantity, 20)).
-
-        states that robots 1 can carry up to 20 product units.
-
-4.  Attributes Related to [Weight-Based Product Capacities](#cid-87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe)
-
-    -   The maximum weight a robot can carry is indicated by attribute `maxWeight`, e.g.
-
-            init(object(robot, 1), value(maxWeight, 500)).
-
-        states that robots 1 can carry a payload weight of up to 500.
-
-5.  Attributes Related to [Volume-Based Product Capacities](#cid-8c423d59-0c08-422f-b94d-720a0b6908e2)
-
-    -   The maximum volume a robot can carry is indicated by attribute `maxVolume`, e.g.
-
-            init(object(robot, 1), value(maxVolume, 267)).
-
-        states that robots 1 can carry a payload volume of up to 267.
-
-6.  Example
+-   Example (TODO)
 
         init(object(robot, 1), value(maxEnergy, 250)).
         init(object(robot, 1), value(subtype, 3)).
@@ -422,7 +341,7 @@ on the problem domain scope as follows:
 
 [Shelves](#org5668d0c) use object-type `shelf` for their specification.
 
-1.  Attributes Related to [Domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
+-   Related to All Domains:
 
     -   The grid position of a shelf is indicated by attribute `at`, e.g.
 
@@ -430,34 +349,7 @@ on the problem domain scope as follows:
 
         states that shelf 1 is at location (2,3).
 
-2.  Attributes Related to [Quantity-Based Product Capacities](#cid-9828decd-6d59-4ccc-94c2-847b3a6b7a08)
-
-    -   The quantitative capacity of a shelf is indicated by attribute
-        `maxQuantity`, e.g.
-
-            init(object(shelf, 1), value(maxQuantity, 20)).
-
-        states that shelf 1 has a maximum quantitative capacity of 20.
-
-3.  Attributes Related to [Weight-Based Product Capacities](#cid-87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe)
-
-    -   The weight-based capacity of a shelf is indicated by attribute
-        `maxWeight`, e.g.
-
-            init(object(shelf, 1), value(maxWeight, 23)).
-
-        states that shelf 1 has a maximum weight capacity of 23.
-
-4.  Attributes Related to [Volume-Based Product Capacities](#cid-8c423d59-0c08-422f-b94d-720a0b6908e2)
-
-    -   The volume-based capacity of a shelf is indicated by attribute
-        `maxVolume`, e.g.
-
-            init(object(shelf, 1), value(maxVolume, 267)).
-
-        states that shelf 1 has a maximum volume capacity of 267.
-
-5.  Example
+-   Example(TODO)
 
         init(object(shelf, 3), value(maxVolume, 200)).
         init(object(shelf, 3), value(subtype, 1)).
@@ -474,7 +366,7 @@ on the problem domain scope as follows:
 
 [Products](#org7835632) use object-type `product` for their specification.
 
-1.  Attributes Related to [Domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
+-   Related to All Domains:
 
     -   A shelf on which a product is stored on is indicated by attribute `on`, e.g.,
 
@@ -482,7 +374,7 @@ on the problem domain scope as follows:
 
         states that 280 units of product 45 are on shelf 5.
 
-2.  Attributes Related to [Disregard of Product Quantities](#cid-49448523-5e9b-4ed2-ac1a-6754d838b85c)
+-   Related to [Domain B](#cid-49448523-5e9b-4ed2-ac1a-6754d838b85c) and [Domain C](#cid-f8d8f6b9-771a-4b1d-a20d-1ce03f96086b)
 
     -   In case product quantities are ignored, the value of `on` is a single integer indicating the
         shelf, e.g.
@@ -491,23 +383,7 @@ on the problem domain scope as follows:
 
         states that product 45 is on shelf 5 in unlimited quantity.
 
-3.  Attributes Related to [Weight-Based Product Capacities](#cid-87f0ecc2-45ff-4d7c-8583-8b5ed4c5fbbe)
-
-    -   The weight of a product is indicated by attribute `weight`, e.g.
-
-            init(object(product, 1), value(weight, 4)).
-
-        states that product 1 has weight 4.
-
-4.  Attributes Related to [Volume-Based Product Capacities](#cid-8c423d59-0c08-422f-b94d-720a0b6908e2)
-
-    -   The volume of a product is indicated by attribute `volume`, e.g.
-
-            init(object(product, 1), value(volume, 15)).
-
-        states that product 1 has a volume 15.
-
-5.  Example
+-   Example(TODO)
 
         init(object(product, 1), value(volume, 5)).
         init(object(product, 1), value(subtype, 3)).
@@ -657,8 +533,8 @@ where
             -   tells the robot to deliver a product to fill a specific order
             -   is only applicable if robot is at a picking station
             -   takes as `<action-args>` a tuple comprised by
-                1. the object ID of the order
-                2. the object ID by the Product
+                4. the object ID of the order
+                5. the object ID by the Product
 -   `<time step>` is an integer constant equal to the time step when the action should be performed
 
 
