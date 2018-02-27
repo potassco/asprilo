@@ -17,7 +17,10 @@ complex nature of those settings makes them an ideal test bed for methods and te
 ASP. Beyond that, ASPRILO also supports any other solving approach that complies with its I/O
 interface.
 
-<iframe width="560" height="315" src="https://youtu.be/GHRwpWzL0j8" frameborder="0" allowfullscreen></iframe>
+<iframe width="49%" height="315" src="https://www.youtube.com/embed/ifYKHIvdnjw" frameborder="0" allowfullscreen align="left"></iframe>
+<iframe width="49%" height="315" src="https://www.youtube.com/embed/GHRwpWzL0j8" frameborder="0" allowfullscreen align="right"></iframe>
+
+&nbsp;
 
 # Key Components
 
