@@ -606,25 +606,3 @@ circles, picking stations as yellow and black striped squares, and highway nodes
     occurs(object(robot,1),action(move,(0,-1)),12).
     occurs(object(robot,2),action(deliver,(3,2,1)),12). % order line (2,1) of order 3 fulfilled
     occurs(object(robot,2),action(deliver,(3,3,1)),13). % order line (3,1) of order 3 fulfilled
-
-
-# Alternative Problem Domain Family: XAPF<a id="orga28d8ac"></a>
-
-In place of the [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b), we can use
-[**XAPF**](xapf.md), a family of multi-agent path-finding problems such as:
-
-- *(Anonymous) Multi-Agent Path Finding (MAPF)*
-- *Target Assignment and Path Finding (TAPF)*
-- *General Task Assignment and Path Finding (GTAPF)*
-
-In general, those domains portray a strong simplification of the default problem domain and hence
-offers a great starting point to address scalability issues. All further details can be found
-[here](xapf.md).
-
-
-# References<a id="orga18bdff"></a>
-
-
-# Footnotes
-
-<sup><a id="fn.1" href="#fnr.1">1</a></sup> Feature not yet supported by the instance generator.
