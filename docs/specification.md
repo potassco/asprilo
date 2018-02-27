@@ -444,7 +444,7 @@ This is an example rooted in [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629
 found in `./examples/default`.
 
 
-## Instance (`./examples/default/instance.asp`)<a id="org10e2bf4"></a>
+## Instance (`./examples/dom-a/medium/x19_y9_n171_r6_s45_ps3_pr180_u540_o12_N1.lp`)<a id="org10e2bf4"></a>
 
     %
     % Warehouse grid nodes
