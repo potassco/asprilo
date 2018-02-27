@@ -14,21 +14,23 @@ This is the user manual of the instance generator of [ASPRILO](index.md).
 
 # Requirements
 
-The instance generator requires ![PyYAML](https://github.com/yaml/pyyaml), e.g. install via
+The generator requires the following software installed on your system:
 
-    pip install pyyaml
+1. [clingo5](http://github.com/potassco/clingo), version 5.2.2 or later
+2. [Python interpreter version 2.7.x](http://www.python.org)
+3. [PyYAML](https://github.com/yaml/pyyaml).
 
 # Usage
 
-The script `./generator/ig` provides an instance generator with various configuration options, for
+The script `./generator/scripts/gen` provides an instance generator with various configuration options, for
 a detailed list and description run
 
-    ig -h
+    gen -h
 
 
 ## Example Instance Generations
 
-### Real-world-like Instances
+### Structured (Real-world-like) Instances
 
 -   Small instance with
     - 9x6 floor grid (`x 9 -y 6`)
@@ -45,7 +47,7 @@ a detailed list and description run
     via
 
     ``` bash
-    ig -x 9 -y 6 -X 3 -Y 2 -s 6 -p 1 -r 2 -H -P 4 -u 20 -o 4 --oap
+    gen -x 9 -y 6 -X 3 -Y 2 -s 6 -p 1 -r 2 -H -P 4 -u 20 -o 4 --oap
     ```
 
 
@@ -65,7 +67,7 @@ a detailed list and description run
     via
 
     ``` bash
-    ig -x 13 -y 12 -X 5 -Y 2 -s 30 -p 3 -r 5 -H -P 6 -u 32 -o 8 --oap
+    gen -x 13 -y 12 -X 5 -Y 2 -s 30 -p 3 -r 5 -H -P 6 -u 32 -o 8 --oap
     ```
 
 
@@ -84,7 +86,7 @@ a detailed list and description run
     via
 
     ``` bash
-    ig -x 10 -y 10 -s 50 -p 10 -r 30 -P 10 -u 40 -o 8 --oap
+    gen -x 10 -y 10 -s 50 -p 10 -r 30 -P 10 -u 40 -o 8 --oap
     ```
 
 -   Medium-size instance containing gaps with
@@ -101,7 +103,7 @@ a detailed list and description run
     via
 
     ``` bash
-    ig -x 20 -y 20 -n 360 -s 160 -p 20 -r 10 -P 12 -u 64 -o 10 --oap
+    gen -x 20 -y 20 -n 360 -s 160 -p 20 -r 10 -P 12 -u 64 -o 10 --oap
     ```
 
 
@@ -111,12 +113,16 @@ a detailed list and description run
 Instead of running the instance generator with a single configuration via command line parameters,
 there is also support for the batch generation of instances based on a range of different
 configurations specified in a batch file. Batch files are defined in ![YAML](yaml.org) syntax, for
-instance, the referential benchmark set is created via the batch files
+example the batch files
 
-- [`./generator/scripts/batch/referential-standard.yml`](../generator/scripts/batch/referential-standard.yml) and
-- [`./generator/scripts/batch/referential-random.yml`](../generator/scripts/batch/referential-random.yml)
+- [`./generator/scripts/batch/abc/structured.yml`](../generator/scripts/batch/abc/structured.yml) and
+- [`./generator/scripts/batch/abc/random.yml`](../generator/scripts/batch/abc/random.yml)
+
+create a set of structured and random instances, respectively, compatible with domains A, B and C.
 
 for standard and random instances, respectively. Moreover, a valid batch file always contains exactly two top-level dictionaries:
 
 - `global_settings` describing configuration parameters that should be used globally, i.e., for each instance generation job
 - `run_configs` describing the generation jobs represented as collection of different configurations
+
+Within `run_configs` user can define further (nested) dictionaries.

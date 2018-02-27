@@ -19,7 +19,7 @@ This is the user manual of the instance and plan visualizer of [ASPRILO](index.m
 
 The visualizer requires the following software installed on your system:
 
-1. [clingo5](http://github.com/potassco/clingo), version 5.3.0 or later
+1. [clingo5](http://github.com/potassco/clingo), version 5.2.2 or later
 2. [Python interpreter version 2.7.x](http://www.python.org)
 3. [Qt5](http://qt-project.org/qt5)
 4. [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/installation.html), version 5.6 or later

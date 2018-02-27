@@ -32,7 +32,7 @@ Essentially, ASPRILO provides the following components:
     - [instance generator](generator.md) that supports a plethora of customization options
     - [solution checker](checker.md) to check plans for all supported problem domains
     - [visualizer](visualizer.md) to display instances and plans
-    - [referential set of test instances](benchmarkset.md)
+    <!-- - [referential set of test instances](benchmarkset.md) -->
 
 # Development
 
