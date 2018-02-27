@@ -401,7 +401,7 @@ on the problem domain scope as follows:
 
 [Orders](#org9eaff1c) use object-type `order` for their specification.
 
-1.  Attributes Related to [Domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b)
+-   Related to All Domains:
 
     -   Lines of an order, i.e., requests of products in a certain quantity, are indicated by
         attribute `line`, e.g.,
@@ -411,7 +411,7 @@ on the problem domain scope as follows:
 
         states that order 7 requests 2 units of product 467, and 12 units of product 77.
 
-2.  Attributes Related to [Order Assignment to Picking Stations](#cid-58b1d9d1-786b-4f92-b233-ddeb1e29dbb9)
+-   Related to All Domains Except for Domain M:
 
     -   The picking station of an order is indicated by attribute `pickingStation`, e.g.
 
@@ -419,15 +419,7 @@ on the problem domain scope as follows:
 
         states that order 7 is assigned to picking station 4.
 
-3.  Attributes Related to [Expiring Orders](#cid-88ef4c01-95a6-45f6-9d2c-b3b3c493964e)
-
-    -   The expiration timeout of an order is indicated by attribute `expirationTimeOut`, e.g.
-
-            init(object(order, 7), value(expirationTimeOut, 20).
-
-        states that order 7 expires 20 time steps after the time step of its arrival.
-
-4.  Example
+-   Example(TODO)
 
         init(object(order, 1), value(line, (5, 30))).
         init(object(order, 1), value(pickingStation, 2)).
