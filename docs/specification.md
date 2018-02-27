@@ -441,10 +441,12 @@ where
 # Example Instance and Plan<a id="org3cd67c7"></a>
 
 This is an example rooted in [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b). All files related to this example can be
-found in `./examples/default`.
+found in `./examples/dom-a/medium/`.
 
 
-## Instance (`./examples/dom-a/medium/x19_y9_n171_r6_s45_ps3_pr180_u540_o12_N1.lp`)<a id="org10e2bf4"></a>
+## Instance Data<a id="org10e2bf4"></a>
+
+Located at `./examples/dom-a/medium/x19_y9_n171_r6_s45_ps3_pr180_u540_o12_N1.lp`
 
     %
     % Warehouse grid nodes
