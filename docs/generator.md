@@ -234,6 +234,43 @@ a detailed list and description run
                             facts; takes as arguments 1.) the number of warehouses
                             and 2.) the orders per warehouse to create, resp.
 
+# Name Convention for Instance Files
+
+Generated instance files are automatically named in adherence to the scheme
+
+    x<X>_y<X>_n<N>_r<R>_s<S>_ps<PS>_pr<PR>_u<U>_o<o>_N<NI>.lp
+
+where
+
+- `<X>` is the maximum x-dimension
+- `<Y>` is the maximum y-dimension
+- `<N>` is the number of nodes
+- `<R>` is the number of robots
+- `<S>` is the number of shelves
+- `<PS>` is the number of picking stations
+- `<PR>` is the number of products
+- `<U>` is the number of product units globally, i.e., total across all products
+- `<O>` is the number of orders
+- `<NI>` is the instance count number
+
+Example
+
+    x10_y10_n100_r5_s20_ps5_pr5_u48_o6_N003.lp
+
+is an instance where
+
+- `10` is the maximum x-dimension
+- `10` is the maximum y-dimension
+- `100` is the number of nodes
+- `5` is the number of robots
+- `20` is the number of shelves
+- `5` is the number of picking stations
+- `5` is the number of products
+- `48` is the number of product units globally, i.e., total across all products
+- `6` is the number of orders
+- `3` is the instance count number
+
+
 ## Example Generation Calls
 
 ### Structured (Real-world-like) Instances
