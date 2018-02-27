@@ -443,10 +443,14 @@ where
 This is an example rooted in [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b). All files related to this example can be
 found in `./examples/dom-a/small/`.
 
-
 ## Instance<a id="org10e2bf4"></a>
 
-Located at `./examples/dom-a/small/x11_y6_n66_r3_s12_ps2_pr5_u50_o3_N001.lp`
+Visualization of the instance below (robots are depicted as single colored squares, shelves as
+circles, picking stations as yellow and black striped squares, and highway nodes as gray fields):
+
+![img](img/example_inst.png "Visualization of instance `./examples/dom-a/small/x11_y6_n66_r3_s12_ps2_pr5_u50_o3_N001.lp`")
+
+Instance file at `./examples/dom-a/small/x11_y6_n66_r3_s12_ps2_pr5_u50_o3_N001.lp`:
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Grid Size X:                      11
@@ -638,43 +642,91 @@ Located at `./examples/dom-a/small/x11_y6_n66_r3_s12_ps2_pr5_u50_o3_N001.lp`
     init(object(order,3),value(line,(3,1))).
     init(object(order,3),value(pickingStation,2)).
 
-Visualization of the instance below (robots are depicted as single colored squares, shelves as
-circles, picking stations as yellow and black striped squares, and highway nodes as gray fields):
-
-![img](img/example_inst.png "Visualization of instance `./examples/dom-a/small/x11_y6_n66_r3_s12_ps2_pr5_u50_o3_N001.lp`")
-
 
 ## Possible Plan<a id="org0cd8844"></a>
 
-Located at `./examples/dom-a/small/outcome.txt`
-
-
-    occurs(object(robot,1),action(move,(0,-1)),1).
-    occurs(object(robot,2),action(move,(0,-1)),1).
-    occurs(object(robot,1),action(move,(0,-1)),2).
-    occurs(object(robot,2),action(move,(1,0)),2).
-    occurs(object(robot,1),action(move,(0,-1)),3).
-    occurs(object(robot,2),action(move,(0,-1)),3).
-    occurs(object(robot,1),action(move,(0,-1)),4).
-    occurs(object(robot,2),action(pickup,()),4).
-    occurs(object(robot,1),action(move,(1,0)),5).
-    occurs(object(robot,2),action(move,(1,0)),5).
-    occurs(object(robot,2),action(move,(0,-1)),6).
-    occurs(object(robot,1),action(pickup,()),6).
-    occurs(object(robot,1),action(move,(1,0)),7).
-    occurs(object(robot,2),action(move,(0,-1)),7).
-    occurs(object(robot,2),action(move,(0,-1)),8).
-    occurs(object(robot,1),action(move,(-1,0)),9).
-    occurs(object(robot,2),action(move,(0,-1)),9).
-    occurs(object(robot,2),action(deliver,(2,1,5)),10). % order line (1,5) of order 2 fulfilled
-    occurs(object(robot,2),action(deliver,(1,1,2)),11). % order line (1,2) of order 1 fulfilled
-    occurs(object(robot,1),action(move,(0,-1)),12).
-    occurs(object(robot,2),action(deliver,(3,2,1)),12). % order line (2,1) of order 3 fulfilled
-    occurs(object(robot,2),action(deliver,(3,3,1)),13). % order line (3,1) of order 3 fulfilled
-
-
-## Plan Visualization
-
-Above's plan played back in our visualizer:
+Visualization of the plan:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/ifYKHIvdnjw" frameborder="0" allowfullscreen></iframe>
+
+Plan file at `./examples/dom-a/small/outcome.txt`:
+
+    occurs(object(robot,1),action(move,(1,0)),1).
+    occurs(object(robot,2),action(move,(0,-1)),1).
+    occurs(object(robot,3),action(move,(0,-1)),1).
+    occurs(object(robot,1),action(move,(1,0)),2).
+    occurs(object(robot,2),action(move,(0,-1)),2).
+    occurs(object(robot,3),action(move,(0,-1)),2).
+    occurs(object(robot,1),action(move,(1,0)),3).
+    occurs(object(robot,3),action(move,(0,-1)),3).
+    occurs(object(robot,1),action(move,(1,0)),4).
+    occurs(object(robot,2),action(move,(1,0)),4).
+    occurs(object(robot,3),action(pickup,()),4).
+    occurs(object(robot,1),action(move,(0,-1)),5).
+    occurs(object(robot,3),action(move,(0,-1)),5).
+    occurs(object(robot,1),action(move,(0,-1)),6).
+    occurs(object(robot,2),action(move,(1,0)),6).
+    occurs(object(robot,3),action(move,(0,-1)),6).
+    occurs(object(robot,1),action(move,(0,-1)),7).
+    occurs(object(robot,2),action(move,(1,0)),7).
+    occurs(object(robot,3),action(move,(1,0)),7).
+    occurs(object(robot,2),action(move,(1,0)),8).
+    occurs(object(robot,1),action(pickup,()),8).
+    occurs(object(robot,3),action(deliver,(1,4,1)),8).
+    occurs(object(robot,1),action(move,(0,-1)),9).
+    occurs(object(robot,2),action(move,(1,0)),9).
+    occurs(object(robot,3),action(move,(1,0)),9).
+    occurs(object(robot,1),action(move,(-1,0)),10).
+    occurs(object(robot,2),action(move,(0,-1)),10).
+    occurs(object(robot,3),action(move,(1,0)),10).
+    occurs(object(robot,1),action(move,(0,-1)),11).
+    occurs(object(robot,2),action(move,(1,0)),11).
+    occurs(object(robot,3),action(move,(1,0)),11).
+    occurs(object(robot,3),action(move,(1,0)),12).
+    occurs(object(robot,2),action(pickup,()),12).
+    occurs(object(robot,1),action(deliver,(1,2,7)),12).
+    occurs(object(robot,1),action(move,(1,0)),13).
+    occurs(object(robot,2),action(move,(1,0)),13).
+    occurs(object(robot,3),action(deliver,(3,3,1)),13).
+    occurs(object(robot,1),action(move,(1,0)),14).
+    occurs(object(robot,2),action(putdown,()),14).
+    occurs(object(robot,3),action(deliver,(2,5,10)),14).
+    occurs(object(robot,1),action(move,(1,0)),15).
+    occurs(object(robot,2),action(move,(-1,0)),15).
+    occurs(object(robot,3),action(move,(0,1)),15).
+    occurs(object(robot,1),action(move,(1,0)),16).
+    occurs(object(robot,2),action(move,(-1,0)),16).
+    occurs(object(robot,3),action(move,(0,1)),16).
+    occurs(object(robot,3),action(putdown,()),17).
+    occurs(object(robot,3),action(move,(0,1)),18).
+    occurs(object(robot,2),action(pickup,()),18).
+    occurs(object(robot,1),action(deliver,(2,5,1)),18).
+    occurs(object(robot,2),action(move,(-1,0)),19).
+    occurs(object(robot,3),action(move,(-1,0)),19).
+    occurs(object(robot,1),action(deliver,(2,5,4)),19).
+    occurs(object(robot,2),action(move,(0,-1)),20).
+    occurs(object(robot,3),action(pickup,()),20).
+    occurs(object(robot,2),action(move,(0,-1)),21).
+    occurs(object(robot,3),action(move,(0,-1)),21).
+    occurs(object(robot,2),action(move,(-1,0)),22).
+    occurs(object(robot,3),action(move,(0,-1)),22).
+    occurs(object(robot,1),action(deliver,(2,4,1)),22).
+    occurs(object(robot,2),action(move,(-1,0)),23).
+    occurs(object(robot,3),action(move,(0,-1)),23).
+    occurs(object(robot,1),action(deliver,(2,5,5)),23).
+    occurs(object(robot,1),action(move,(0,1)),24).
+    occurs(object(robot,3),action(move,(1,0)),24).
+    occurs(object(robot,2),action(deliver,(1,4,1)),24).
+    occurs(object(robot,1),action(move,(-1,0)),25).
+    occurs(object(robot,3),action(deliver,(3,1,2)),25).
+    occurs(object(robot,1),action(move,(0,1)),26).
+    occurs(object(robot,3),action(move,(0,1)),26).
+    occurs(object(robot,2),action(deliver,(1,2,4)),26).
+    occurs(object(robot,1),action(move,(0,1)),27).
+    occurs(object(robot,2),action(move,(0,1)),27).
+    occurs(object(robot,3),action(move,(-1,0)),27).
+    occurs(object(robot,2),action(move,(0,1)),28).
+    occurs(object(robot,3),action(move,(0,1)),28).
+    occurs(object(robot,1),action(putdown,()),29).
+    occurs(object(robot,2),action(putdown,()),29).
+    occurs(object(robot,3),action(putdown,()),29).
