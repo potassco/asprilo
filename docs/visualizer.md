@@ -10,7 +10,7 @@ output:
 
 # About
 
-This is the user manual of the instance and plan visualizer of [ASPRILO](index.md).
+This is the user manual of the instance and plan visualizer of [asprilo](index.md).
 
 
 # Requirements

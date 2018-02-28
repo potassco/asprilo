@@ -10,7 +10,7 @@ output:
 
 # About
 
-This is the user manual of the instance generator of [ASPRILO](index.md).
+This is the user manual of the instance generator of [asprilo](index.md).
 
 # Requirements
 

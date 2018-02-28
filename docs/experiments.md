@@ -10,7 +10,7 @@ output:
 
 # About
 
-This is a collection of notes and data on our conducted experiments with [ASPRILO](index.md).
+This is a collection of notes and data on our conducted experiments with [asprilo](index.md).
 
 # Evaluation 2018-02
 

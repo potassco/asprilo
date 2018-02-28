@@ -10,7 +10,7 @@ output:
 
 # About
 
-This is the problem specification of [ASPRILO](index.md). Subsequently, we
+This is the problem specification of [asprilo](index.md). Subsequently, we
 
 - gradually specify the problem domain in different variations, beginning with the default scope
 - stipulate the technical instance and plan format
@@ -19,7 +19,7 @@ This is the problem specification of [ASPRILO](index.md). Subsequently, we
 
 # Domain A: The General Problem<a id="cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b"></a>
 
-ASPRILO's benchmark scenario is inspired by intra-logistics and warehouse automation systems based
+asprilo's benchmark scenario is inspired by intra-logistics and warehouse automation systems based
 on multiple mobile robots and shelves. Its main goal is order fulfilment in a warehouse, i.e., order
 picking and sortation for a given set of product orders. Specifically, the warehouse floor is laid
 out as a 2-dimensional grid. Products are stored in shelves, each located in a single grid

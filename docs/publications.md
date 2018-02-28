@@ -10,7 +10,7 @@ output:
 
 # About
 
-A list of publications related to [ASPRILO](index.md).
+A list of publications related to [asprilo](index.md).
 
 # Publications
 

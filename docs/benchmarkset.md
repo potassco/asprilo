@@ -1,10 +1,10 @@
 # About
 
-This is the description of the pre-generated benchmark instance sets for ASPRILO.
+This is the description of the pre-generated benchmark instance sets for asprilo.
 
 # Instance Sets
 
-The latest [ASPRILO release](https://github.com/potassco/asprilo/releases) provides a set of
+The latest [asprilo release](https://github.com/potassco/asprilo/releases) provides a set of
 pre-generated instances `instances.tar.gz` with the following directory structure:
 
     ├── abc

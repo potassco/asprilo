@@ -8,13 +8,13 @@ output:
         toc_float: true
 ---
 
-# What is ASPRILO?
+# What is *asprilo*?
 
-**ASPRILO** is a benchmark suite for [answer set programming
+**asprilo** is a benchmark suite for [answer set programming
 (ASP)](https://en.wikipedia.org/wiki/Answer_set_programming), based on typical scenarios in
 intra-logistics and warehouse automation with multiple mobile robots. Specifically, the diverse and
 complex nature of those settings makes them an ideal test bed for methods and technologies in
-ASP. Beyond that, ASPRILO also supports any other solving approach that complies with its I/O
+ASP. Beyond that, asprilo also supports any other solving approach that complies with its I/O
 interface.
 
 <iframe width="49%" height="315" src="https://www.youtube.com/embed/ifYKHIvdnjw" frameborder="0" allowfullscreen align="left"></iframe>
@@ -23,7 +23,7 @@ interface.
 
 # Key Components
 
-ASPRILO provides the following essential components:
+asprilo provides the following essential components:
 
 -   A detailed [problem specification](specification.md), stipulating the problem domain including variations as well as
     the technical I/O format
@@ -39,4 +39,4 @@ The source code of the project is available at <https://github.com/potassco/aspr
 
 # Experiments
 
-Information about our conducted experiments with ASPRILO can be found [here](experiments.md).
+Information about our conducted experiments with asprilo can be found [here](experiments.md).

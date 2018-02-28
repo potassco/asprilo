@@ -10,7 +10,7 @@ output:
 
 # About
 
-This is the user manual of the solution checker of [ASPRILO](index.md).
+This is the user manual of the solution checker of [asprilo](index.md).
 
 
 # Encoding Structure
