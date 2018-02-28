@@ -29,7 +29,7 @@ err(deliver, noOrder, (R, T)) :-     occurs(object(robot,           R ), action(
 
 % Robot delivers higher amount than requested
 err(deliver, orderAmount, (R, T)) :- occurs(object(robot, R), action(deliver, (O, P, Q)), T);
-                                     holds( object(order, O), value( line,    (P, RQ)  ), T);
+                                     holds( object(order, O), value( line,    (P, RQ)  ), T-1);
                                      Q > RQ.
 
 % Robot delivers higher amount than available on shelf
