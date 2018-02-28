@@ -63,7 +63,8 @@ This is a collection of notes and data on our conducted experiments with [ASPRIL
 -   Subsequently, we will use the naming convention `RxCxL` for structured instance layouts where
     - `R` is the number of rows of storage zones
     - `C` is the number of columns of storage zones
-    - `L` is the length in x-coordinates of storage zones (hint: for structured layouts, the height in y-coordinates of storage zones is fixed to 2 by definition)
+    - `L` is the length in x-coordinates of storage zones (hint: for structured layouts, the height
+      in y-coordinates of storage zones is fixed to 2 by definition)
 -   On the top level, the instances are divided up into three sizes of structured warehouse layouts:
     - 1x2x4 aka *small*
     - 2x3x5 aka *medium*
