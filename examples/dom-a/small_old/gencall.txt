@@ -1,1 +1,0 @@
-gen -x 11 -y 6 -X4 -Y 2 -p 1 -s 6 -r 3 -P 10 -u 20 --sprmax 2 --prsmax 3 -o 3  --olmax 2 -H
