@@ -68,22 +68,37 @@ where
 E.g., for the A domain and instance `./examples/a/instance.asp`, the (invalid) plan
 `./examples/a/wrong_outcome.txt` can be checked via
 
-    clingo ./checker/encodings/a/checker.lp ./examples/a/instance.asp \
-           ./examples/a/wrong_outcome.txt --out-ifs="\n"|grep err
+    clingo ./checker/encodings/a/checker.lp ./examples/a/small/x11_y6_n66_r3_s12_ps2_pr5_u50_o3_N001.lp \
+           ./examples/a/small/wrong_outcome.txt --out-ifs="\n"|grep err
 
 which yields:
 
-    err(goal,unfilledOrder,(3,3,1,11))
-    err(goal,unfilledOrder,(3,2,1,11))
+    err(deliver,orderAmount,(1,23))
+    err(deliver,shelfAmount,(1,23))
+    err(goal,unfilledOrder,(1,2,1,29))
 
-Those `err/3` facts are defined in `./checker/encodings/a/goal` by rule
+Those `err/3` facts are defined in `./checker/encodings/a/action-deliver.lp` and
+`./checker/encodings/a/goal.lp` by rules:
+
+    err(deliver, orderAmount, (R, T)) :- occurs(object(robot, R), action(deliver, (O, P, Q)), T);
+                                         holds( object(order, O), value( line,    (P, RQ)  ), T-1);
+                                         Q > RQ.
+
+
+    err(deliver, shelfAmount, (R, T)) :- occurs(object(robot, R),   action(deliver, (O, P, Q)), T);
+                                         holds( object(robot, R),   value(carries,  S        ), T-1);
+                                         holds( object(product, P), value(on,     (S, SQ)  )  , T-1);
+                                         Q > SQ.
+
 
     err(goal, unfilledOrder, (O, P, Q, H)) :- holds(object(order, O), value(line, (P, Q)), H);
                                               horizon(H).
 
-that indicates, that there are still unfulfilled orders at the end of the plan. Specifically,
+that indicate that the plan contains inconsistencies with respect to the domain definition. Specifically,
 
-- `err(goal,unfilledOrder,(3,3,1,11))` indicates that order `O = 3` still requires `Q = 1` units of
-  product `P = 3`.
-- `err(goal,unfilledOrder,(3,2,1,11))` indicates that order `O = 3` still requires `Q = 1` units of
-  product `P = 2`.
+- `err(deliver,orderAmount,(1,23))` indicates that robot `1` delivered more products than requested
+  at time step `23`
+- `err(deliver,shelfAmount,(1,23))` indicates that robot `1` removed from the shelf it carries more
+  than the available amount of a product at time step `23`
+- `err(goal,unfilledOrder,(1,2,1,29))` indicates that order `1` still requires `1` units of product
+  `2` at the final time step `29`.
