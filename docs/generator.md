@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: generator
 output:
     html_document:

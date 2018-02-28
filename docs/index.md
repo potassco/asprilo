@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: index
 output:
     html_document:
@@ -20,7 +20,6 @@ interface.
 <iframe width="49%" height="315" src="https://www.youtube.com/embed/ifYKHIvdnjw" frameborder="0" allowfullscreen align="left"></iframe>
 <iframe width="49%" height="315" src="https://www.youtube.com/embed/GHRwpWzL0j8" frameborder="0" allowfullscreen align="right"></iframe>
 
-&nbsp;
 
 # Key Components
 
