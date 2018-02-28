@@ -1,6 +1,5 @@
 % = ACTION: DELIVER ================================================================================
 
-% Action deliver is only implicit!
 
 % - Domain ---------------------------------------------------------------------
 
@@ -16,7 +15,7 @@ err(deliver, notAtPS, (R, T)) :-     occurs(object(robot,          R), action(de
                                  not holds(object( pickingStation, _), value( at,      (X, Y)   ), T-1).
 
 % Robot not carrying a shelf
-err(delive, noShelf, (R, T))  :-     occurs(object(robot, R), action(deliver, (_, _, _)), T);
+err(deliver, noShelf, (R, T))  :-     occurs(object(robot, R), action(deliver, (_, _, _)), T);
                                      { holds( object(robot, R), value( carries, S ), T-1) :
                                        holds( object(shelf, S), _                  , T-1) } < 1.
 
@@ -27,12 +26,3 @@ err(deliver, noOrder, (R, T)) :-     occurs(object(robot,           R ), action(
                                      holds( object( pickingStation, PS), value( at,              (X, Y)   ), T-1);
                                      holds( object(order,           O ), value( pickingStation,  PS       ), T-1);
                                  not holds(object(order,            O ), value( line,            (P, _)   ), T-1).
-
-% Robot delivers higher amount than requested
-err(deliver, orderAmount, (R, T)) :- occurs(object(robot, R), action(deliver, (O, P, Q)), T);
-                                     holds( object(order, O), value( line,    (P, RQ)  ), T);
-                                     Q > RQ.
-
-
-% - Book-Keeping: Related Inertia Abnormals ---------------------------------------
-%
