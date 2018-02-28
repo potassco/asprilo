@@ -1,10 +1,10 @@
-% = CHECKER ENCODINGS FOR THE DEFAULT PROBLEM DOMAIN ===========================
+% = CHECKER ENCODINGS FOR THE M PROBLEM DOMAIN ===========================
 
 % - Initial Setup --------------------------------------------------------------
 %
 %   Sets up inital state, horizon and general inertia axiom
 
-#include "../default/init.lp".
+#include "../a/init.lp".
 
 
 % - Checks and Book-Keeping Entailments Per Action -----------------------------
@@ -17,7 +17,7 @@
 
 % - Checks for Static Law Violations -------------------------------------------
 
-#include "../default/static.lp".
+#include "../a/static.lp".
 
 
 % - Goal condition -------------------------------------------------------------
@@ -30,4 +30,4 @@
 #include "fulfillment.lp".
 
 % General goal
-#include "../default/goal.lp".
+#include "../a/goal.lp".
