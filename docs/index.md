@@ -24,7 +24,7 @@ interface.
 
 # Key Components
 
-Essentially, ASPRILO provides the following components:
+ASPRILO provides the following essential components:
 
 -   A detailed [problem specification](specification.md), stipulating the problem domain including variations as well as
     the technical I/O format
@@ -40,4 +40,4 @@ The source code of the project is available at <https://github.com/potassco/aspr
 
 # Experiments
 
-Information about our experiments with ASPRILO can be found [here](experiments.md).
+Information about our conducted experiments with ASPRILO can be found [here](experiments.md).
