@@ -1,0 +1,81 @@
+# Referential instance set compartmentalized into relevant sub-domains.
+
+global_settings: { '-N': 30, '--prs': 1, '--spr': 1, '--pus': 2, '--olmin': 2, '--olmax': 2 }
+
+run_configs:
+  abc:
+    structured:
+      # = Standard Warehouse Layout ======================================================================
+      #
+      #     Typical warehouse layout with rectangular shelf clusters, symmetrically placed in a
+      #     Manhattan-style grid
+      #
+      # Rectangular shelf clusters of fixed height 2 ------------------------------------------------
+      # - Format: #rows x #columns x storage-cluster-length
+      # - Starting with 1x2x4
+      # - Scale increments:
+      #    - #rows = k * (k-1) / 2 + 1
+      #    - #columns = #rows + 1
+      #    - storage-cluster-length = #rows + 3
+      #    for k = 1, 2, 3, 4, ...
+      scaled-moo:
+        1x2x4: # Frankly, too easy for moo, but interesting for comparison with more expressive sub-domains
+          100sc:
+            args: { '-x':  11, '-y':  6, '-X':   4, '-Y':  2, '-p':   1, '-s':  16, '-P': 16, '-u': 32, '-H': True }
+            r02:
+              args:
+                - { '-r':  2, '-o':  2 }
+            r05:
+              args:
+                - { '-r':  5, '-o':  5 }
+            r08:
+              args:
+                - { '-r':  8, '-o':  8 }
+            r11:
+              args:
+                - { '-r': 11, '-o': 11 }
+        2x3x5:
+          100sc:
+            args: { '-x':  19, '-y':  9, '-X':   5, '-Y':  2, '-p':   3, '-s':  60, '-P': 60, '-u': 120, '-H': True }
+            r05:
+              args:
+                - { '-r':  5, '-o':  5 }
+            r10:
+              args:
+                - { '-r': 10, '-o': 10 }
+            r15:
+              args:
+                - { '-r': 15, '-o': 15 }
+            r19:
+              args:
+                - { '-r': 19, '-o': 19 }
+        4x5x8:
+          100sc:
+            args: { '-x':  46, '-y':  15, '-X':   8, '-Y':  2, '-p':  10, '-s': 320, '-P': 320, '-u': 640, '-H': True }
+            r12:
+              args:
+                - { '-r': 12, '-o': 12 }
+            r23:
+              args:
+                - { '-r': 23, '-o': 23 }
+            r35:
+              args:
+                - { '-r': 35, '-o': 35 }
+            r46:
+              args:
+                - { '-r': 46, '-o': 46 }
+        7x8x10:
+          100sc:
+            args: { '-x': 89, '-y':  24, '-X':  10, '-Y':  2, '-p':  23, '-s': 1120, '-P': 1120, '-u': 2240, '-H': True }
+            r23:
+              args:
+                - { '-r':  23, '-o':  23 }
+            r45:
+              args:
+                - { '-r':  45, '-o':  45 }
+            r68:
+              args:
+                - { '-r':  68, '-o':  68 }
+            r89:
+              args:
+                - { '-r':  89, '-o':  89 }

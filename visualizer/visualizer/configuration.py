@@ -3,6 +3,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 import os
+import sys
 
 class ConfigEntry(object):
     def __init__(self, read_value, default_value, to_string, display_name = None):
@@ -15,10 +16,16 @@ class ConfigEntry(object):
 class Configuration(object):
     def __init__(self, args = None):
         self._config_parser = RawConfigParser()
-        self._scroll_area = None
         self._widget = None
         self._text_edits = []
-        self._file_name = 'config/init.cfg'
+
+        if not os.path.isdir(os.path.expanduser('~/.config/asprilo')):
+            os.makedirs(os.path.expanduser('~/.config/asprilo'))
+
+        if not os.path.isdir(os.path.expanduser('~/.config/asprilo/visualizer')):
+            os.makedirs(os.path.expanduser('~/.config/asprilo/visualizer'))
+
+        self._file_name = os.path.expanduser('~/.config/asprilo/visualizer/init.cfg')
     
         self._values = {}
         self.init_defaults()
@@ -48,21 +55,29 @@ class Configuration(object):
                         ('network', 'port_simulator') : ConfigEntry(self._read_str_from_config, '5001', str, 'simulator port'),
                         ('network', 'host_simulator') : ConfigEntry(self._read_str_from_config, '127.0.0.1', str, 'simulator host'),
                         ('network', 'command_line_solver') : ConfigEntry(self._read_str_from_config, 
-                                                                            './solver_inc.py --port 5000', str, 
+                                                                            '__dir__/solver_inc.py --port 5000', str,
                                                                             'solver command line'),
-                        ('network', 'command_line_simulator') : ConfigEntry(self._read_str_from_config, 
-                                                                                './simulator.py --port 5001', str, 
+                        ('network', 'command_line_simulator') : ConfigEntry(self._read_str_from_config,
+                                                                                '__dir__/simulator.py --port 5001', str,
                                                                                 'simulator command line'),
                         ('visualizer', 'step_time') : ConfigEntry(self._read_int_from_config, 1200, str, 'step time'),
                         ('visualizer', 'auto_solve') : ConfigEntry(self._read_bool_from_config, False, str, 'auto solving'),
                         ('visualizer', 'create_pngs') : ConfigEntry(self._read_bool_from_config, True, str, 'create png files'),
                         ('visualizer', 'file_filters') : ConfigEntry(self._read_str_from_config, '*.lp', str, 'file browser filter'),
+
+                        ('controls', 'step_speed_up') : ConfigEntry(self._read_str_from_config, 'Right', str, 'speed up'),
+                        ('controls', 'step_slow_down') : ConfigEntry(self._read_str_from_config, 'Left', str, 'slow down'),
+                        ('controls', 'do_step') : ConfigEntry(self._read_str_from_config, 'Up', str, 'do one step'),
+                        ('controls', 'do_backstep') : ConfigEntry(self._read_str_from_config, 'Down', str, 'undo one step'),
+                        ('controls', 'pause') : ConfigEntry(self._read_str_from_config, 'Space', str, 'pause'),
+                        ('controls', 'zoom_out') : ConfigEntry(self._read_str_from_config, '-', str, 'zoom out'),
+                        ('controls', 'zoom_in') : ConfigEntry(self._read_str_from_config, '+', str, 'zoom in'),
                         }
         self.read_file()
 
     def read_file(self):
-        if not os.path.isdir('config'):
-            os.makedirs('config')
+        if not os.path.isdir(os.path.dirname(sys.argv[0]) + '/config'):
+            os.makedirs(os.path.dirname(sys.argv[0]) + '/config')
         for key in self._values:
             if not self._config_parser.has_section(key[0]):
                 self._config_parser.add_section(key[0])
@@ -86,6 +101,9 @@ class Configuration(object):
             return 0
         except:
             return -1
+    
+    def string_to_key(self, string):
+         sequence = QKeySequence(string)
 
     def _read_str_from_config(self, section, value, default = ''):
         try: 
@@ -141,47 +159,52 @@ class Configuration(object):
         return value.current_value
 
     def create_widget(self):
-        self._scroll_area = QScrollArea()
-        self._widget = QWidget()
+        self._widget = QTabWidget()
         self._widget.setWindowTitle('Settings')
-        self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self._scroll_area.setWidget(self._widget)
 
-        y = 5
+        content_widget = None
+
         for section in self._config_parser.sections():
+            y = 5
+            content_widget = QWidget()
+            scroll_area = QScrollArea()
+            scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+            scroll_area.setWidget(content_widget)
+            self._widget.addTab(scroll_area, section)
             for option in sorted(self._config_parser.options(section)):
                 if (section, option) in self._values:
 
                     entry = self._values[(section, option)]
-                    text = QLineEdit(self._widget)
+                    text = QLineEdit(content_widget)
                     if entry.display_name is None:
                         text.setText(option + ':')
                     else:
                         text.setText(entry.display_name + ': ')
                     text.setReadOnly(True)
-                    text.resize(200, 30)
+                    text.resize(240, 30)
                     text.move(0,y)
 
-                    value_text = QLineEdit(self._widget)
+                    value_text = QLineEdit(content_widget)
                     value_text.setText(self._config_parser.get(section, option))
-                    value_text.resize(200, 30)
-                    value_text.move(210,y)
+                    value_text.resize(240, 30)
+                    value_text.move(250,y)
                     self._text_edits.append(value_text)
                     y += 35
+            ok_button = QPushButton('Ok', content_widget)
+            ok_button.clicked.connect(self.on_ok)
+            ok_button.move(20,y)
 
-        ok_button = QPushButton('Ok', self._widget)
-        ok_button.clicked.connect(self.on_ok)
-        ok_button.move(20,y)
+            cancel_button = QPushButton('Cancel', content_widget)
+            cancel_button.clicked.connect(self.on_cancel)
+            cancel_button.move(140,y)
+            content_widget.adjustSize()
 
-        cancel_button = QPushButton('Cancel', self._widget)
-        cancel_button.clicked.connect(self.on_cancel)
-        cancel_button.move(140,y)
-        self._widget.adjustSize()
+        self._widget.setFixedWidth(520)
 
     def show_widget(self):
-        if self._scroll_area is None:
+        if self._widget is None:
             self.create_widget()
-        self._scroll_area.show()
+        self._widget.show()
         
     def on_ok(self, event):
         it = iter(self._text_edits)
@@ -193,21 +216,31 @@ class Configuration(object):
         with open(self._file_name, 'wb') as configfile:
             self._config_parser.write(configfile)
         self.read_values()
-        self._scroll_area.hide()
+        self._widget.hide()
 
     def on_cancel(self, event):
-        self._scroll_area.hide()
+        self._widget.hide()
+
+    def close_widget(self):
+        if self._widget is not None:
+            self._widget.close()
 
 #low level configuration
 class LLConfiguration(Configuration):
 
     def __init__(self):
         super(self.__class__, self).__init__()
-        self._file_name = None
+        if not os.path.isdir(os.path.expanduser('~/.config/asprilo')):
+            os.makedirs(os.path.expanduser('~/.config/asprilo'))
+
+        if not os.path.isdir(os.path.expanduser('~/.config/asprilo/visualizer')):
+            os.makedirs(os.path.expanduser('~/.config/asprilo/visualizer'))
 
     def init_defaults(self, args = None):
         if args is None:
-            self._file_name = 'config/mdefault.cfg'
+            return
+        elif args.mode == 'complete':
+            self._file_name = os.path.expanduser('~/.config/asprilo/visualizer/mcomplete.cfg')
             self._values = {
                         ('features', 'orders') : ConfigEntry(self._read_bool_from_config, True, str, 'orders'),
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, True, str, 'products'),
@@ -215,8 +248,8 @@ class LLConfiguration(Configuration):
                         ('features', 'debug') : ConfigEntry(self._read_bool_from_config, False, str, 'debug'),
                         ('features', 'load_files') : ConfigEntry(self._read_str_from_config, '', str, 'load files'),
                         }
-        elif args.mode == 'aspilro':
-            self._file_name = 'config/maspilro.cfg'
+        elif args.mode == 'asprilo':
+            self._file_name = os.path.expanduser('~/.config/asprilo/visualizer/masprilo.cfg')
             self._values = {
                         ('features', 'orders') : ConfigEntry(self._read_bool_from_config, True, str, 'orders'),
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, True, str, 'products'),
@@ -225,13 +258,15 @@ class LLConfiguration(Configuration):
                         ('features', 'load_files') : ConfigEntry(self._read_str_from_config, '', str, 'load files'),
                         }
         elif args.mode == 'gtapf':
-            self._file_name = 'config/mgtapf.cfg'
+            self._file_name = os.path.expanduser('~/.config/asprilo/visualizer/mgtapf.cfg')
             self._values = {
                         ('features', 'orders') : ConfigEntry(self._read_bool_from_config, False, str, 'orders'),
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, False, str, 'products'),
                         ('features', 'tasks') : ConfigEntry(self._read_bool_from_config, True, str, 'tasks'),
                         ('features', 'debug') : ConfigEntry(self._read_bool_from_config, False, str, 'debug'),
-                        ('features', 'load_files') : ConfigEntry(self._read_str_from_config, './encodings/converter.lp', str, 'load files'),
+                        ('features', 'load_files') : ConfigEntry(self._read_str_from_config,
+                                                            os.path.dirname(sys.argv[0]) +  '/encodings/converter.lp',
+                                                            str, 'load files'),
                         }
         elif args.debug:
             self.set_value('features', 'debug', True)

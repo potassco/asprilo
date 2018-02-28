@@ -98,7 +98,7 @@ class AspParser(object):
 
                 value_name = str(value.arguments[0])
                 value_value = value.arguments[1]
-                item = self._model.get_item(kind, ID, True, True)
+                item = self._model.get_item(kind, ID, True, self._model.get_editable())
                 if item is not None:
                     result = item.parse_init_value(value_name,
                                                     value_value)
@@ -119,9 +119,11 @@ class AspParser(object):
                     if value_value.arguments is None:
                         shelf = self._model.get_item('shelf', value_value, True, True)
                         shelf.set_product_amount(ID, 0)
+                        return
                     else:
                         shelf = self._model.get_item('shelf', value_value.arguments[0], True, True)
                         shelf.set_product_amount(ID, value_value.arguments[1].number)
+                        return
 
                 self._model.add_init('init(' + str(obj) + ', ' + str(value) + ')')
 
@@ -130,10 +132,12 @@ class AspParser(object):
                 traceback.print_exc()
             print ('invalid init: init(' + str(obj) + ', ' + str(value) + ')')
 
-    def done_instance(self):
+    def done_instance(self, enable_auto_solve = True):
+        self._model.accept_new_items()
         self._model.update_windows()
         if (self._solver is not None
-            and configuration.config.get('visualizer', 'auto_solve')):
+            and configuration.config.get('visualizer', 'auto_solve') 
+            and enable_auto_solve):
             self._solver.set_model(self._model)
             self._solver.solve()
 
@@ -234,13 +238,13 @@ class AspParser(object):
             return -2
         return 0
 
-    def load_instance(self, file_name):
+    def load_instance(self, file_name, create_png = False):
         result = self.parse_file(file_name, clear = True)
         if result < 0:
             return result
 
         if (self._model_view is not None 
-            and configuration.config.get('visualizer', 'create_pngs')):
+            and (configuration.config.get('visualizer', 'create_pngs') or create_png)):
 
             rect = self._model_view.sceneRect()
             position  = self._model_view.mapFromScene(QPoint(rect.x(), rect.y()))

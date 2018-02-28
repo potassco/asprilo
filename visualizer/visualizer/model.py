@@ -1,5 +1,6 @@
 from visualizerItem import *
 from visualizerGraphicItem import *
+from modelView import ModelView
 
 class Model(object):
     def __init__(self):
@@ -23,7 +24,12 @@ class Model(object):
         self._current_step = 0
         self._displayed_steps = -1
 
+        self._notifier = None
+
     def clear(self):
+        for window in self._windows:
+            if isinstance(window, ModelView):
+                window.clear()
         self._items = {}
         self._graphic_items = {}
         self._new_items = {}
@@ -35,7 +41,6 @@ class Model(object):
         self._highways = []             #pairs of x and y
 
         self._inits = []                #list of unhandled inits
-
         self._num_steps = 0
         self._current_step = 0
         self._displayed_steps = -1
@@ -83,9 +88,9 @@ class Model(object):
             self._add_item2(item)
         for socket in self._sockets:
             for item in add_items:
-                socket.send(item.to_init_str())
-            if len(add_items) > 0:
-                socket.send('\n')
+                socket.model_expanded(item.to_init_str())
+            #if len(add_items) > 0:
+            #    socket.model_expanded('\n')
 
     def discard_new_items(self, item_kinds = None):
         if item_kinds == None:
@@ -168,7 +173,7 @@ class Model(object):
             return
         self._highways.remove((x,y))
 
-    def set_grid_size(self, X, Y):
+    def set_grid_size(self, X, Y, enable_nodes = False):
         if X < 1:
             X = 1
         if Y < 1:
@@ -183,12 +188,17 @@ class Model(object):
         for node in to_remove:
             self._nodes.remove(node)
 
-        self._blocked_nodes = []
-        for x in range(1, X+1):
-            for y in range(1, Y+1):
-                self._blocked_nodes.append((x,y))
-        for node in self._nodes:
-            self._blocked_nodes.remove(node)
+        if enable_nodes:
+            for x in range(self._grid_size[0] + 1, X + 1):
+                for y in range(self._grid_size[1] + 1, Y + 1):
+                    self._nodes.append((x,y))
+        else:
+            self._blocked_nodes = []
+            for x in range(1, X+1):
+                for y in range(1, Y+1):
+                    self._blocked_nodes.append((x,y))
+            for node in self._nodes:
+                self._blocked_nodes.remove(node)
         self._grid_size = (X, Y)
 
     def set_editable(self, editable):
@@ -239,6 +249,7 @@ class Model(object):
                         break_loop = False
                         break
 
+        ID = str(ID)
         if item_kind == 'shelf':
             item = Shelf(ID)
         elif item_kind == 'pickingStation':
@@ -259,21 +270,64 @@ class Model(object):
     def update(self):
         if self._current_step > self._num_steps or self._num_steps == 0:
             return self._current_step
+        for socket in self._sockets:
+            if socket.is_waiting():
+                return self._current_step
+        for items_dic in self._items.itervalues():
+            for item in items_dic.itervalues():
+                item.on_step_update(self._current_step)
         for items_dic in self._graphic_items.itervalues():
             for item in items_dic.itervalues():
                 item.do_action(self._current_step)
-        if self._displayed_steps < self._current_step:
+
+        if self._displayed_steps < self._current_step and len(self._sockets) > 0 and self._num_steps <= self._current_step:
             self._displayed_steps = self._current_step
-            for socket in self._sockets:
-                socket.send('%$done(' + str(self._current_step) + ').\n')
+            iterator = iter(self._sockets)
+            value = iterator.next()
+            value.done_step(self._current_step)
+            self.notify_sockets(iterator, value, self._current_step)
+
         self._current_step += 1
         self.update_windows()
         return self._current_step
+
+    def notify_sockets(self, iterator, value, step):
+        if value.is_waiting():
+            if self._notifier is not None:
+                self._notifier.stop()
+
+            self._notifier = QTimer()
+            self._notifier.setSingleShot(True)
+            self._notifier.timeout.connect(lambda: self.notify_sockets(iterator, value, step))
+            self._notifier.start(100)
+            return
+        else:
+            try:
+                value = iterator.next()
+            except StopIteration:
+                return
+            self.notify_sockets2(iterator, value, step)
+
+    def notify_sockets2(self, iterator, value, step):
+        if value.is_waiting():
+            if self._notifier is not None:
+                self._notifier.stop()
+
+            self._notifier = QTimer()
+            self._notifier.setSingleShot(True)
+            self._notifier.timeout.connect(lambda: self.notify_sockets2(iterator, value, step))
+            self._notifier.start(100)
+            return
+        value.done_step(step)
+        self.notify_sockets(iterator, value, step)
 
     def undo(self):
         if self._current_step == 0:
             return self._current_step
         self._current_step -= 1
+        for items_dic in self._items.itervalues():
+            for item in items_dic.itervalues():
+                item.on_step_undo(self._current_step)
         for items_dic in self._graphic_items.itervalues():
             for item in items_dic.itervalues():
                 item.undo_action(self._current_step)

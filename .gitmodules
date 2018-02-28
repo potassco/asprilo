@@ -1,0 +1,3 @@
+[submodule "generator/lib/pyyaml"]
+	path = generator/lib/pyyaml
+	url = https://github.com/yaml/pyyaml.git

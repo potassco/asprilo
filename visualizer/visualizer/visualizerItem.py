@@ -9,6 +9,12 @@ class VisualizerItem(object):
             return
         self._model = model
 
+    def on_step_update(self, time_step):
+        pass
+
+    def on_step_undo(self, time_step):
+        pass
+
     def parse_init_value(self, name, value):
         return 1
 
@@ -29,7 +35,8 @@ class Request(object):
         super(self.__class__, self).__init__()
         self.product_id = product_id
         self.requested = requested   
-        self.delivered = 0  
+        self.delivered = 0
+        self.changed = False
 
 class Order(VisualizerItem):
     def __init__(self, ID = 0):
@@ -47,6 +54,12 @@ class Order(VisualizerItem):
     def set_time_step(self, time_step):
         self._time_step = time_step
 
+    def set_requested_amount(self, product_id, requested_amount):
+        for temp_request in self._requests: 
+            if str(temp_request.product_id) == str(product_id):
+                temp_request.requested = requested_amount
+                return
+
     def parse_init_value(self, name, value):
         result = super(self.__class__, self).parse_init_value(name, value)
         if result <= 0: 
@@ -59,12 +72,15 @@ class Order(VisualizerItem):
             return 0
         elif name == 'pickingStation':
             self._station_id = value
+            return 0
         return 1
 
     def remove_request(self, product_id):
         for temp_request in self._requests: 
             if str(temp_request.product_id) == str(product_id):
                 self._requests.remove(temp_request)
+                if len(self._requests) == 0 and self._model is not None:
+                    self._model.remove_item(self)
                 return
 
     def add_request(self, product_id, requested_amount):
@@ -89,6 +105,7 @@ class Order(VisualizerItem):
         for request in self._requests:
             if str(request.product_id) == str(product_id):
                 request.delivered += delivered_amount
+                request.changed = True
                 if delivered_amount == 0 and not undo:
                     request.delivered = request.requested
                 elif delivered_amount == 0 and undo:
@@ -109,15 +126,23 @@ class Order(VisualizerItem):
             request.delivered = 0
         self._delivered = []
 
+    def on_step_update(self, time_step):
+        for request in self._requests:
+            request.changed = False
+
+    def on_step_undo(self, time_step):
+        for request in self._requests:
+            request.changed = False
+
     def to_init_str(self):
         if len(self._requests) == 0:
             return ''
 
-        s = ('init(object(order,' 
+        s = ('init(object(order,'
             + str(self._id) + '),value(pickingStation,'
             + str(self._station_id) + ')).')
         for request in self._requests:
-            s += ('init(object(order,'
+            s += ('\ninit(object(order,'
                 + str(self._id) + '),value(line,('
                 + str(request.product_id) + ','
                 + str(request.requested) + '))).')
@@ -141,6 +166,9 @@ class Order(VisualizerItem):
     def get_fulfilled_at(self):
         return self._is_fulfilled_at
 
+    def get_num_requests(self):
+        return len(self._requests)
+
     def iterate_requests(self):
         for request in self._requests:
             yield request
@@ -153,6 +181,7 @@ class Task(VisualizerItem):
         self._task_group = None
         self._task_type = None
         self._robot = None
+        self._changed = False
         self._checkpoints = []
         self._open = []
         self._history = []
@@ -185,6 +214,7 @@ class Task(VisualizerItem):
     def visit_checkpoint(self, checkpoint):
         for checkpoint2 in self._checkpoints:
             if checkpoint2[0] == checkpoint:
+                self._changed = True
                 if len(self._open) > 0:
                     if checkpoint2[1] == self._open[0][0]:
                         self._open.pop(0)
@@ -192,19 +222,25 @@ class Task(VisualizerItem):
                         checkpoint.visit()
                     else:
                         self._history.append(checkpoint2[1])
+                    return
                 else:
                     self._history.append(checkpoint2[1])
+                    return
 
     def unvisit_checkpoint(self, checkpoint):
         for checkpoint2 in reversed(self._checkpoints):
             if checkpoint2[0] == checkpoint and len(self._history) > 0:
                 if self._history[len(self._history)-1] == checkpoint2[1]:
                     self._history.pop()
+                    self._changed = True
+                    return
 
                 elif self._history[len(self._history)-1] == (checkpoint2[1] + '(*)'):
                     self._history.pop()
                     self._open.insert(0, checkpoint2[1])
                     checkpoint.visit()
+                    self._changed = True
+                    return
 
     def parse_init_value(self, name, value):
         result = super(self.__class__, self).parse_init_value(name, value)
@@ -230,6 +266,12 @@ class Task(VisualizerItem):
                 print err
         return 1
 
+    def on_step_update(self, time_step):
+        self._changed = False
+
+    def on_step_undo(self, time_step):
+        self._changed = False
+
     def get_task_group(self):
         return self._task_group
 
@@ -243,6 +285,9 @@ class Task(VisualizerItem):
         if self._robot is None:
             return None
         return self._robot.get_id()
+
+    def get_changed(self):
+        return self._changed
 
     def get_checkpoints(self):
         return self._checkpoints

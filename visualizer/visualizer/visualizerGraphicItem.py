@@ -20,7 +20,7 @@ def calculate_color(first_color, second_color, multiplier):
                 blue[0] + (blue[1] - blue[0]) * multiplier)
 
 class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
-    def __init__(self, ID = 0, x = 0, y = 0):
+    def __init__(self, ID = '0', x = 0, y = 0):
         QGraphicsItem.__init__(self)
         visualizerItem.VisualizerItem.__init__(self)
         self._kind_name = ''
@@ -35,7 +35,6 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         self._actions = []
         self._colors = [QColor(0,0,0)]
         self._display_mode = 0
-
         self.setAcceptedMouseButtons(Qt.MouseButtons(1))
 
     def set_starting_position(self, x, y):
@@ -164,8 +163,9 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
     def mousePressEvent(self, event):
         if self._enable_drag:
             rect = self.get_rect()
-            self._dragged = (event.pos().x() - rect.x(),
-                             event.pos().y() - rect.y())
+            self._dragged = (event.scenePos().x(),
+                             event.scenePos().y())
+        event.accept()
 
     def mouseReleaseEvent(self, event):
         model_view = None
@@ -176,20 +176,20 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
                     model_view = view
         if model_view is None:
             return
-        node = model_view.scene_coordinates_to_node(event.pos().x(), 
-                                                    event.pos().y())
+        node = model_view.scene_coordinates_to_node(event.scenePos().x(),
+                                                    event.scenePos().y())
+        self.setPos(0, 0)
+
         if node is not None:
             self.edit_position_to(node[0], node[1])
         model_view.update()
+        event.accept()
 
     def mouseMoveEvent(self, event):
         if self._dragged is None:
             return
-        rect = self.get_rect()
-        if rect is None:
-            return
-        rect.moveTo(event.pos().x() - self._dragged[0], event.pos().y() - self._dragged[1])
-        self.set_rect(rect)
+        self.setPos(event.scenePos().x() - self._dragged[0], event.scenePos().y() - self._dragged[1])
+        event.accept()
 
 class PickingStation(VisualizerGraphicItem):
     def __init__(self, ID = 0, x = 0, y = 0):
@@ -307,7 +307,7 @@ class Shelf(VisualizerGraphicItem):
     def to_init_str(self):
         s = super(self.__class__, self).to_init_str()
         for product in self._products:
-            s += ('init(object(product,' 
+            s += ('\ninit(object(product,' 
                     + str(product[0]) + '),value(on,('
                     + str(self._id) + ',' 
                     + str(product[1]) + '))).')
@@ -573,6 +573,8 @@ class Robot(VisualizerGraphicItem):
 
         elif action.name == 'deliver' and len(value.arguments) > 2:
             try:
+                if self._carries is not None:
+                    self._carries.remove_product(value.arguments[1], value.arguments[2].number)
                 order = self._model.filter_items(item_kind = 'order', 
                             ID = value.arguments[0], 
                             return_first = True)[0]
@@ -665,6 +667,8 @@ class Robot(VisualizerGraphicItem):
 
         elif action.name == 'deliver' and len(value.arguments) > 1:
             try:
+                if self._carries is not None:
+                    self._carries.remove_product(value.arguments[1], 0)
                 order = self._model.filter_items(item_kind = 'order', 
                             ID = value.arguments[0], 
                             return_first = True)[0]

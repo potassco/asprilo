@@ -2,7 +2,7 @@
 from network import *
 import os
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 
 class Solver(Network):
     def __init__(self):
@@ -30,7 +30,7 @@ class Solver(Network):
     def solve(self):
         self._control.load(os.path.dirname(os.path.abspath(__file__)) + '/encodings/encoding.lp')
         self._control.ground([('base', [])])
-        solve_future = self._control.solve_async(self.on_model)
+        solve_future = self._control.solve(on_model = self.on_model, async = True)
         while(True):
             if self.is_ready_to_read():
                 solve_future.cancel()

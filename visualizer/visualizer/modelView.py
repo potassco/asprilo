@@ -151,7 +151,7 @@ class ModelView(QGraphicsView):
             action.setStatusTip('Adds a picking Station to the selected node')
             action.triggered.connect(lambda: self._add_item('pickingStation', x, y))
             self._menu.addAction(action)           
-               
+
         self._menu.popup(QPoint(event.x(),event.y()))
 
     def mousePressEvent(self, event):
@@ -168,7 +168,7 @@ class ModelView(QGraphicsView):
                 return super(self.__class__, self).event(event)
             ss = 'node(' + str(self._model.get_node_id(pos)) +') at ' + str(pos)
             for item in self._model.filter_items(position = pos):
-                ss += '\n' + item.get_name() + '('+ item.get_id() +')'
+                ss += '\n' + item.get_name() + '('+ str(item.get_id()) +')'
             self.setToolTip(ss)
         return super(self.__class__, self).event(event)
 
@@ -245,8 +245,13 @@ class ModelView(QGraphicsView):
             self._timer = None
 
     def speed_up_timer(self, speed_up):
-        self._timer_scale -= speed_up
+        self._timer_scale *= 1 - speed_up
+        if self._timer_scale <= 0.1:
+            self._timer_scale = 0.1
         self.adjust_timer()
+
+    def get_timer_speedup(self):
+        return self._timer_scale
 
     def is_timer_running(self):
         return self._timer is None
@@ -318,6 +323,11 @@ class ModelView(QGraphicsView):
         self._scale(zoom[0]/self._zoom[0], zoom[1]/self._zoom[1])
         self._scene.setSceneRect(0, 0, self._line_hlength, self._line_vlength*1)
 
+    def clear(self):
+        for item in self._items_in_scene:
+            self._scene.removeItem(item)
+        self._items_in_scene = []
+
     def update(self):
         if self._model == None: 
             return 0
@@ -338,9 +348,7 @@ class ModelView(QGraphicsView):
         brush_disabled_node = QBrush(QColor(config.get('color', 'color_disabled_node')))
         brush_highway = QBrush(QColor(config.get('color', 'color_highway')))
 
-        for item in self._items_in_scene:
-            self._scene.removeItem(item)
-        self._items_in_scene = []
+        self.clear()
 
         #draw vertival lines
         for i in range(0,self._model.get_grid_size()[1] + 1):

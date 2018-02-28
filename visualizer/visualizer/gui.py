@@ -1,8 +1,9 @@
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-import os
 import configuration
+import os
+import sys
 
 class InstanceFileBrowser(QTreeView):
     def __init__(self, directory = None):
@@ -30,8 +31,8 @@ class InstanceFileBrowser(QTreeView):
                 if clear and ground:
                     self._parser.load_instance(self._model.filePath(indexes[0]))
                 elif ground:
-                    self._parser.parse_file(self._model.filePath(indexes[0]), 
-                                            clear = clear, 
+                    self._parser.parse_file(self._model.filePath(indexes[0]),
+                                            clear = clear,
                                             clear_actions = clear_actions)
                 else:
                     self._parser.load(self._model.filePath(indexes[0]))
@@ -50,7 +51,11 @@ class InstanceFileBrowser(QTreeView):
 
     def keyPressEvent (self, event):
         if event.key() == Qt.Key_Return:
-            load_selected()
+            self._load_selected()
+        elif event.key() == Qt.Key_W:
+            self.setTreePosition(self.treePosition() + 1)
+        elif event.key() == Qt.Key_S:
+            self.setTreePosition(self.treePosition() - 1)
         return super(self.__class__, self).keyPressEvent(event)
 
     def contextMenuEvent(self, event):
@@ -61,8 +66,8 @@ class InstanceFileBrowser(QTreeView):
         action.triggered.connect(lambda: self._load_selected(clear = True, clear_actions = False, ground = True))
         self._menu.addAction(action)
 
-        action = QAction('load answer', self)
-        action.setStatusTip('Load the selected answer. Delete actions but keeps the model.')
+        action = QAction('load plan', self)
+        action.setStatusTip('Load the selected plan. Delete actions but keeps the model.')
         action.triggered.connect(lambda: self._load_selected(clear = False, clear_actions = True, ground = True))
         self._menu.addAction(action)
 
@@ -75,47 +80,109 @@ class InstanceFileBrowser(QTreeView):
         action.setStatusTip('Load the selected file and add it to the parser. Adds nothing to the current model.')
         action.triggered.connect(lambda: self._load_selected(clear = False, clear_actions = False, ground = False))
         self._menu.addAction(action)
-        
+
         self._menu.popup(self.mapToGlobal(QPoint(event.x(),event.y())))
 
     def set_parser(self, parser):
         self._parser = parser
+
+class TimestepWidget(QTextEdit):
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        self._model_view = None
+        self.setReadOnly(True)
+
+    def set_model_view(self, model_view):
+        self._model_view = model_view
+        self._model_view.get_model().add_window(self)
+        self.update()
+
+    def resizeEvent(self, event):
+        font_size = min(event.size().width() / 12, event.size().height() / 2)
+        if font_size > 20:
+            font_size = 20
+        elif font_size < 1:
+            font_size = 1
+        self.setFontPointSize(font_size)
+        self.update()
+        super(self.__class__, self).resizeEvent(event)
+
+    def update(self):
+        if self._model_view is None:
+            return
+        if self._model_view.get_model() is None:
+            return
+        step = self._model_view.get_model().get_current_step()
+        speed_up = 1/self._model_view.get_timer_speedup()
+        self.setText('current step: '
+                                        + str(step)
+                                        + '\nspeed: '
+                                        + '%.2f' % speed_up)
+        super(self.__class__, self).update()
 
 class ControlWidget(QWidget):
     def __init__(self):
         super(self.__class__, self).__init__()
 
         self._model_view = None
-        self._timestep_widget = QTextEdit(self)
-        self._timestep_widget.setReadOnly(True)
-        self._timestep_widget.resize(self.size().width(), 165)
+        self._timestep_widget = None
+        key_string = configuration.config.get('controls', 'do_backstep')
+        self.create_button('<', (20, 0),
+                            self.on_undo,
+                            QKeySequence(key_string),
+                            'Do one step\n[' + key_string + ']')
+        key_string = configuration.config.get('controls', 'do_step')
+        self.create_button('>', (100, 0),
+                            self.on_update,
+                            QKeySequence(key_string),
+                            'Undo one step\n[' + key_string + ']')
+        key_string = configuration.config.get('controls', 'pause')
+        self._pause_button = self.create_button('|>', (60, 0),
+                                                self.on_pause,
+                                                QKeySequence(key_string),
+                                                'Pause/Unpause the visualisation\n[' + key_string + ']')[0]
+        key_string = configuration.config.get('controls', 'step_slow_down')
+        self.create_button('|<|<', (20, 35),
+                            lambda: self.on_speed_up(-0.1),
+                            QKeySequence(key_string),
+                            'Slow down the visualisation\n[' + key_string + ']')
+        key_string = configuration.config.get('controls', 'step_speed_up')
+        self.create_button('|>|>', (60, 35),
+                            lambda: self.on_speed_up(0.0909),
+                            QKeySequence(key_string),
+                            'Speed up the visualisation\n[' + key_string + ']')
+        self.create_button('|<', (100, 35),
+                            self.on_restart, None,
+                            'Restart the visualisation')
+        self.create_button('>|', (140, 35),
+                            self.on_skip_to_end, None,
+                            'Skip to the end of the visualisation')
 
-        self.create_button('<', (20, 50), self.on_undo, Qt.Key_Down)
-        self.create_button('>', (100, 50), self.on_update, Qt.Key_Up)
-        self._pause_button = self.create_button('|>', (60, 50), 
-                                                self.on_pause, 
-                                                Qt.Key_Space)[0]
+        key_string = configuration.config.get('controls', 'zoom_in')
+        self.create_button('+', (20, 75),
+                            lambda: self.on_zoom(100),
+                            QKeySequence(key_string),
+                            'Zoom in\n[' + key_string + ']')
+        key_string = configuration.config.get('controls', 'zoom_out')
+        self.create_button('-', (60, 75),
+                            lambda: self.on_zoom(-100),
+                            QKeySequence(key_string),
+                            'Zoom out\n[' + key_string + ']')
+        self.setFixedHeight(105)
 
-        self.create_button('|<|<', (20, 90), lambda: self.on_speed_up(-0.1), Qt.Key_Left)
-        self.create_button('|>|>', (60, 90), lambda: self.on_speed_up(0.1), Qt.Key_Right)
-        self.create_button('|<', (100, 90), self.on_restart, None)
-        self.create_button('>|', (140, 90), self.on_skip_to_end, None)
-
-        self.create_button('+', (20, 130), lambda: self.on_zoom(100), Qt.Key_Plus)
-        self.create_button('-', (60, 130), lambda: self.on_zoom(-100), Qt.Key_Minus)
-
-
-    def create_button(self, name, pos, function, shortcut):
+    def create_button(self, name, pos, function, shortcut, tooltip = None):
         button = QPushButton(name, self)
         button.move(pos[0], pos[1])
         button.resize(30,30)
         button.clicked.connect(function)
+        if tooltip is not None:
+            button.setToolTip(tooltip)
 
         action = None
         if shortcut is not None:
             action = QAction(self)
             action.setShortcut(shortcut)
-            action.setShortcutContext(Qt.ApplicationShortcut) 
+            action.setShortcutContext(Qt.ApplicationShortcut)
             action.triggered.connect(function)
             self.addAction(action)
         return (button, action)
@@ -124,6 +191,9 @@ class ControlWidget(QWidget):
         self._model_view = model_view
         self._model_view.get_model().add_window(self)
         self.update()
+
+    def set_timestep_widget(self, timestep_widget):
+        self._timestep_widget = timestep_widget
 
     def on_update(self, event = None):
         if self._model_view is not None:
@@ -134,7 +204,7 @@ class ControlWidget(QWidget):
         if self._model_view is not None:
             self._model_view.switch_timer()
         self.update()
-    
+
     def on_undo(self, event = None):
         if self._model_view is not None:
             self._model_view.stop_timer()
@@ -143,6 +213,7 @@ class ControlWidget(QWidget):
     def on_speed_up(self, speed_up):
         if self._model_view is not None:
             self._model_view.speed_up_timer(speed_up)
+            self._timestep_widget.update()
 
     def on_restart(self):
         if self._model_view is not None:
@@ -157,15 +228,10 @@ class ControlWidget(QWidget):
             self._model_view.zoom_event(zoom)
 
     def resizeEvent(self, event):
-        font_size = event.size().width() / 14
-        if font_size > 20:
-            font_size = 20
-        self._timestep_widget.setFontPointSize(font_size)
-        self._timestep_widget.setText(self._timestep_widget.toPlainText())
         super(self.__class__, self).resizeEvent(event)
 
     def update(self):
-        if self._model_view is None: 
+        if self._model_view is None:
             return
         if self._model_view.get_model() is None:
             return
@@ -173,12 +239,10 @@ class ControlWidget(QWidget):
             self._pause_button.setText('|>')
         else:
             self._pause_button.setText('||')
-        step = self._model_view.get_model().get_current_step()
-        self._timestep_widget.setText('current step: ' + str(step))
         super(self.__class__, self).update()
 
 class OccursWidget(QTextEdit):
-    def __init__(self): 
+    def __init__(self):
         super(self.__class__, self).__init__()
         self._model = None
         self.setReadOnly(True)
@@ -221,22 +285,26 @@ class OccursWidget(QTextEdit):
 class ControlSplitter(QSplitter):
     def __init__(self):
         super(self.__class__, self).__init__(Qt.Vertical)
+        self._timestep_widget = TimestepWidget()
         self._control_widget = ControlWidget()
         self._occurs_widget = OccursWidget()
+        self.addWidget(self._timestep_widget)
         self.addWidget(self._control_widget)
         self.addWidget(self._occurs_widget)
-        self.setSizes([165, self.size().height() - 165])
+        self._control_widget.set_timestep_widget(self._timestep_widget)
+        self.setSizes([40, 105, self.size().height() - 145])
 
     def set_model_view(self, model_view):
+        self._timestep_widget.set_model_view(model_view)
         self._control_widget.set_model_view(model_view)
 
     def set_model(self, model):
-        self._occurs_widget.set_model(model) 
+        self._occurs_widget.set_model(model)
 
 class ServerDialog(QWidget):
     def __init__(self, title, host, port, socket):
         super(ServerDialog, self).__init__()
-        
+
         self._socket = socket
 
         self.setWindowTitle(title)
@@ -274,7 +342,7 @@ class ServerDialog(QWidget):
 
     def on_ok(self, event = None):
         try:
-            if (self._socket.connect(self._host_textbox.text(), 
+            if (self._socket.connect(self._host_textbox.text(),
                     int(self._port_textbox.text())) < 0):
                 return
             self._socket.run()
@@ -318,7 +386,8 @@ class InitServerDialog(QWidget):
     def on_ok(self, event):
         self.hide()
         try:
-            self._socket.run_script(self._textbox.text(), 
+            self._socket.run_script(
+                    self._textbox.text().replace('__dir__', os.path.dirname(sys.argv[0])),
                     int(self._port_textbox.text()))
         except(ValueError):
             print 'the port must be an integer value'
@@ -328,7 +397,7 @@ class InitServerDialog(QWidget):
 class GridSizeDialog(QWidget):
     def __init__(self):
         super(self.__class__, self).__init__()
-        
+
         self._model = None
         self.model_view = None
         self._item_window = None
@@ -343,13 +412,14 @@ class GridSizeDialog(QWidget):
         self._width_textbox.setText('0')
         self._height_textbox = QLineEdit(self)
         self._height_textbox.setText('0')
+        self._checkbox = QCheckBox('enable new nodes', self)
         self._ok_button = QPushButton('Ok', self)
         self._cancel_button = QPushButton('Cancel', self)
         self._function = None
 
         self._ok_button.clicked.connect(self.on_ok)
         self._cancel_button.clicked.connect(self.on_cancel)
-        self.setFixedSize(320, 110)
+        self.setFixedSize(280, 150)
         self._width_text.resize(140, 30)
         self._height_text.resize(140, 30)
         self._width_textbox.resize(140,30)
@@ -358,9 +428,10 @@ class GridSizeDialog(QWidget):
         self._height_text.move(0,40)
         self._width_textbox.move(140,0)
         self._height_textbox.move(140,40)
-        self._ok_button.move(20,80)
-        self._cancel_button.move(140,80)
-    
+        self._checkbox.move(0, 80)
+        self._ok_button.move(20,120)
+        self._cancel_button.move(140,120)
+
     def set_model(self, model):
         self._model = model
 
@@ -371,10 +442,12 @@ class GridSizeDialog(QWidget):
         self.hide()
         if self._model is None:
             return
-        if not self._model.get_editable(): 
+        if not self._model.get_editable():
             return
         try:
-            self._model.set_grid_size(int(self._width_textbox.text()), int(self._height_textbox.text()))
+            self._model.set_grid_size(int(self._width_textbox.text()), 
+                                      int(self._height_textbox.text()), 
+                                      self._checkbox.isChecked())
         except ValueError:
             print 'x and y must be interger values'
         if self._model_view is not None:
@@ -387,7 +460,7 @@ class GridSizeDialog(QWidget):
 class OrderDialog(QWidget):
     def __init__(self):
         super(self.__class__, self).__init__()
-        
+
         self._model = None
         self.setWindowTitle('Add order')
         self.setFixedSize(280, 190)
@@ -441,24 +514,24 @@ class OrderDialog(QWidget):
 
     def on_ok(self, event):
         if self._model is None:
-            return 
+            return
         try:
             order = self._model.get_item(item_kind = 'order',
                         ID = self._id_textbox.text(),
-                        create = True, 
+                        create = True,
                         add_immediately = self._model.get_editable())
             if not self._model.get_editable() and self._model.contains(order):
                 print 'commited orders can not be edited'
             else:
                 order.set_station_id(self._ps_textbox.text())
-                order.add_request(self._product_id_textbox.text(), 
+                order.add_request(self._product_id_textbox.text(),
                                 int(self._product_amount_textbox.text()))
                 self._model.update_windows()
         except:
             print 'failed to add new request'
             return
         self.hide()
-    
+
     def on_cancel(self, event):
         self.hide()
 
@@ -466,7 +539,7 @@ class OrderDialog(QWidget):
         self._model = model
 
 class OrderTable(QTableWidget):
-    def __init__(self, parent): 
+    def __init__(self, parent):
         super(self.__class__, self).__init__(parent)
         self._model = None
         self.setColumnCount(6)
@@ -499,7 +572,7 @@ class OrderTable(QTableWidget):
             if count <= row:
                 for order2 in self._model.filter_items(
                                     item_kind = 'order',
-                                    return_non_buffered = False, 
+                                    return_non_buffered = False,
                                     return_buffered = True):
                     if count <= row:
                         for request2 in order2.iterate_requests():
@@ -521,7 +594,7 @@ class OrderTable(QTableWidget):
             action.setShortcut('Ctrl + R')
             action.setStatusTip('Removes the selected request')
             action.triggered.connect(lambda: self.remove_request(order, request.product_id))
-            self._menu.addAction(action)            
+            self._menu.addAction(action)
 
         if order is not None:
             action = QAction('remove order', self)
@@ -553,15 +626,19 @@ class OrderTable(QTableWidget):
     def remove_request(self, order, product_id):
         self._menu.hide()
         order.remove_request(product_id)
+        if order.get_num_requests() == 0:
+            self._model.remove_item(order)
         self._model.update_windows()
 
 class OrderWidget(QSplitter):
-    def __init__(self): 
+    def __init__(self):
         super(self.__class__, self).__init__(Qt.Vertical)
         self._model = None
         self._table = OrderTable(self)
+        self._table.setSortingEnabled(True)
         self.resize(600, 400)
         self.setWindowTitle('Orders')
+        self._do_update = False
 
         self._control_widget = QWidget()
         self.addWidget(self._control_widget)
@@ -569,6 +646,8 @@ class OrderWidget(QSplitter):
         self._deliver_widget = QTextEdit()
         self._deliver_widget.setReadOnly(True)
         self.addWidget(self._deliver_widget)
+
+        self._table.itemChanged.connect(self.changed_item)
 
         self._send_button = QPushButton('Send orders', self._control_widget)
         self._send_button.move(20,0)
@@ -581,8 +660,8 @@ class OrderWidget(QSplitter):
     def update(self):
         self._deliver_widget.clear()
         orders = self._model.filter_items(item_kind = 'order')
-        orders2 = self._model.filter_items(item_kind = 'order', 
-                        return_non_buffered = False, 
+        orders2 = self._model.filter_items(item_kind = 'order',
+                        return_non_buffered = False,
                         return_buffered = True)
         for order in orders:
             for ss in order.to_delivered_str():
@@ -593,6 +672,8 @@ class OrderWidget(QSplitter):
         yellow_brush = QBrush(QColor(255, 255, 100))
 
         count = 0
+        self._do_update = True
+        self._table.setSortingEnabled(False)
         for order in orders:
             for request in order.iterate_requests():
                 count = count + 1
@@ -609,13 +690,11 @@ class OrderWidget(QSplitter):
         count = 0
         for order in orders:
             for request in order.iterate_requests():
-                table_item_delivered = self._table.item(count, 4)
-                if table_item_delivered is not None:
-                    if (str(request.delivered) != str(table_item_delivered.text())
-                        and changed_requests):
-
+                item = self._table.item(count, 0)
+                if item is not None:
+                    if request.changed:
                         for ii in xrange(0, self._table.columnCount()):
-                            self._table.item(count, ii).setBackground(red_brush)
+                           self._table.item(count, ii).setBackground(red_brush)
                     else:
                         for ii in xrange(0, self._table.columnCount()):
                             self._table.item(count, ii).setBackground(white_brush)
@@ -631,25 +710,33 @@ class OrderWidget(QSplitter):
         for order in orders2:
             for request in order.iterate_requests():
 
-                self.set_item_text(count, 0, str(order.get_id()))
-                self.set_item_text(count, 1, str(order.get_station_id()))
-                self.set_item_text(count, 2, str(request.product_id))
-                self.set_item_text(count, 3, str(request.requested))
-                self.set_item_text(count, 4, str(request.delivered))
-                self.set_item_text(count, 5, str(request.requested - request.delivered))
+                self.set_item_text(count, 0, str(order.get_id()), True)
+                self.set_item_text(count, 1, str(order.get_station_id()), True)
+                self.set_item_text(count, 2, str(request.product_id), True)
+                self.set_item_text(count, 3, str(request.requested), True)
+                self.set_item_text(count, 4, str(request.delivered), True)
+                self.set_item_text(count, 5, str(request.requested - request.delivered), True)
 
                 for ii in xrange(0, self._table.columnCount()):
                     self._table.item(count, ii).setBackground(yellow_brush)
 
                 count = count + 1
+        self._table.setSortingEnabled(True)
+        self._do_update = False
         super(self.__class__, self).update()
 
-    def set_item_text(self, column, row, text):
+    def set_item_text(self, column, row, text, editable = False):
         item = self._table.item(column, row)
         if item is None:
             self._table.setItem(column, row, QTableWidgetItem(text))
+            item = self._table.item(column, row)
         else:
             item.setText(text)
+
+        if (row == 1 or row == 3) and (self._model.get_editable() or editable):
+            item.setFlags(Qt.ItemIsSelectable |  Qt.ItemIsEnabled | Qt.ItemIsEditable)
+        else:
+            item.setFlags(Qt.ItemIsSelectable |  Qt.ItemIsEnabled)
 
     def set_model(self, model):
         self._model = model
@@ -669,10 +756,33 @@ class OrderWidget(QSplitter):
         self._model.discard_new_items(['order'])
         self.update()
 
+    def changed_item(self, item):
+        if self._do_update:
+            return
+
+        value = 0
+        order_id = self._table.item(item.row(), 0).text()
+        column = item.column()
+        order = self._model.get_item('order', order_id)
+        if order is None:
+            return
+        try:
+            value = int(item.text())
+        except ValueError as err:
+            print err
+            self.update()
+            return
+
+        if column == 1:
+            order.set_station_id(value)
+        elif column == 3:
+            order.set_requested_amount(self._table.item(item.row(), 2).text(), value)
+        self.update()
+
 class ProductDialog(QWidget):
     def __init__(self):
         super(self.__class__, self).__init__()
-        
+
         self._shelf = None
         self._product_window = None
         self.setWindowTitle('Add product')
@@ -703,7 +813,7 @@ class ProductDialog(QWidget):
         self._count_textbox.move(140,40)
         self._ok_button.move(20,80)
         self._cancel_button.move(140,80)
-    
+
     def set_shelf(self, shelf):
         self._shelf = shelf
 
@@ -726,7 +836,8 @@ class ProductDialog(QWidget):
 class ProductWindow(QTreeWidget):
     def __init__(self):                        #init item window
         super(self.__class__, self).__init__()
-        self._model = None        
+        self._model = None
+        self.setWindowTitle('Products')
 
         self.setContextMenuPolicy(Qt.DefaultContextMenu)
         self._menu = QMenu()
@@ -734,6 +845,7 @@ class ProductWindow(QTreeWidget):
         self._product_dialog = ProductDialog()
         self._product_dialog.set_product_window(self)
         self.setHeaderLabels(['product ID', 'count', 'removed'])
+        self.resize(400, 200)
 
     def set_model(self, model):
         self._model = model
@@ -742,7 +854,7 @@ class ProductWindow(QTreeWidget):
             self._model.add_window(self)
 
     def update(self):
-        if self._model == None: 
+        if self._model == None:
             return
         expanded_items = []
         for ii in range(0, self.topLevelItemCount()):
@@ -767,10 +879,10 @@ class ProductWindow(QTreeWidget):
 
     def contextMenuEvent(self, event):
 
-        if not self._model.get_editable(): 
-            return 
+        if not self._model.get_editable():
+            return
         item = self.itemAt(event.x(),event.y())
-        if item is None: 
+        if item is None:
             return
         parent = item.parent()
 
@@ -781,7 +893,7 @@ class ProductWindow(QTreeWidget):
             shelf_index = self.indexOfTopLevelItem(item)
         else:
             shelf_index = self.indexOfTopLevelItem(parent)
-        
+
         #get the shelf
         count = 0
         for shelf2 in self._model.filter_items(item_kind = 'shelf'):
@@ -807,13 +919,13 @@ class ProductWindow(QTreeWidget):
             action = QAction('remove product', self)
             action.setShortcut('Ctrl + R')
             action.setStatusTip('Removes a product from the selected shelf')
-            action.triggered.connect(lambda: self.delete_product(shelf, product_id))  
+            action.triggered.connect(lambda: self.delete_product(shelf, product_id))
             self._menu.addAction(action)
 
         action = QAction('add product', self)
         action.setShortcut('Ctrl + A')
         action.setStatusTip('Adds a product to the selected shelf')
-        action.triggered.connect(lambda: self.add_product(shelf))  
+        action.triggered.connect(lambda: self.add_product(shelf))
         self._menu.addAction(action)
 
         self._menu.popup(QPoint(event.x(),event.y()))
@@ -829,18 +941,20 @@ class ProductWindow(QTreeWidget):
         self._product_dialog.show()
 
     def delete_product(self, shelf, product_id):
-        shelf.delete_product(product_id) 
+        shelf.delete_product(product_id)
         self._menu.hide()
         self.update()
 
 class TaskTable(QTableWidget):
-    def __init__(self): 
+    def __init__(self):
         super(self.__class__, self).__init__()
         self._model = None
+        self.setWindowTitle('Tasks')
         self.setColumnCount(6)
-        self.setHorizontalHeaderLabels(['Task ID', 'Task Group', 
-                                        'Task Type', 'Assigned Robot', 
+        self.setHorizontalHeaderLabels(['Task ID', 'Task Group',
+                                        'Task Type', 'Assigned Robot',
                                         'Checkpoint History', 'Open Checkpoints'])
+        self.setSortingEnabled(True)
         self.resizeColumnsToContents()
         self.resize(self.horizontalHeader().length() + 20, 200)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
@@ -858,7 +972,8 @@ class TaskTable(QTableWidget):
         self.setRowCount(len(tasks))
 
         count = 0
-        for task in sorted(tasks, key = lambda x: x.get_id()):
+        self.setSortingEnabled(False)
+        for task in tasks:
             task_history = ''
             task_open = ''
 
@@ -868,25 +983,14 @@ class TaskTable(QTableWidget):
             for checkpoint in task.get_open_checkpoints():
                 task_open = task_open + str(checkpoint) + ', '
 
-                table_item_history = self.item(count, 4)
-                table_item_open = self.item(count, 5)
-                if (table_item_history is not None and
-                    table_item_open is not None):
-
-                    if (task_open != str(table_item_open.text())
-                        and changed_tasks):
-
-                        for ii in xrange(0, self.columnCount()):
-                           self.item(count, ii).setBackground(red_brush)
-
-                    elif (task_history != str(table_item_history.text())
-                        and changed_tasks):
-
-                        for ii in xrange(0, self.columnCount()):
-                           self.item(count, ii).setBackground(yellow_brush)
-                    else:
-                       for ii in xrange(0, self.columnCount()):
-                            self.item(count, ii).setBackground(white_brush)
+            table_item = self.item(count, 0)
+            if (table_item is not None):
+                if (task.get_changed() and changed_tasks):
+                    for ii in xrange(0, self.columnCount()):
+                        self.item(count, ii).setBackground(red_brush)
+                else:
+                    for ii in xrange(0, self.columnCount()):
+                        self.item(count, ii).setBackground(white_brush)
 
             self.set_item_text(count, 0, str(task.get_id()))
             self.set_item_text(count, 1, str(task.get_task_group()))
@@ -895,6 +999,7 @@ class TaskTable(QTableWidget):
             self.set_item_text(count, 4, task_history)
             self.set_item_text(count, 5, task_open)
             count += 1
+        self.setSortingEnabled(True)
         super(self.__class__, self).update()
 
     def set_item_text(self, column, row, text):
@@ -912,16 +1017,17 @@ class TaskTable(QTableWidget):
             self._model.add_window(self)
 
 class ProgramEntry(object):
-    def __init__(self, program_name, short_program_name): 
+    def __init__(self, program_name, short_program_name):
         self.program_name = program_name;
         self.short_program_name = short_program_name;
         self.text_field = None;
 
 class ParserWidget(QSplitter):
-    def __init__(self): 
+    def __init__(self):
         super(self.__class__, self).__init__(Qt.Vertical)
         self._button_widget = QWidget(self)
         text_splitter = QSplitter(Qt.Horizontal, self)
+        self.setWindowTitle('Parser')
         self._program_tab = QTabWidget(text_splitter)
         self._program_list = []
         self._atom_text = QTextEdit(text_splitter)
@@ -944,12 +1050,12 @@ class ParserWidget(QSplitter):
         self._reset_grounder_button.resize(140,30)
         self._reset_grounder_button.clicked.connect(self.reset_grounder)
 
-        self._reset_program_button = QPushButton('reset program', self._button_widget)
+        self._reset_program_button = QPushButton('reload program', self._button_widget)
         self._reset_program_button.move(420,5)
         self._reset_program_button.resize(140,30)
         self._reset_program_button.clicked.connect(self.reset_program)
 
-        self._reset_program_button = QPushButton('reset programs', self._button_widget)
+        self._reset_program_button = QPushButton('delete programs', self._button_widget)
         self._reset_program_button.move(560,5)
         self._reset_program_button.resize(140,30)
         self._reset_program_button.clicked.connect(self.reset_programs)
@@ -963,6 +1069,13 @@ class ParserWidget(QSplitter):
         self._parse_program_button.move(140,35)
         self._parse_program_button.resize(140,30)
         self._parse_program_button.clicked.connect(self.delete_program)
+
+        self._parse_program_button = QPushButton('add empty program', self._button_widget)
+        self._parse_program_button.move(280,35)
+        self._parse_program_button.resize(140,30)
+        self._parse_program_button.clicked.connect(self.add_empty_program)
+
+        self._button_widget.setFixedHeight(70)
 
         self.move(0,0)
         self.resize(700,600)
@@ -984,16 +1097,17 @@ class ParserWidget(QSplitter):
     def reset_actions(self):
         if self._parser is None:
             return
-        self._parser.clear_model_actions()        
+        self._parser.clear_model_actions()
 
     def reset_model(self):
         if self._parser is None:
             return
         self._parser.clear_model()
-  
+
     def reset_grounder(self):
         if self._parser is None:
             return
+        self.commit_programs()
         self._parser.reset_grounder()
 
     def reset_program(self):
@@ -1001,6 +1115,7 @@ class ParserWidget(QSplitter):
             return
         index = self._program_tab.currentIndex()
         if index >= 0:
+            self.commit_programs()
             entry = self._program_list[index]
             self._parser.load(entry.program_name)
 
@@ -1027,8 +1142,12 @@ class ParserWidget(QSplitter):
         if not self._changed or self._parser is None:
             return
         for entry in self._program_list:
-            self._parser.set_program(entry.program_name, 
+            self._parser.set_program(entry.program_name,
                                      entry.text_field.toPlainText())
+    def add_empty_program(self):
+        if self._parser is None:
+            return
+        self._parser.add_program('new', '')
 
     def update(self):
         if self._parser is None:
@@ -1037,6 +1156,7 @@ class ParserWidget(QSplitter):
         add_entrys = [];
         delete_entrys = [];
 
+        current = self._program_tab.currentWidget()
         for entry in self._program_list:
             delete_entrys.append(entry)
 
@@ -1078,3 +1198,7 @@ class ParserWidget(QSplitter):
 
         self._atom_text.setText(self._parser.get_str_model())
         self._edited = False
+
+        index = self._program_tab.indexOf(current)
+        if index != -1:
+            self._program_tab.setCurrentIndex(index)

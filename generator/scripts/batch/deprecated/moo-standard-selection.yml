@@ -1,0 +1,66 @@
+# Referential instance set compartmentalized into relevant sub-domains.
+
+global_settings: { '-N': 10, '--prs': 1, '--spr': 1, '--pus': 1, '--olmin': 1, '--olmax': 1  }
+
+run_configs:
+
+# = Standard Warehouse Layout ======================================================================
+#
+#     Typical warehouse layout with rectangular shelf clusters, symmetrically placed in a
+#     Manhattan-style grid
+#
+  standard:
+    #- Rectangular shelf clusters of fixed height 2 ------------------------------------------------
+    rectangles:
+      # - Format: #rows x #columns x storage-cluster-length
+      # - Starting with 1x2x4
+      # - Scale increments:
+      #    - #rows = k * (k-1) / 2 + 1
+      #    - #columns = #rows + 1
+      #    - storage-cluster-length = #rows + 3
+      #    for k = 1, 2, 3, 4, ...
+      2x3x5:
+        100sc:
+          args: { '-x':  19, '-y':  9, '-X':   5, '-Y':  2, '-p':   3, '-s':  60, '-P': 60, '-u': 60, '-H': True }
+          r5:
+            args:
+              - { '-r':  5, '-o':  5 }
+          r10:
+            args:
+              - { '-r': 10, '-o': 10 }
+          r15:
+            args:
+              - { '-r': 15, '-o': 15 }
+          r19:
+            args:
+              - { '-r': 19, '-o': 19 }
+      4x5x8:
+        100sc:
+          args: { '-x':  46, '-y':  15, '-X':   8, '-Y':  2, '-p':  10, '-s': 320, '-P': 320, '-u': 320, '-H': True }
+          r12:
+            args:
+              - { '-r': 12, '-o': 12 }
+          r23:
+            args:
+              - { '-r': 23, '-o': 23 }
+          r35:
+            args:
+              - { '-r': 35, '-o': 35 }
+          r46:
+            args:
+              - { '-r': 46, '-o': 46 }
+      7x8x10:
+        100sc:
+          args: { '-x': 89, '-y':  24, '-X':  10, '-Y':  2, '-p':  23, '-s': 1120, '-P': 1120, '-u': 1120, '-H': True }
+          r23:
+            args:
+              - { '-r':  23, '-o':  23 }
+          r45:
+            args:
+              - { '-r':  45, '-o':  45 }
+          r68:
+            args:
+              - { '-r':  68, '-o':  68 }
+          r89:
+            args:
+              - { '-r':  89, '-o':  89 }
