@@ -1,73 +1,79 @@
 # About
 
-This is the description of the referential benchmark sets of ASPRILO.
+This is the description of the pre-generated benchmark instance sets for ASPRILO.
+
+# Instance Sets
+
+The latest [ASPRILO release](https://github.com/potassco/asprilo/releases) provides a set of
+pre-generated instances `instances.tar.gz` with the following directory structure:
+
+    ├── abc
+    │   └── structured
+    │       ├── 1x2x4
+    │       │   ├── 100sc
+    │       │   ├── 25sc
+    │       │   ├── 50sc
+    │       │   └── 75sc
+    │       ├── 2x3x5
+    │       │   ├── 100sc
+    │       │   ├── 25sc
+    │       │   ├── 50sc
+    │       │   └── 75sc
+    │       └── 4x5x8
+    │           ├── 100sc
+    │           ├── 25sc
+    │           ├── 50sc
+    │           └── 75sc
+    └── moo
+        └── structured
+            ├── 1x2x4
+            │   └── 100sc
+            │       ├── r02
+            │       ├── r05
+            │       ├── r08
+            │       └── r11
+            ├── 2x3x5
+            │   └── 100sc
+            │       ├── r05
+            │       ├── r10
+            │       ├── r15
+            │       └── r19
+            └── 4x5x8
+                └── 100sc
+                    ├── r12
+                    ├── r23
+                    ├── r35
+                    └── r46
+
+The instances are partitioned into two parts:
+
+-   `./abc`:
+    - A structured instance set suited for domain A,B and C
+    - Created by the [instance generator](generator.md) with batch file
+      [`./generator/scripts/batch/abc/structured.yml`](../generator/scripts/batch/abc/structured.yml)
+
+-   `./moo`:
+    - A structured instance set primarily designed for domain M but by definition also compatible
+      with domain A, B, C
+    - Created by the [instance generator](generator.md) with batch file
+      [`./generator/scripts/batch/moo/structured.yml`](../generator/scripts/batch/moo/structured.yml)
 
 
-# Instance File Naming Convention
+Further, we group instances into directories with naming convention `RxCxL` where
 
-Instances files are named as
+- `R` is the number of rows of storage zones
+- `C` is the number of columns of storage zones
+- `L` is the length in x-coordinates of storage zones (hint: for structured layouts, the height in
+   y-coordinates of storage zones is fixed to 2 by definition)
 
-    x<X>_y<X>_n<N>_r<R>_s<S>_ps<PS>_pr<PR>_u<U>_o<o>_N<NI>.lp
+for each contained instance. That is, instances are divided up in both `./abc/structured` and `./moo/structured` into three sizes
+of structured warehouse layouts:
 
-where
+    - `./1x2x4` for instance with 1 row and 2 columns of storage zones where the x-dimension of storage zones is 4
+    - `./2x3x5` for instance with 2 row and 3 columns of storage zones where the x-dimension of storage zones is 5
+    - `./4x5x8` for instance with 4 row and 5 columns of storage zones where the x-dimension of storage zones is 8
 
-- `<X>` is the maximum x-dimension
-- `<Y>` is the maximum y-dimension
-- `<N>` is the number of nodes
-- `<R>` is the number of robots
-- `<S>` is the number of shelves
-- `<PS>` is the number of picking stations
-- `<PR>` is the number of products
-- `<U>` is the number of product units globally, i.e., total across all products
-- `<O>` is the number of orders
-- `<NI>` is the instance count number
+In addition to that, we further distinguish instances based on the percentage of storage nodes covered by shelves. E.g. within
+`/abc/structured/1x2x4` the four directories `25sc`, `50sc`, `75sc` and `100sc` hold instances with 25%, 50%, 75% and 100% storage coverage by shelves, respectively.
 
-Example
-
-    x10_y10_n100_r5_s20_ps5_pr5_u48_o6_N3.lp
-
-is an instance where
-
-- `10` is the maximum x-dimension
-- `10` is the maximum y-dimension
-- `100` is the number of nodes
-- `5` is the number of robots
-- `20` is the number of shelves
-- `5` is the number of picking stations
-- `5` is the number of products
-- `48` is the number of product units globally, i.e., total across all products
-- `6` is the number of orders
-- `3` is the instance count number
-
-
-# Generating Benchmark Sets
-
-The script `./generator/test_instances.py` generates a family of categorized instances
-(by repeatedly invoking `./generator/ig.py` with different input parameters). Each
-category emphasizes distinct key characteristics typical to the problem. In particular,
-the following categories have been provided:
-
-- `standard_cases`: scenarios based on potential real-life settings
-- `tiny_cases`: extremely tiny toy scenarios
-- `grid_scaling`: scenarios regarding different sizes of the grid
-- `shelves_scaling`: scenarios regarding different numbers of shelves
-- `robots_scaling`: scenarios regarding different numbers of robots
-- `pickingstations_scaling`: scenarios regarding different numbers of picking stations
-- `product_units_orders_scaling`: scenarios regarding combinations of different numbers of product units and orders
-
-For instances, for the category `standard_cases`, a set of 10 instances can be generated by
-
-    python ./generator/test_instances.py -N 10 -d <DEST>
-
-where the resulting instances would be save at directory `<DEST>`. Further, one can split
-instances into warehouse and order related facts via additional command line option `--split` as follows
-
-    python ./generator/test_instances.py -N 10 -d <DEST> --split 5 10
-
-where the first parameter of split specifies the number of warehouses instances (here 5), and the second
-parameter the number of order instances (here 10) per each warehouse instance.
-A set of the referential instances generated by
-
-    python ./generator/test_instances.py -N 10 -d <DEST> --split 10 10
-
-can be found in the latest [ASPRILO release](https://github.com/potassco/asprilo/releases).
+For `/.moo` instances, we further differentiate between the number of robots as detailed ![here](experiments.md).
