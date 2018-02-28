@@ -356,7 +356,7 @@ is an instance where
 ## Batch Generation
 
 Instead of running the instance generator with a single configuration of parameters from the command
-line, there is also support for batch generation based on a range of different configurations. Batch
+line, there is also support for batch generation based on a range of different configurations: batch
 files are defined in ![YAML](yaml.org) syntax, for example the batch
 files
 
