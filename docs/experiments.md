@@ -12,30 +12,32 @@ output:
 
 This is a collection of notes and data on our conducted experiments with [ASPRILO](index.md).
 
-# General Setup
+# Evaluation 2018-02
 
-## System
+## General Setup
+
+### System
 
 - CPU: 2 x AMD Opteron(tm) Processor 6278 Server
 - RAM: 256 GB
 - 32 cores, 64 threads
 
-## Solver
+### Solver
 
 - [clingo 5.3.0 development snapshot](https://github.com/potassco/clingo/tree/wip)
 - [clingcon 3.3.0](https://github.com/potassco/clingcon/tree/v3.3.0)
 - [clingoDL 1.0.1](https://github.com/potassco/clingoDL)
 
-## Test Runs
+### Test Runs
 
 - Each test run is limited to 1 physical core/thread and 8 GB of RAM
 - Minimal horizon (makespan) additionally provided as input for each run
 - Timeout is 1800s, no extra timeout penalty at the moment
 - For each instance, we run an additional test with an assignment that restricts robots to distinct shelves and pick stations for interactions
 
-# Instances
+## Instances
 
--   All subsequent benchmarks are run with the instance set to be found [here](https://www.cs.uni-potsdam.de/~phil/.asprilo_ICLP_h7mbwUjMjmysYkou/instances.tar.bz2).
+-   All subsequent benchmarks are run with the instance set to be found [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/instances.tar.bz2).
 
     ```shell
     moo
@@ -83,110 +85,101 @@ This is a collection of notes and data on our conducted experiments with [ASPRIL
     -   1x2x4 (*small*):
 
         ```shell
-        ig -x 11 -y 6 -X 4 -Y 2 -p 1 -s 16 -P 16 -u 16 -H {-r 2 -o 2 | -r 5 -o 5 | -r 8 -o 8 | -r 11 -o 11}
+        gen -x 11 -y 6 -X 4 -Y 2 -p 1 -s 16 -P 16 -u 16 -H {-r 2 -o 2 | -r 5 -o 5 | -r 8 -o 8 | -r 11 -o 11}
         ```
 
     -   2x3x5 (*medium*):
 
         ```shell
-        ig -x 19 -y 9 -X 5 -Y 2 -p 3 -s 60 -P 60 -u 60 -H {-r 5 -o 5 | -r 10 -o 10 | -r 15 -o 15 | -r 19 -o 19}
+        gen -x 19 -y 9 -X 5 -Y 2 -p 3 -s 60 -P 60 -u 60 -H {-r 5 -o 5 | -r 10 -o 10 | -r 15 -o 15 | -r 19 -o 19}
         ```
 
     -   4x5x8 (*large*):
 
         ```shell
-        ig -x 46 -y 15 -X 8 -Y 2 -p 10 -s 320 -P 320 -u 320 -H {-r 12 -o 12 | -r 23 -o 23 | -r 35 -o 35 | -r 46 -o 46}
+        gen -x 46 -y 15 -X 8 -Y 2 -p 10 -s 320 -P 320 -u 320 -H {-r 12 -o 12 | -r 23 -o 23 | -r 35 -o 35 | -r 46 -o 46}
         ```
 
 -   30 instances per each increment and hence 120 per layout size and 360 instances in total
 
 
-# M-Domain Results
+## M-Domain Results
 
-## Setup
+### Setup
 
-### Tested Encodings
+#### Tested Encodings
 
 - [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/moo/encoding.lp)
 - [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/moo/encoding.clp)
-- [clingo: boolean encoding w/ split x,y-coordinates](https://github.com/potassco/asprilo-encodings/blob/restruct/moo/encoding-XY.lp) (*not considered in ICLP18 paper!*)
-- [clingoDL: difference-logic encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/moo/encoding.dlp) (*not considered in ICLP18 paper!*)
+- [clingo: boolean encoding w/ split x,y-coordinates](https://github.com/potassco/asprilo-encodings/blob/restruct/moo/encoding-XY.lp)
+- [clingoDL: difference-logic encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/moo/encoding.dlp)
 
-### Outcome
+#### Outcome
 
 An in-depth analysis of the subsequent results can be found in our ICLP'18 paper.
 
 1.  Runs without Assignment
 
-    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/.asprilo_ICLP_h7mbwUjMjmysYkou/moo/res.ods).
-    - The column heads `dispatch-1/boolean`, `=dispatch-1/boolean-XY`, `dispatch-1/csp`, `dispatch-1/dlp-s` and `dispatch-1/dlp-sp` denote the boolean, boolean w/ split
-      x,y-coords, clingcon and difference logic encoding with 'strict' and 'strict -p' execution flag, respectively
-    <!-- -   1x2x4 runs: -->
-    <!--     - Too small run times to differentiate between the boolean, boolean w/ split x,y-coords, and clingcon encoding -->
-    <!-- -   2x3x5 runs: -->
-    <!--     - Too small run times to differentiate between the boolean and boolean w/ split x,y-coords encoding -->
-    <!--     - However, both clingcon and dl, with dl perform worse by 2 orders of magnitude in comparison to the boolean encodings -->
-    <!-- -   4x5x8 runs: -->
-    <!--     - The boolean encoding w/o split coordinates performs by far the best, distant second the boolean encoding w/ split -->
-    <!--     - clingcon and difference logic encoding virtually timeout for almost all instances -->
-    <!-- -   Besides this setup, I also tried multiple 7x8x10 instances but none of the encodings could solve any of them within 1800s -->
+    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/m/res.ods).
+    - The column heads `dispatch-1/boolean`, `=dispatch-1/boolean-XY`, `dispatch-1/csp`,
+      `dispatch-1/dlp-s` and `dispatch-1/dlp-sp` denote the boolean, boolean w/ split x,y-coordinates,
+      clingcon and difference logic encoding with 'strict' and 'strict -p' execution flag,
+      respectively
 
 2.  Runs with Assignment (only clingo boolean, clingcon csp tested!)
 
-    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/.asprilo_ICLP_h7mbwUjMjmysYkou/moo/res-asg.ods)
+    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/m/res-asg.ods)
     - The column heads `dispatch-1/boolean` and `dispatch-1/csp` denote the boolean, clingcon and difference logic encoding, respectively
-    <!-- -   For the clingo boolean encoding, notable linear speed-up, esp. for the 4x5x8 instances -->
-    <!-- -   For the clingcon encoding, no notable improvements -->
 
 
-# A-Domain Results
+## A-Domain Results
 
-## Tested Encodings
+### Tested Encodings
 
 - [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-q.lp)
 - [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-q.clp)
 
-## Outcome
+### Outcome
 
 1.  Runs without Assignment
 
-    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/.asprilo_ICLP_h7mbwUjMjmysYkou/a/res.ods).
+    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/a/res.ods).
 
 2.  Runs with Assignment
 
-    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/.asprilo_ICLP_h7mbwUjMjmysYkou/a/res-asg.ods)
+    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/a/res-asg.ods)
 
 
-# B-Domain Results
+## B-Domain Results
 
-## Tested Encodings
+### Tested Encodings
 
 - [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-r.lp)
 - [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-r.clp)
 
-## Outcome
+### Outcome
 
 1.  Runs without Assignment
 
-    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/.asprilo_ICLP_h7mbwUjMjmysYkou/b/res.ods).
+    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/b/res.ods).
 
 2.  Runs with Assignment
 
-    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/.asprilo_ICLP_h7mbwUjMjmysYkou/b/res-asg.ods)
+    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/b/res-asg.ods)
 
-# C-Domain Results
+## C-Domain Results
 
-## Tested Encodings
+### Tested Encodings
 
 - [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-0.lp)
 - [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-0.clp)
 
-## Outcome
+### Outcome
 
 1.  Runs without Assignment
 
-    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/.asprilo_ICLP_h7mbwUjMjmysYkou/c/res.ods).
+    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/c/res.ods).
 
 2.  Runs with Assignment
 
-    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/.asprilo_ICLP_h7mbwUjMjmysYkou/c/res-asg.ods)
+    - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/c/res-asg.ods)
