@@ -10,12 +10,12 @@ output:
 
 # What is *asprilo*?
 
-**asprilo** is a benchmark suite for [answer set programming
-(ASP)](https://en.wikipedia.org/wiki/Answer_set_programming), based on typical scenarios in
-intra-logistics and warehouse automation with multiple mobile robots. Specifically, the diverse and
-complex nature of those settings makes them an ideal test bed for methods and technologies in
-ASP. Beyond that, asprilo also supports any other solving approach that complies with its I/O
-interface.
+**asprilo** is an empirical framework to study typical scenarios in intra-logistics and warehouse
+automation with multiple mobile robots. Due to the diverse and complex nature of this domain,
+asprilo offers an ideal test bed not only for modern industrial scenarios but complex dynamic
+problems in general. Although, the implementation of asprilo relies on [answer set programming
+(ASP)](https://en.wikipedia.org/wiki/Answer_set_programming) and Python, it also supports any other
+approach that complies with its fact-based I/O interface.
 
 <iframe width="49%" height="315" src="https://www.youtube.com/embed/ifYKHIvdnjw" frameborder="0" allowfullscreen align="left"></iframe>
 <iframe width="49%" height="315" src="https://www.youtube.com/embed/GHRwpWzL0j8" frameborder="0" allowfullscreen align="right"></iframe>
