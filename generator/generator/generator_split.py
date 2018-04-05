@@ -7,7 +7,7 @@ import logging
 import math
 import copy
 import glob
-from generator.utils.aux import clone_args
+from generator.utils.auxiliary import clone_args
 from generator.generator import BasicGenerator, InstanceGenerator
 
 import clingo

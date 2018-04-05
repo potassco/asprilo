@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 import logging
 import math
-from generator.utils.aux import clone_args
+from generator.utils.auxiliary import clone_args
 from generator.generator import BasicGenerator, InstanceGenerator
 
 LOG = logging.getLogger('custom')

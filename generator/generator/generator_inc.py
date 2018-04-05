@@ -7,7 +7,7 @@ import os
 import logging
 import math
 import clingo
-from generator.utils.aux import clone_args
+from generator.utils.auxiliary import clone_args
 from generator.generator import BasicGenerator, InstanceGenerator
 
 LOG = logging.getLogger('custom')

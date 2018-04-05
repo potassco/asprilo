@@ -16,7 +16,7 @@ import yaml
 from generator.generator import BasicGenerator
 from generator.generator_inc import IncrementalGenerator
 from generator.generator_split import SplitGenerator
-from generator.utils.aux import check_positive, SmartFormatter, clone_args
+from generator.utils.auxiliary import check_positive, SmartFormatter, clone_args
 from generator.utils.logger import setup_logger
 from generator import release
 
