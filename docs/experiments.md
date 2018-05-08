@@ -109,10 +109,10 @@ This is a collection of notes and data on our conducted experiments with [aspril
 
 #### Tested Encodings
 
-- [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/moo/encoding.lp)
-- [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/moo/encoding.clp)
-- [clingo: boolean encoding w/ split x,y-coordinates](https://github.com/potassco/asprilo-encodings/blob/restruct/moo/encoding-XY.lp)
-- [clingoDL: difference-logic encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/moo/encoding.dlp)
+- [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/develop/m/encoding.lp)
+- [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/develop/m/encoding.clp)
+- [clingo: boolean encoding w/ split x,y-coordinates](https://github.com/potassco/asprilo-encodings/blob/develop/m/encoding-XY.lp)
+- [clingoDL: difference-logic encoding](https://github.com/potassco/asprilo-encodings/blob/develop/m/encoding.dlp)
 
 #### Outcome
 
@@ -136,8 +136,8 @@ An in-depth analysis of the subsequent results can be found in our ICLP'18 paper
 
 ### Tested Encodings
 
-- [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-q.lp)
-- [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-q.clp)
+- [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/develop/abc/encoding-a.lp)
+- [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/develop/abc/encoding-a.clp)
 
 ### Outcome
 
@@ -154,8 +154,8 @@ An in-depth analysis of the subsequent results can be found in our ICLP'18 paper
 
 ### Tested Encodings
 
-- [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-r.lp)
-- [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-r.clp)
+- [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/develop/abc/encoding-b.lp)
+- [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/develop/abc/encoding-b.clp)
 
 ### Outcome
 
@@ -171,8 +171,8 @@ An in-depth analysis of the subsequent results can be found in our ICLP'18 paper
 
 ### Tested Encodings
 
-- [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-0.lp)
-- [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/restruct/mppd/encoding-0.clp)
+- [clingo: boolean encoding](https://github.com/potassco/asprilo-encodings/blob/develop/abc/encoding-c.lp)
+- [clingcon: csp encoding](https://github.com/potassco/asprilo-encodings/blob/develop/abc/encoding-c.clp)
 
 ### Outcome
 
