@@ -37,7 +37,8 @@ This is a collection of notes and data on our conducted experiments with [aspril
 
 ## Instances
 
--   All subsequent benchmarks are run with the instance set to be found [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/instances.tar.bz2).
+-   All subsequent benchmarks are run with the instance set to be found
+    [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/instances.tar.bz2).
 
     ```shell
     moo
@@ -71,12 +72,12 @@ This is a collection of notes and data on our conducted experiments with [aspril
     - 1x2x4 aka *small*
     - 2x3x5 aka *medium*
     - 4x5x8 aka *large*
--   Further, all instances have 100 percent of the storage zones covered by shelves.
 -   For each instance holds:
     - the number of robots and orders is identical;
     - there are exactly as many products and product units as shelves;
     - each shelf holds exactly one product unit;
     - each order contains exactly one order line.
+    - 100 % shelf coverage, ie., all storage nodes are covered by a shelf
 -   Instances are further categorized by incrementally increasing the number of robots:
     - For 1x2x4 layout size: increments of 2, 5, 8 and 11 robots and orders total)
     - For 2x3x5 layout size: increments of 5, 10, 15 and 19 robots and orders
@@ -102,6 +103,43 @@ This is a collection of notes and data on our conducted experiments with [aspril
 
 -   30 instances per each increment and hence 120 per layout size and 360 instances in total
 
+## Minimal Horizon and Task Assignment
+
+Additionally, for each instance we provide the minimal *horizon (makespan)* and a *task assignment* depending on the used domain.
+Both are stored in extra files within the same directory as the instance file. In particular, those additional files use the same name as the instance file extended by an distinct suffix:
+
+- for the assignment under domain A, B and C, we use suffix `__asg-a`; that is, we provide the same
+  assignment and hence a single assignment file for all three domains A,B and C
+- for the assignment under domain M, we use suffix `__asg-m`
+- for the horizon without assignment under domain A, B, C and M, we use suffixes `__hor-a`, `__hor-b`, `__hor-c`, and `__hor-m`, resp.
+- for the horizon with assignment under domain A, B, C and M, we use suffixes `__hor-aa`, `__hor-ba`, `__hor-ca`, and `__hor-ma`, resp.
+
+E.g., for instance
+`moo/structured/1x2x4/100sc/r5/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp`, we additionally store:
+
+```shell
+moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp__asg-a
+moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp__asg-m
+moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp__hor-a
+moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp__hor-aa
+moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp__hor-b
+moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp__hor-ba
+moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp__hor-c
+moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp__hor-ca
+moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp__hor-m
+moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp__hor-ma
+
+```
+
+Further, we only provide those minimal horizons that were computable within 8 hours on our machine.
+Likewise, we only provide those assignments for which the minimal horizon is
+available. Specifically, for the large instance sizes `2x3x5` and`4x5x8` under the domains A-C,
+the minimal horizons and assignments are not provided.
+
+## Encodings
+
+You can find the repository of all our encodings [here](https://github.com/potassco/asprilo-encodings/tree/develop).
+To learn more about the specifically used encodings for each test runs, please see below.
 
 ## M-Domain Results
 
@@ -183,3 +221,60 @@ An in-depth analysis of the subsequent results can be found in our ICLP'18 paper
 2.  Runs with Assignment
 
     - Result spreadsheet can be found [here](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/c/res-asg.ods)
+
+## How to Reproduce Test Runs
+
+In general, to run single tests on your own machine, your call may follow the following pattern:
+
+``` shell
+SOLVER ENCODING INSTANCE [ASSIGNMENT] HORIZON
+```
+
+where
+
+- `SOLVER` is a solver binary of the [ones stated above](#solver)
+- `ENCODING` is an encoding for A, B, C or M as stated above
+- `INSTANCE` is an instance
+- `ASSIGNMENT` is an optional task assignment matching the instance and domain
+- `HORIZON` is the horizon matching the instance, domain and assignment if given
+
+For example, first download and extract the
+[instances](https://www.cs.uni-potsdam.de/~phil/asprilo/experiments/2018-02/instances.tar.bz2) and
+[encodings](https://github.com/potassco/asprilo-encodings/tree/develop) to your machine, say
+`~/instances` and `~/encodings`, resp. Then, you can run the [boolean encoding for domain
+M](https://github.com/potassco/asprilo-encodings/blob/develop/m/encoding.lp) on instance
+`~/instances/moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp`
+
+-   without assignment as
+
+    ```shell
+    clingo encodings/m/encoding.lp \
+    ~/instances/moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp.{lp,lp__hor-m}
+    ```
+
+-   with assignment as
+
+    ```shell
+    clingo encodings/m/encoding.lp encodings/control/control.lp\
+    ~/instances/moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp.{lp,lp__asg-m,lp__hor-ma}
+    ```
+
+
+Similarly, you can run the same instance with the [clingcon encoding in domain A](https://github.com/potassco/asprilo-encodings/blob/develop/abc/encoding-a.clp)
+
+-   without assignment as
+
+
+    ```shell
+    clingcon encodings/a/encoding-a.clp \
+    ~/instances/moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp.{lp,lp__hor-a}
+    ```
+
+-   with assignment as
+
+    ```shell
+    clingcon encodings/a/encoding-a.clp encodings/control/control.lp\
+    ~/instances/moo/structured/1x2x4/100sc/r05/x11_y6_n66_r5_s16_ps1_pr16_u16_o5_N001.lp.{lp,lp__asg-a,lp__hor-aa}
+    ```
+
+etc.
