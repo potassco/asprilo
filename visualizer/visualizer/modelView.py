@@ -1,8 +1,8 @@
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from configuration import *
-from model import *
+from .configuration import *
+from .model import *
     
 class MainScene(QGraphicsScene):
     def __init__(self):
@@ -30,6 +30,10 @@ class ModelView(QGraphicsView):
         self._display_mode = 0
         self._scaling = 1.0
         self._zoom = (1.0, 1.0)
+
+        self._grid_size_x = 1
+        self._grid_size_Y = 1
+        self._lines = []
 
         self._items_in_scene = []
 
@@ -324,6 +328,10 @@ class ModelView(QGraphicsView):
         self._scene.setSceneRect(0, 0, self._line_hlength, self._line_vlength*1)
 
     def clear(self):
+        for line in self._lines:
+            self._scene.removeItem(line)
+        self._lines = []
+
         for item in self._items_in_scene:
             self._scene.removeItem(item)
         self._items_in_scene = []
@@ -335,7 +343,7 @@ class ModelView(QGraphicsView):
         self._line_vlength = (self._h_distance) * self._model.get_grid_size()[1] + self._border_size
 
         for item_dic in self._model.iterate_graphic_dictionaries():
-            for item in item_dic.itervalues():
+            for item in item_dic.values():
                 color_id = 0
                 hex_color = config.get('color', 'color_' + item.get_kind_name() + str(color_id))
                 while(hex_color is not None):
@@ -355,14 +363,14 @@ class ModelView(QGraphicsView):
             line = self._scene.addLine(0, i * self._h_distance*self._scaling,
                                         self._line_hlength*self._scaling - self._border_size,
                                         i *(self._h_distance*self._scaling), pen)
-            self._items_in_scene.append(line)
+            self._lines.append(line)
 
         #draw horizontal lines
         for i in range(0,self._model.get_grid_size()[0] + 1):
             line = self._scene.addLine(i * self._w_distance*self._scaling, 
                                         0, i * (self._w_distance*self._scaling), 
                                         self._line_vlength*self._scaling - self._border_size, pen)
-            self._items_in_scene.append(line)
+            self._lines.append(line)
 
         #draw disabled nodes
         for node in self._model.get_blocked_nodes():
@@ -390,7 +398,7 @@ class ModelView(QGraphicsView):
         for item_dic in self._model.iterate_graphic_dictionaries():
             count = len(item_dic)
             number = 1
-            for item in item_dic.itervalues():
+            for item in item_dic.values():
                 item.set_display_mode(self._display_mode)
                 x_pos = item.get_position()[0] - 1
                 y_pos = item.get_position()[1] - 1

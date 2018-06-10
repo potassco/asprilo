@@ -1,8 +1,8 @@
 import os.path
 import clingo
-import configuration
+from . import configuration
 import traceback
-from model import *
+from .model import *
 
 class AspParser(object):
     def __init__(self):
@@ -85,7 +85,7 @@ class AspParser(object):
                     self._model.set_num_steps(time_step)
                 self._model.set_editable(False)
         except:
-            print 'invalid occurs format, expecting: occurs(object([object], [objectID]), action([action], [arguments]), [time step])'
+            print('invalid occurs format, expecting: occurs(object([object], [objectID]), action([action], [arguments]), [time step])')
 
     def _on_init_atom(self, obj, value):
         try:
@@ -130,7 +130,7 @@ class AspParser(object):
         except Exception as e:
             if ll_config.get('features', 'debug'):
                 traceback.print_exc()
-            print ('invalid init: init(' + str(obj) + ', ' + str(value) + ')')
+            print(('invalid init: init(' + str(obj) + ', ' + str(value) + ')'))
 
     def done_instance(self, enable_auto_solve = True):
         self._model.accept_new_items()
@@ -169,8 +169,8 @@ class AspParser(object):
                         self._programs[file_name] = ff.read()
                         ff.close()
         except RuntimeError as error:
-            print error
-            print 'file parsing failed'
+            print(error)
+            print('file parsing failed')
             return -1
         if self._parser_widget is not None:
             self._parser_widget.update()
@@ -183,10 +183,10 @@ class AspParser(object):
 
     def load(self, file_name):
         if not os.path.isfile(file_name):
-            print 'can not open file: ', file_name
+            print('can not open file: ', file_name)
             return -1
 
-        print 'load file: ' + file_name
+        print('load file: ' + file_name)
         try:
             ff = open(file_name)
             self._programs[file_name] = ff.read()
@@ -194,8 +194,8 @@ class AspParser(object):
             if self._parser_widget is not None:
                 self._parser_widget.update()
         except RuntimeError as error:
-            print error
-            print 'file loading failed'
+            print(error)
+            print('file loading failed')
             return -2
         return 0
 
@@ -208,15 +208,15 @@ class AspParser(object):
                     clingo.parse_program(self._programs[key], lambda stm: bb.add(stm))
             self._control.ground([('base', [])])
             result = self._control.solve(on_model=self.on_model)
-            print result
+            print(result)
         except RuntimeError as error:
-            print error
+            print(error)
             return -2
         return 0
 
     def parse_file(self, file_name, clear = False, clear_actions = False, clear_grounder = True):
         if not os.path.isfile(file_name):
-            print 'can not open file: ', file_name
+            print('can not open file: ', file_name)
             return -1
 
         if clear:

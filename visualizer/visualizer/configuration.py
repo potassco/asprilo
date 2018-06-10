@@ -1,4 +1,4 @@
-from ConfigParser import *
+from configparser import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -76,8 +76,6 @@ class Configuration(object):
         self.read_file()
 
     def read_file(self):
-        if not os.path.isdir(os.path.dirname(sys.argv[0]) + '/config'):
-            os.makedirs(os.path.dirname(sys.argv[0]) + '/config')
         for key in self._values:
             if not self._config_parser.has_section(key[0]):
                 self._config_parser.add_section(key[0])
@@ -86,7 +84,7 @@ class Configuration(object):
                                     value.to_string(value.default_value))
         if self._file_name is not None:
             self._config_parser.read(self._file_name)
-            with open(self._file_name, 'wb') as configfile:
+            with open(self._file_name, 'w') as configfile:
                 self._config_parser.write(configfile)
         self.read_values()
 
@@ -211,9 +209,9 @@ class Configuration(object):
         for section in self._config_parser.sections():
             for option in sorted(self._config_parser.options(section)):
                 if (section, option) in self._values:
-                    self._config_parser.set(section, option, it.next().text())
+                    self._config_parser.set(section, option, next(it).text())
   
-        with open(self._file_name, 'wb') as configfile:
+        with open(self._file_name, 'w') as configfile:
             self._config_parser.write(configfile)
         self.read_values()
         self._widget.hide()
