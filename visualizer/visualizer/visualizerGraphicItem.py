@@ -6,9 +6,9 @@ from PyQt5.QtWidgets import QGraphicsEllipseItem
 from PyQt5.QtGui import QFont
 from PyQt5.QtGui import QColor
 from PyQt5.QtGui import QBrush
-import modelView 
-import visualizerItem
-from configuration import *
+from . import modelView 
+from . import visualizerItem
+from .configuration import *
 
 def calculate_color(first_color, second_color, multiplier):
     red = (min(first_color.red(), second_color.red()), max(first_color.red(), second_color.red()))
@@ -53,19 +53,19 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
 
     def set_action(self, action, time_step):
         if time_step < 0:
-            print ('Warning: invalid time step in occurs(object('
+            print(('Warning: invalid time step in occurs(object('
                     + str(self._kind_name) + ','
                     + str(self._ID) + '),' + str(action)
-                    + ',' + str(time_step) + ')')
-            print 'time step is less than 0'
+                    + ',' + str(time_step) + ')'))
+            print('time step is less than 0')
             return
         for ii in range((time_step + 1) - len(self._actions)):
             self._actions.append(None)
         if not self._actions[time_step] == None:
-            print ('Warning: for object(' + str(self._kind_name)
+            print(('Warning: for object(' + str(self._kind_name)
                     + ', ' + str(self._id)
                     + ') multiple actions are defined at time step '
-                    + str(time_step))
+                    + str(time_step)))
         self._actions[time_step] = action
 
     def set_display_mode(self, display_mode):

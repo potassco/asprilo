@@ -4,6 +4,7 @@ import select
 import time
 import os
 import clingo
+import argparse
 from PyQt5.QtCore import *
 
 class VisualizerSocket(object):
@@ -52,7 +53,7 @@ class VisualizerSocket(object):
         if port is not None:
             self._port = port
         self.close()
-        print 'Try connection with '+ self._socket_name
+        print('Try connection with '+ self._socket_name)
         self._s = socket.socket()
         connected = False
         tryCount = 0
@@ -63,13 +64,13 @@ class VisualizerSocket(object):
                 connected = True
             except(socket.error):
                 if tryCount >= 5: 
-                    print 'Failed to connect with ' + self._socket_name
+                    print('Failed to connect with ' + self._socket_name)
                     self.close()
                     return -1 
-                print 'Failed to connect with ' + self._socket_name + ' \nRetrying in 2 sek'
+                print('Failed to connect with ' + self._socket_name + ' \nRetrying in 2 sek')
                 time.sleep(2)
             tryCount += 1
-        print 'Connect with '+ self._socket_name
+        print('Connect with '+ self._socket_name)
         return 0
 
     def send(self, msg):
@@ -102,7 +103,7 @@ class VisualizerSocket(object):
                 self.close()
                 return None
         except socket.error as err:
-            print err
+            print(err)
         return data
 
     def receive(self):
@@ -115,7 +116,7 @@ class VisualizerSocket(object):
         if self._timer is not None:
             self._timer.stop()
         if self._s is not None: 
-            print 'Close connection to ' + self._socket_name
+            print('Close connection to ' + self._socket_name)
             try:
                 self._s.shutdown(socket.SHUT_RDWR)
             except socket.error:

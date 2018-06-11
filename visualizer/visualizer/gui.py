@@ -1,9 +1,11 @@
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-import configuration
+from . import configuration
 import os
 import sys
+#test
+import time
 
 class InstanceFileBrowser(QTreeView):
     def __init__(self, directory = None):
@@ -251,6 +253,8 @@ class OccursWidget(QTextEdit):
         self.setFontPointSize(14)
 
     def update(self):
+        #test
+        time_start = time.clock()
         action_lists = []
         max_len = 0
         text = ''
@@ -258,24 +262,36 @@ class OccursWidget(QTextEdit):
         pos = scroll_bar.sliderPosition()
         for agent in self._model.iterate_graphic_items():
             action_list = agent.to_occurs_str()
-            action_lists.append(action_list)
-            max_len = max(max_len, len(action_list))
-        for i in xrange(0, max_len):
+            if len(action_list) != 0:
+                action_lists.append(action_list)
+                max_len = max(max_len, len(action_list))
+
+        join_list = []      
+        for i in range(0, max_len):
+            if i == self._model.get_current_step():
+                join_list.append('<font color = green>')
+
+
             for action_list in action_lists:
                 if len(action_list) > i:
                     if action_list[i] is not None:
-                        if i == self._model.get_current_step():
-                            text = (text + '<font color = green>'
-                                    + action_list[i]
-                                    + '<br>\n' + '</font>')
-                            self.setHtml(text)
-                            self.moveCursor(QTextCursor.End)
-                            pos = self.verticalScrollBar().sliderPosition()
-                        else:
-                            text = text + action_list[i] + '<br>\n'
+                        join_list.append(action_list[i])
+
+
+            if i == self._model.get_current_step():
+                join_list.append('</font>')
+                text = text + ''.join(join_list)
+                join_list = []
+                self.setHtml(text)
+                self.moveCursor(QTextCursor.End)
+                pos = self.verticalScrollBar().sliderPosition()
+        text = text + ''.join(join_list)
+
         self.setHtml(text)
         scroll_bar.setSliderPosition(pos)
         super(self.__class__, self).update()
+        #test
+        print('Duration:', time.clock() - time_start)
 
     def set_model(self, model):
         self._model = model
@@ -347,7 +363,7 @@ class ServerDialog(QWidget):
                 return
             self._socket.run()
         except(ValueError):
-            print 'the port must be an integer value'
+            print('the port must be an integer value')
         self.hide()
     def on_cancel(self, event):
         self.hide()
@@ -390,7 +406,7 @@ class InitServerDialog(QWidget):
                     self._textbox.text().replace('__dir__', os.path.dirname(sys.argv[0])),
                     int(self._port_textbox.text()))
         except(ValueError):
-            print 'the port must be an integer value'
+            print('the port must be an integer value')
     def on_cancel(self, event):
         self.hide()
 
@@ -449,7 +465,7 @@ class GridSizeDialog(QWidget):
                                       int(self._height_textbox.text()), 
                                       self._checkbox.isChecked())
         except ValueError:
-            print 'x and y must be interger values'
+            print('x and y must be interger values')
         if self._model_view is not None:
             self._model_view.update()
             self._model_view.resize_to_fit()
@@ -521,14 +537,14 @@ class OrderDialog(QWidget):
                         create = True,
                         add_immediately = self._model.get_editable())
             if not self._model.get_editable() and self._model.contains(order):
-                print 'commited orders can not be edited'
+                print('commited orders can not be edited')
             else:
                 order.set_station_id(self._ps_textbox.text())
                 order.add_request(self._product_id_textbox.text(),
                                 int(self._product_amount_textbox.text()))
                 self._model.update_windows()
         except:
-            print 'failed to add new request'
+            print('failed to add new request')
             return
         self.hide()
 
@@ -693,10 +709,10 @@ class OrderWidget(QSplitter):
                 item = self._table.item(count, 0)
                 if item is not None:
                     if request.changed:
-                        for ii in xrange(0, self._table.columnCount()):
+                        for ii in range(0, self._table.columnCount()):
                            self._table.item(count, ii).setBackground(red_brush)
                     else:
-                        for ii in xrange(0, self._table.columnCount()):
+                        for ii in range(0, self._table.columnCount()):
                             self._table.item(count, ii).setBackground(white_brush)
 
                 self.set_item_text(count, 0, str(order.get_id()))
@@ -717,7 +733,7 @@ class OrderWidget(QSplitter):
                 self.set_item_text(count, 4, str(request.delivered), True)
                 self.set_item_text(count, 5, str(request.requested - request.delivered), True)
 
-                for ii in xrange(0, self._table.columnCount()):
+                for ii in range(0, self._table.columnCount()):
                     self._table.item(count, ii).setBackground(yellow_brush)
 
                 count = count + 1
@@ -769,7 +785,7 @@ class OrderWidget(QSplitter):
         try:
             value = int(item.text())
         except ValueError as err:
-            print err
+            print(err)
             self.update()
             return
 
@@ -827,7 +843,7 @@ class ProductDialog(QWidget):
         try:
             self._shelf.add_product(int(self._id_textbox.text()), int(self._count_textbox.text()))
         except ValueError:
-            print 'the product id and the product counts must be integer values'
+            print('the product id and the product counts must be integer values')
         self._product_window.update()
 
     def on_cancel(self, event):
@@ -986,10 +1002,10 @@ class TaskTable(QTableWidget):
             table_item = self.item(count, 0)
             if (table_item is not None):
                 if (task.get_changed() and changed_tasks):
-                    for ii in xrange(0, self.columnCount()):
+                    for ii in range(0, self.columnCount()):
                         self.item(count, ii).setBackground(red_brush)
                 else:
-                    for ii in xrange(0, self.columnCount()):
+                    for ii in range(0, self.columnCount()):
                         self.item(count, ii).setBackground(white_brush)
 
             self.set_item_text(count, 0, str(task.get_id()))

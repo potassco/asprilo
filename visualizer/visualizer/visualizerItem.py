@@ -263,7 +263,7 @@ class Task(VisualizerItem):
                 self.add_checkpoint(str(value.arguments[0]), str(value.arguments[1]), value.arguments[2].number)
                 return 0
             except Exception as err:
-                print err
+                print(err)
         return 1
 
     def on_step_update(self, time_step):
