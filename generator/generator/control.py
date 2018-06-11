@@ -411,10 +411,17 @@ class Control(object):
         #                         generator encoding. (default: %(default)s)""")
         basic_args.add_argument('--gstats', nargs='?', const='stats', dest='grounding_stats', metavar="OPT",
                                 help=("R|WARNING: FOR ANALYTICAL PURPOSE ONLY, DO NOT USE FOR PRODUCTION!\n"
-                                "Shows grounding size statistics for each program part of the instance\n"
-                                "generator encoding, takes optional argument %(metavar)s:\n"
-                                "  stats : shows the grounding size statistics (implied by default)\n"
-                                "  atoms : additionally shows the grounded program and output atoms & terms"))
+                                      "Shows grounding size statistics for each program part of the instance\n"
+                                      "generator encoding, takes optional argument %(metavar)s:\n"
+                                      "  stats : shows the grounding size statistics (implied by default)\n"
+                                      "  atoms : additionally shows the grounded program and output atoms & terms"))
+        basic_args.add_argument('--aspif', nargs='?', const='stats', dest='aspif', metavar="OPT",
+                                help=("R|WARNING: FOR ANALYTICAL PURPOSE ONLY, DO NOT USE FOR PRODUCTION!\n"
+                                      "Prints the current aspif program for each solving step of the instance\n"
+                                      " generation, takes optional argument %(metavar)s:\n"
+                                      "  print : print to stdout only (implied by default)\n"
+                                      "  dump : additionally dumps the aspif programs in directory './_aspif'"))
+
 
         batch_args = parser.add_argument_group("Batch mode options")
         batch_args.add_argument("-j", "--batch", type=str, metavar="JOB",

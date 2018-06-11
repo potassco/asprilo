@@ -6,8 +6,10 @@ import os
 import signal
 import logging
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
 import clingo
 from observer import Observer
+from aspif import AspifObserver
 
 LOG = logging.getLogger('custom')
 
@@ -34,6 +36,7 @@ class BasicGenerator(InstanceGenerator):
         super(BasicGenerator, self).__init__(conf_args)
         self._prg = None
         self._observer = Observer()
+        self._aspif_obs = AspifObserver()
         self._solve_opts = ["-t {0}".format(self._args.threads),
                             "--project",
                             # "--opt-mode=optN",
@@ -151,6 +154,9 @@ class BasicGenerator(InstanceGenerator):
 
         # Register ground program observer to analyze grounding size impact per program parts
         self._prg.register_observer(self._observer)
+
+        # Register ground program observer for aspif output of current ground program
+        self._prg.register_observer(self._aspif_obs)
 
         # Problem encoding
         self._prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -285,6 +291,9 @@ class BasicGenerator(InstanceGenerator):
         else:
             self._ground([("project_all", [])])
 
+        if self._args.aspif:
+            self._print_aspif("AFTER GROUNDING, BEFORE CONCLUDING SOLVE CALL", self._args.aspif)
+
         LOG.info("Solving...")
 
         # solve_future = self._prg.solve_async(self._on_model)
@@ -307,7 +316,7 @@ class BasicGenerator(InstanceGenerator):
         LOG.debug("Statistics: %s", self._prg.statistics)
 
         if self._args.grounding_stats:
-            self._get_grounding_stats("AFTER CONCLUDING SOLVE CALL", self._args.grounding_stats)
+            self._print_grounding_stats("AFTER CONCLUDING SOLVE CALL", self._args.grounding_stats)
 
         return self._instances
 
@@ -397,11 +406,10 @@ class BasicGenerator(InstanceGenerator):
             description = 'parts: ' + str(parts)
             if context:
                 description += '| context: ' + str(context)
-            self._get_grounding_stats(description, self._args.grounding_stats)
+            self._print_grounding_stats(description, self._args.grounding_stats)
 
-
-    def _get_grounding_stats(self, description=None, show='stats'):
-        """Returns grounding size statistics for current ASP program."""
+    def _print_grounding_stats(self, description=None, show='stats'):
+        """Prints the grounding size statistics for current ASP program."""
         self._prg.ground([("project_all", [])])
         self._prg.solve()
         ctx = self._observer.finalize()
@@ -422,3 +430,29 @@ class BasicGenerator(InstanceGenerator):
                      description,
                      ", ".join([str(sym) for sym in model.symbols(shown=True)]))
         prg.solve(on_model=__on_model)
+
+    def _print_aspif(self, description=None, output='print', dump_dir='./_aspif'):
+        """Prints the aspif program of the current clingo.Control object stored in self._prg."""
+        self._prg.solve()
+        ctx = self._aspif_obs.finalize()
+        aspif = 'asp 1 0 0\n'
+        for stype, statements in ctx.get().items():
+            for stm in statements:
+                aspif += str(stype) + ' ' + ' '.join([str(sym) for sym in stm]) + '\n'
+        aspif += '0'
+        if output == 'print':
+            LOG.info(("ASPIF output of current program %s:\n"
+                      "%s\n"),
+                     description,
+                     aspif)
+        elif output == 'dump':
+            try:
+                os.makedirs(dump_dir)
+            except OSError:
+                if not os.path.isdir(dump_dir):
+                    raise
+            now = datetime.now().strftime("%H:%M:%S.%f")
+            with open('{}/dump_{}'.format(dump_dir, now), 'w') as wfile:
+                wfile.write(aspif)
+        else:
+            raise ValueError("Unsupported aspif output option \'{}\'".format(output))
