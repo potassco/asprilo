@@ -4,8 +4,6 @@ from PyQt5.QtGui import *
 from . import configuration
 import os
 import sys
-#test
-import time
 
 class InstanceFileBrowser(QTreeView):
     def __init__(self, directory = None):
@@ -253,8 +251,6 @@ class OccursWidget(QTextEdit):
         self.setFontPointSize(14)
 
     def update(self):
-        #test
-        time_start = time.clock()
         action_lists = []
         max_len = 0
         text = ''
@@ -290,8 +286,6 @@ class OccursWidget(QTextEdit):
         self.setHtml(text)
         scroll_bar.setSliderPosition(pos)
         super(self.__class__, self).update()
-        #test
-        print('Duration:', time.clock() - time_start)
 
     def set_model(self, model):
         self._model = model
