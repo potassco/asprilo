@@ -13,7 +13,7 @@ from visualizer.network import *
 from visualizer.gui import *
 from visualizer.configuration import *
 
-VERSION = '0.10.5'
+VERSION = '0.1.2'
 
 class VisualizerWindow(QMainWindow):
     def __init__(self):
@@ -356,9 +356,9 @@ class VisualizerWindow(QMainWindow):
                                 finish_answer = True
                                 self._asp_parser.add_program('input', '.')
                                 self._asp_parser.parse()
+                count = 0
                 if not found_answer and len(lines) > 0:
-                    for line in lines:
-                        self._asp_parser.add_program('input', line)
+                    self._asp_parser.add_program('input', ''.join(lines))
                     self._asp_parser.parse()
         except Exception as error:
             print(error)
