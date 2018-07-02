@@ -68,14 +68,14 @@ The visualizer accepts the following arguments:
 The visualizer provides different ways to load an instance or a plan:
 
 1. Load an instance/plan with the arguments `-t/--templates`, `-l/-layouts` or `-p/--plans`.  
-![load1.gif](png/load1.gif)  
+![load1.gif](img/load1.gif)  
 2. Pipe an instance/plan into the visualizer.  
-![load21.gif](png/load21.gif)  
-![load22.gif](png/load21.gif)  
+![load21.gif](img/load21.gif)  
+![load22.gif](img/load21.gif)  
 3. Use the file dialogs `File->Load instance [STRG + L]` or `File->Load plan [STRG + V]` to load an instance or a plan.  
-![load3.gif](png/load3.gif)  
+![load3.gif](img/load3.gif)  
 4. Double left click on a file in the file browser to load an instance or right click and then press `load instance` or `load plan` to load an instance or a plan.  
-![load4.gif](png/load4.gif)  
+![load4.gif](img/load4.gif)  
 5. Right click on a file in the file browser and than press `parse file` to load an instance or a plan.
 
 If you load an instance via 3 or 4 the visualizer will override the current model with the loaded instance. If you load a plan via 3 or 4 it will override the current actions with the loaded plan. This will not delete objects like shelves or robots. You should load a compatible instance before loading a plan.
@@ -115,18 +115,18 @@ The visualizer accepts the following atoms as input for a plan:
 
 ## Controls
 You can find the control widget on the right hand side of the visualizer. It provides a few buttons to control the visualization. For most buttons there are also keyboard shortcuts. Use the `>` button or the `[UP]` key to go one step forward in the plan or the `<` button or the `[Down]` key to go one step backward. You can pause and unpause the automated visualisation with the `|>` button or `||` button or the `[Space]` key. The `|<|<` button or the `[Left]` key and `|>|>` button or the `[Right]` key speeds the visualisation up or slows it down. To skip to the end of the plan or restart it use the `>|` and `|<` buttons. You can use the mouse wheel, the `+` and `-` buttons or the `+` and `-` keys to zoom in and zoom out.  
-![control.gif](png/control.gif)
+![control.gif](img/control.gif)
 
 ## Parser
 
 You can open the parser with the `[STRG + P]` keys or the menu `Tools->Parser`. The parser shows all loaded programs in the left text field. A program can be an instance or a plan. If more than one program is loaded you can use the tabs to switch between them. The programs can be modified. The right text field shows all atoms that are currently in the solvers model. Use the `reset grounder` button to clear them. The `reset actions` button will clear all current actions in the current model while the `reset model` button will clear the whole model including all objects and all actions. You can reload the current shown program with `reload program` and delete it with `delete program`. `delete programs` will delete all current loaded instances from the parser and will reload all defalut files that are set in the settings. `parse programm` will sent all instances to the solver and start the solving process. The resulting model will be added to the current model. To load an instance or a plan use the methods described at [Loading Instances/Plans](#Loading Instances/Plans). You can add an empty program be clicking the `add empty program` button.  
-![parser.gif](png/parser.gif)
+![parser.gif](img/parser.gif)
 
 ## Editor
 
 The visualizer allows also the editing of instances. You can [load an instance](#Loading Instances/Plans) or create a new one `File->New instance [STRG + N]`. To remove or add objects right click on a node on the model display. You can add and remove robots, shelves, picking stations and highways. Objects can also be moved via drag and drop from one node to another. Objects can only be dropped into enabled nodes. To enable a node right click on a disabled node and left click in the context menu on `enable node`. You also can disable nodes by right click on a enabled node and left click in the context menu on disable node. Use the grid size window `Tools->Grid Size` to adjust the grid of the instance. Products can be edited in the orders window `Tools->Orders`. To add a product right click on a shelf and choose `add product`. Right click on a product entry and then click on `remove product` to remove a product from a shelf. Orders can be edited the same way via the orders window `Tools->orders`. You can edit an instance until the instance was sended to the solver or a plan was loaded. As soon as one `occurs` atom was added to the model it is no longer possible to edit it. To save an instance use `File->Save instance [STRG + I]`. To save a plan use `File->Save plan [STRG + A]`.  
-![editor.gif](png/editor1.gif)  
-![editor.gif](png/editor2.gif)
+![editor.gif](img/editor1.gif)  
+![editor.gif](img/editor2.gif)
 
 ##Tools
 
