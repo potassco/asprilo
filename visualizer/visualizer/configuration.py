@@ -263,7 +263,7 @@ class LLConfiguration(Configuration):
                         ('features', 'tasks') : ConfigEntry(self._read_bool_from_config, True, str, 'tasks'),
                         ('features', 'debug') : ConfigEntry(self._read_bool_from_config, False, str, 'debug'),
                         ('features', 'load_files') : ConfigEntry(self._read_str_from_config,
-                                                            os.path.dirname(sys.argv[0]) +  '/encodings/converter.lp',
+                                                            os.path.dirname(os.path.realpath(sys.argv[0])) +  '/encodings/converter.lp',
                                                             str, 'load files'),
                         }
         elif args.debug:
