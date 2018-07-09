@@ -1212,3 +1212,72 @@ class ParserWidget(QSplitter):
         index = self._program_tab.indexOf(current)
         if index != -1:
             self._program_tab.setCurrentIndex(index)
+
+class EnablePathWidget(QScrollArea):
+    def __init__(self, directory = None):
+        super(self.__class__, self).__init__()
+        self.setWindowTitle('Paths')
+        self._model = None
+        self.resize(280, 100)
+
+        self._area = QWidget()
+        self.setWidget(self._area)
+        
+
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self._checkboxes = {}
+        self._colors = {}
+
+        self._ok_button = QPushButton('Ok', self._area)
+        self._cancel_button = QPushButton('Cancel', self._area)
+
+        self._ok_button.clicked.connect(self.on_ok)
+        self._cancel_button.clicked.connect(self.on_cancel)
+
+    def update(self):
+        if self._model is None:
+            return
+        robots = self._model.filter_items(item_kind = 'robot')
+        for key in self._checkboxes:
+            self._checkboxes[key].setParent(None)
+        for key in self._colors:
+            self._colors[key].setParent(None)
+        self._checkboxes = {}
+        self._colors = {}
+        y_pos = 5
+        for robot in robots:
+            checkbox = QCheckBox("robot" + "(" + robot.get_id() + ")", self._area)
+            checkbox.move(5, y_pos)
+            checkbox.setChecked(robot.get_draw_path())
+            checkbox.show()
+            self._checkboxes[robot.get_id()] = checkbox
+            
+            color_text = QTextEdit(self._area)
+            color_text.setHtml('<font color = ' + robot.get_color().name() + '>' + robot.get_color().name() + '</font>')
+            color_text.move(125, y_pos)
+            color_text.setReadOnly(True)
+            color_text.resize(160, 30)
+            color_text.show()
+            self._colors[robot.get_id()] = color_text
+            y_pos += 40
+
+        self._ok_button.move(5, y_pos)
+        self._cancel_button.move(140, y_pos)
+        self._area.resize(240, y_pos + 40)
+        super(self.__class__, self).update()
+        
+    def on_ok(self):
+        for key in self._checkboxes:
+            robot = self._model.get_item(item_kind = 'robot', ID = key)
+            if robot is not None:
+                robot.set_draw_path(self._checkboxes[key].isChecked())
+        self.hide()
+
+    def on_cancel(self):
+        self.hide()
+
+    def set_model(self, model):
+        self._model = model
+        if self._model is not None:
+            self._model.add_window(self)
+        self.update()

@@ -33,8 +33,10 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         self._graphics_item = None
         self._text = None
         self._actions = []
+        self._color = None
         self._colors = [QColor(0,0,0)]
         self._display_mode = 0
+        self._draw_path = False
         self.setAcceptedMouseButtons(Qt.MouseButtons(1))
 
     def set_starting_position(self, x, y):
@@ -70,6 +72,9 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
 
     def set_display_mode(self, display_mode):
         self._display_mode =  display_mode
+
+    def set_draw_path(self, draw_path):
+        self._draw_path = draw_path
 
     def parse_init_value(self, name, value):
         if value is None or name is None:
@@ -132,6 +137,9 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
             return self._colors[color_id]
         return None
 
+    def get_color(self):
+        return self._color
+ 
     def get_rect(self):
         return None
 
@@ -141,6 +149,9 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         if self._actions[time_step] == None:
             return None  #break, if no action is defined     
         return self._actions[time_step]   
+
+    def get_draw_path(self):
+        return self._draw_path
 
     def edit_position_to(self, x, y):
         if (x, y) == self._position:
@@ -682,6 +693,7 @@ class Robot(VisualizerGraphicItem):
 
     def determine_color(self, number, count, pattern = None):
         color = calculate_color(self._colors[0], self._colors[1], (float)(number)/count)
+        self._color = color
         brush = QBrush(color)
         self._graphics_item.setBrush(brush)
 
@@ -710,6 +722,9 @@ class Robot(VisualizerGraphicItem):
 
     def get_initial_carries(self):
         return self._initial_carries
+
+    def can_move(self):
+        return True
 
     def edit_position_to(self, x, y):
         if (x, y) == self._position:

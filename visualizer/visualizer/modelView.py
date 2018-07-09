@@ -418,6 +418,35 @@ class ModelView(QGraphicsView):
                                 self._h_distance*self._scaling - self._border_size*self._scaling))
                 item.determine_color(number, count)
 
+                #draw path
+                if item.get_draw_path():
+                    x_pos = item.get_position()[0]
+                    y_pos = item.get_position()[1]
+                    pen = QPen(item.get_color())
+                    pen.setWidth(self._border_size)
+                    if number % 4 == 0:
+                        pen.setStyle(Qt.DashLine)
+                    elif number % 3 == 0:
+                        pen.setStyle(Qt.DashDotLine)
+                    elif number % 2 == 0:
+                        pen.setStyle(Qt.DashDotLine)                    
+                    cc = self._model.get_current_step()
+                    while(cc <= self._model.get_num_steps()):
+                        action = item.get_action(cc)
+                        cc = cc + 1
+                        if action is not None:
+                            if action.arguments[0].name == 'move':
+                                action_value = action.arguments[1]
+
+                                x_posf = (x_pos-0.5)*self._w_distance*self._scaling
+                                y_posf = (y_pos-0.5)*self._h_distance*self._scaling
+                                x2_posf = (x_pos+action_value.arguments[0].number-0.5)*self._w_distance*self._scaling
+                                y2_posf = (y_pos+action_value.arguments[1].number-0.5)*self._h_distance*self._scaling
+                                x_pos = x_pos + action_value.arguments[0].number
+                                y_pos = y_pos + action_value.arguments[1].number
+                                line = self._scene.addLine(x_posf, y_posf, x2_posf, y2_posf, pen)
+                                self._items_in_scene.append(line)
+
                 self._scene.addItem(item)
                 self._items_in_scene.append(item)
                 number += 1
