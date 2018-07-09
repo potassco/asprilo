@@ -13,7 +13,7 @@ from visualizer.network import *
 from visualizer.gui import *
 from visualizer.configuration import *
 
-VERSION = '0.1.2'
+VERSION = '0.1.3'
 
 class VisualizerWindow(QMainWindow):
     def __init__(self):
@@ -137,6 +137,9 @@ class VisualizerWindow(QMainWindow):
         self._task_widget.set_model(self._model)
         self._control_splitter.addWidget(self._task_widget)
         self._task_widget.hide()
+
+        self._enable_path_widget = EnablePathWidget()
+        self._enable_path_widget.set_model(self._model)
 
         self._splitter.setSizes([200, 600, 200])
         self._model_view.resize_to_fit()
@@ -325,6 +328,13 @@ class VisualizerWindow(QMainWindow):
         menu_windows.addAction(action)
         self.addAction(action)
 
+        action = QAction('Paths', self)
+        action.setShortcut('Ctrl+W')
+        action.setStatusTip('Show a window to enable and disable path drawing')
+        action.triggered.connect(self._enable_path_widget.show)
+        menu_windows.addAction(action)
+        self.addAction(action)
+
         action = QAction('File browser', self)
         action.setShortcut('Ctrl+F')
         action.setStatusTip('Show a window to load files')
@@ -356,7 +366,6 @@ class VisualizerWindow(QMainWindow):
                                 finish_answer = True
                                 self._asp_parser.add_program('input', '.')
                                 self._asp_parser.parse()
-                count = 0
                 if not found_answer and len(lines) > 0:
                     self._asp_parser.add_program('input', ''.join(lines))
                     self._asp_parser.parse()
@@ -433,6 +442,7 @@ class VisualizerWindow(QMainWindow):
         self._order_widget.close()
         self._task_widget.close()
         self._parser_widget.close()
+        self._enable_path_widget.close()
         config.close_widget()
         return super(self.__class__, self).closeEvent(event)
 
