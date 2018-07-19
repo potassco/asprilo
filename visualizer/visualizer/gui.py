@@ -1214,7 +1214,7 @@ class ParserWidget(QSplitter):
             self._program_tab.setCurrentIndex(index)
 
 class EnablePathWidget(QScrollArea):
-    def __init__(self, directory = None):
+    def __init__(self):
         super(self.__class__, self).__init__()
         self.setWindowTitle('Paths')
         self._model = None
@@ -1222,11 +1222,17 @@ class EnablePathWidget(QScrollArea):
 
         self._area = QWidget()
         self.setWidget(self._area)
-        
 
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self._checkboxes = {}
         self._colors = {}
+
+        self._enable_all_button = QPushButton('enable all', self._area)
+        self._disable_all_button = QPushButton('disable all', self._area)
+        self._enable_all_button.move(5, 5)
+        self._disable_all_button.move(140, 5)
+        self._enable_all_button.clicked.connect(lambda: self.on_enable_all(True))
+        self._disable_all_button.clicked.connect(lambda: self.on_enable_all(False))        
 
         self._ok_button = QPushButton('Ok', self._area)
         self._cancel_button = QPushButton('Cancel', self._area)
@@ -1244,7 +1250,7 @@ class EnablePathWidget(QScrollArea):
             self._colors[key].setParent(None)
         self._checkboxes = {}
         self._colors = {}
-        y_pos = 5
+        y_pos = 30
         for robot in robots:
             checkbox = QCheckBox("robot" + "(" + robot.get_id() + ")", self._area)
             checkbox.move(5, y_pos)
@@ -1265,7 +1271,11 @@ class EnablePathWidget(QScrollArea):
         self._cancel_button.move(140, y_pos)
         self._area.resize(240, y_pos + 40)
         super(self.__class__, self).update()
-        
+
+    def on_enable_all(self, enable):
+        for key in self._checkboxes:
+            self._checkboxes[key].setChecked(enable)
+
     def on_ok(self):
         for key in self._checkboxes:
             robot = self._model.get_item(item_kind = 'robot', ID = key)
@@ -1275,6 +1285,86 @@ class EnablePathWidget(QScrollArea):
 
     def on_cancel(self):
         self.hide()
+
+    def set_model(self, model):
+        self._model = model
+        if self._model is not None:
+            self._model.add_window(self)
+        self.update()
+
+class RobotMonitor(QWidget):
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        self.setWindowTitle('Robot Monitor')
+        self._robot = None
+        self._model = None
+        self._robot_textbox = QLineEdit('robot: ', self)
+        self._robot_textbox.move(5,5)
+        self._robot_textbox.setReadOnly(True)
+        self._robot_box = QComboBox(self)
+        self._robot_box.move(200,5)
+        self._robot_box.activated.connect(self.on_activated)
+
+        self._actions = QLineEdit('actions: ', self)
+        self._actions.setReadOnly(True)
+        self._actions.move(5, 35)
+        self._position = QLineEdit('position: ', self)
+        self._position.setReadOnly(True)
+        self._position.move(5, 65)
+        self._next_action = QLineEdit('next action: ', self)
+        self._next_action.setReadOnly(True)
+        self._next_action.move(5, 95)
+        self._next_action.resize(400, 24)
+
+        self._robot_actions = QTextEdit(self)
+        self._robot_actions.move(5, 125)
+        self._robot_actions.setReadOnly(True)
+        self._robot_actions.resize(400, 200)
+
+    def update(self):
+        index = self._robot_box.currentIndex()
+        self._robot_box.clear()
+        if self._model is not None:
+            for robot in self._model.filter_items(item_kind = 'robot'):
+                self._robot_box.addItem(robot.get_id())
+        self._robot_box.setCurrentIndex(index)    
+
+        if self._robot is None:
+            return
+        action_list = self._robot.to_occurs_str()
+        join_list = []
+        cc = 0
+        current_step = self._model.get_current_step()
+        next_action = None
+        action_count = 0
+        for action in action_list:
+            if action is not None:
+                action_count += 1
+                if cc == current_step:
+                    join_list.append('<font color = green>')
+                    join_list.append(action)
+                    join_list.append('</font>')
+                else:
+                    if cc > current_step and next_action is None:
+                        next_action = action
+                    join_list.append(action)
+            cc += 1
+        self._robot_textbox.setText('robot: ' + self._robot.get_id())
+        self._actions.setText('actions: ' + str(action_count) + '/' + str(self._model.get_num_steps()))
+        self._position.setText('position: ' + str(self._robot.get_position()[0]) + ', ' + str(self._robot.get_position()[1]))
+        if next_action is not None:
+            self._next_action.setText('next action: ' + next_action)
+        else:
+            self._next_action.setText('next action: None')
+        self._robot_actions.setHtml('\n'.join(join_list))
+
+    def on_activated(self, text):
+        robot = self._model.get_item(item_kind = 'robot', ID = self._robot_box.currentText())
+        self.set_robot(robot)
+
+    def set_robot(self, robot):
+        self._robot = robot
+        self.update()
 
     def set_model(self, model):
         self._model = model

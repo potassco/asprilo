@@ -13,7 +13,7 @@ from visualizer.network import *
 from visualizer.gui import *
 from visualizer.configuration import *
 
-VERSION = '0.1.3'
+VERSION = '0.1.4'
 
 class VisualizerWindow(QMainWindow):
     def __init__(self):
@@ -140,6 +140,9 @@ class VisualizerWindow(QMainWindow):
 
         self._enable_path_widget = EnablePathWidget()
         self._enable_path_widget.set_model(self._model)
+
+        self._robot_monitor = RobotMonitor()
+        self._robot_monitor.set_model(self._model)
 
         self._splitter.setSizes([200, 600, 200])
         self._model_view.resize_to_fit()
@@ -335,6 +338,13 @@ class VisualizerWindow(QMainWindow):
         menu_windows.addAction(action)
         self.addAction(action)
 
+        action = QAction('Robot monitor', self)
+        action.setShortcut('Ctrl+M')
+        action.setStatusTip('Show a window the contains information about a specific robot')
+        action.triggered.connect(self._robot_monitor.show)
+        menu_windows.addAction(action)
+        self.addAction(action)
+
         action = QAction('File browser', self)
         action.setShortcut('Ctrl+F')
         action.setStatusTip('Show a window to load files')
@@ -443,6 +453,7 @@ class VisualizerWindow(QMainWindow):
         self._task_widget.close()
         self._parser_widget.close()
         self._enable_path_widget.close()
+        self._robot_monitor.close()
         config.close_widget()
         return super(self.__class__, self).closeEvent(event)
 
