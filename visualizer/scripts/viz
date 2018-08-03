@@ -144,6 +144,9 @@ class VisualizerWindow(QMainWindow):
         self._robot_monitor = RobotMonitor()
         self._robot_monitor.set_model(self._model)
 
+        self._robot_table = RobotTable()
+        self._robot_table.set_model(self._model)
+
         self._splitter.setSizes([200, 600, 200])
         self._model_view.resize_to_fit()
 
@@ -345,6 +348,13 @@ class VisualizerWindow(QMainWindow):
         menu_windows.addAction(action)
         self.addAction(action)
 
+        action = QAction('Robot table', self)
+        action.setShortcut('Ctrl+K')
+        action.setStatusTip('Show a window the contains information about all robots')
+        action.triggered.connect(self._robot_table.show)
+        menu_windows.addAction(action)
+        self.addAction(action)
+
         action = QAction('File browser', self)
         action.setShortcut('Ctrl+F')
         action.setStatusTip('Show a window to load files')
@@ -454,6 +464,7 @@ class VisualizerWindow(QMainWindow):
         self._parser_widget.close()
         self._enable_path_widget.close()
         self._robot_monitor.close()
+        self._robot_table.close()
         config.close_widget()
         return super(self.__class__, self).closeEvent(event)
 

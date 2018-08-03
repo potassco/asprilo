@@ -1371,3 +1371,80 @@ class RobotMonitor(QWidget):
         if self._model is not None:
             self._model.add_window(self)
         self.update()
+
+class RobotTable(QTableWidget):
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        self.setWindowTitle('Robot Table')
+        self._model = None
+        self.setColumnCount(7)
+        self.setHorizontalHeaderLabels(['Robot ID', 'Position', 'Total actions', 'Action number', 'Current action', 'Next action', 'Carries'])
+
+    def update(self):
+        if self._model is None:
+            return
+        count = 0
+        robots = self._model.filter_items(item_kind = 'robot')
+        self.setRowCount(len(robots))
+        current_step = self._model.get_current_step()
+        for robot in robots:
+            cc = 0
+            action_count = 0
+            current_action_num = 0
+            next_action = None
+            current_action =  None
+            for action in robot.to_occurs_str():
+                if action is not None:
+                    action_count += 1
+                    if cc <= current_step:
+                        current_action_num += 1
+                if cc == current_step:
+                    current_action = action
+                elif cc > current_step and next_action is None:
+                    next_action = action
+                cc += 1
+
+            self.set_item_text(count, 0, robot.get_id())
+            self.set_item_text(count, 1, str(robot.get_position()[0]) + ', ' + str(robot.get_position()[1]))
+            self.set_item_text(count, 2, str(action_count) + ' / ' + str(self._model.get_num_steps()))
+            self.set_item_text(count, 3, str(current_action_num) + ' / ' + str(action_count))
+            if current_action is not None:
+                self.set_item_text(count, 4, current_action)
+            else:
+                self.set_item_text(count, 4, None)
+            if next_action is not None:
+                self.set_item_text(count, 5, next_action)
+            else:
+                self.set_item_text(count, 5, None)
+            if robot.get_carries() is not None:
+                self.set_item_text(count, 6, robot.get_carries().get_id())
+            else:
+                self.set_item_text(count, 6, "None")                    
+            count += 1
+
+        self.setSortingEnabled(True)
+        super(self.__class__, self).update()
+
+    def set_item_text(self, column, row, text):
+        red_brush   = QBrush(QColor(200, 100, 100))
+        white_brush = QBrush(QColor(255, 255, 255))
+        item = self.item(column, row)
+        if item is None:
+            self.setItem(column, row, QTableWidgetItem(text))
+            item = self.item(column, row)
+            item.setFlags( Qt.ItemIsSelectable |  Qt.ItemIsEnabled )
+        else:
+            if item.text() == text or (text is None and item.text() == ''):
+                item.setBackground(white_brush)
+            else:
+                item.setText(text)
+                item.setBackground(red_brush)
+
+    def set_model(self, model):
+        self._model = model
+        if self._model is not None:
+            self._model.add_window(self)
+        self.update()
+
+
+
