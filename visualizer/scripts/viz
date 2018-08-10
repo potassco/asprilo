@@ -13,7 +13,7 @@ from visualizer.network import *
 from visualizer.gui import *
 from visualizer.configuration import *
 
-VERSION = '0.1.4'
+VERSION = '0.1.5'
 
 class VisualizerWindow(QMainWindow):
     def __init__(self):
@@ -54,7 +54,7 @@ class VisualizerWindow(QMainWindow):
                                     action='store_true')
         self._args = self._argument_parser.parse_args()
         ll_config.init_defaults(self._args)
-    
+
         self._asp_parser = AspParser()
         self._model = self._asp_parser.get_model()
 

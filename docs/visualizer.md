@@ -11,7 +11,7 @@ output:
 # About
 This is the user manual of the instance and plan visualizer of [ASPRILO](index.md).
 
-#Installation
+# Installation
 It is recommended to install the visualizer with anaconda. First download and install Anaconda from [www.anaconda.com/download](https://www.anaconda.com/download). Then add the potassco and the `asprilo` channel to your `Anaconda` enviroment.  
 `conda config --add channels asprilo`  
 `conda config --add channels potassco`  
@@ -31,10 +31,10 @@ The visualizer requires the following software installed on your system:
 
 # Usage
 
-##Features
+## Features
 The visualizer shows ASPRILO instances and can play a plan for the specific instance. The basic layout of the warehouse will be shown in the main window. In additional windows the order lines and the contents of all shelves are displayed. The current plan can be observed on the right side of the main window. The visualizer is able of loading multiple instances and plans and putting them together. It also provides tools to edit instances. This includes the grid size, all objects on the grid, order lines and shelf contents. The visualizer provides two network interfaces. They allow a connection to a solver and a simulator. A simulator is a program that supplies the visualizer automatically with instances and orders or plans. A solver gets an instance from the the visualizer and returns a valid plan to the visualizer.
 
-##Visualisation
+## Visualisation
 The robots are displayed as squares. The shelves are displayed as circles. Carried shelves have a second smaller circle above them. Disabled nodes are black (default) and highways are light blue (default). All other nodes are white. Picking stations are displayed as striped nodes.  The right side of the main window contains a text field that shows the current plan. The plan is shown in occurs/3 atoms and is sorted by the time step. The actions that are done next are highlighted.
 
 ## Invocation
@@ -117,10 +117,10 @@ The visualizer allows also the editing of instances. You can [load an instance](
 ![editor.gif](img/editor1.gif)  
 ![editor.gif](img/editor2.gif)
 
-##Tools
+## Tools
 If you open the orders window, the products window or the tasks window via the `Tools` menu or via shortcuts these windows will be added to the right hand side of the main window. To create separate windows just click the same dialog in the `Tools` menu again or use the shortcuts again. The tasks window will only be available in gtapf mode while the orders window and the products window will only be available in asprilo mode. While the visualisation of a plan the orders table and the task table are highlighting orderlines and tasks that are changed. If you are using a interactive solver script you can use the orders window to add new orders while displaying a solution. Add new orders and click on `send orders` to send all added orders to the solver. The solver will calculate a new plan and send it to the visualizer. The new plan will regard the new orders. With a simulator script you can automate this process. You can discard added orders by clicking on the `discard orders` button. Only highlighted orders will be send or discarded. All orders that are displayed in the orders table but are not regarded by the plan are highlighted.  
 
-##Settings
+## Settings
 You can configure the settings via the menu `File->Settings`. You can switch between various sections by clicking on the specific tab. Click on OK to apply all changes or on cancel to quit the settings window. The colors tab allows to change the color of all objects. At least one update is required to apply these changes. The controls tab allows to change the default controls. You must restart the visualizer to apply these changes. The display tab allows the configuration of the display fonts. The network section allows the configuration of the default solver and simulator host, port and command line. That are used by the `--start_solver` and `--start_simulator` arguments and to initialize the solver and simulator. You can also enable `auto solving` which automatically sends an instance to the solver when it is loaded by set the value of `auto solving` to `true`. You can also modify the time the visualizer waits to show the next time step of the automated visualization by changing the `step time` value. The indication is in milliseconds. Change the `file browser filter` values to change the available files in the file browser. Set it to `*.*` to enable all files. You can add more filters by separating them with the `,` character.
 
 ## Solver

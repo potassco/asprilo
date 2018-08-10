@@ -5,6 +5,30 @@ from . import configuration
 import os
 import sys
 
+VIZ_STATE_MOVED     = 0x01
+VIZ_STATE_DELIVERED = 0x02
+VIZ_STATE_PICKED_UP = 0x04
+VIZ_STATE_PUT_DOWN  = 0x08
+VIZ_STATE_ACTION    = 0x0f
+
+class VizWidget(QWidget):
+    def __init__(self):
+        super(VizWidget, self).__init__()
+    
+    def mousePressEvent(self, event):
+        self.setParent(None)
+        self.show()
+        self.grabMouse()
+
+    def mouseMoveEvent(self, event):
+        self.move(event.globalX(), event.globalY())
+
+    def mouseReleaseEvent(self, event):
+        self.releaseMouse()
+
+    def moveEvent(self, event):
+        print(event.pos().x(), event.pos().y())
+
 class InstanceFileBrowser(QTreeView):
     def __init__(self, directory = None):
         super(self.__class__, self).__init__()
@@ -356,7 +380,7 @@ class ServerDialog(QWidget):
                     int(self._port_textbox.text())) < 0):
                 return
             self._socket.run()
-        except(ValueError):
+        except(ValueError, TypeError):
             print('the port must be an integer value')
         self.hide()
     def on_cancel(self, event):
@@ -1377,10 +1401,14 @@ class RobotTable(QTableWidget):
         super(self.__class__, self).__init__()
         self.setWindowTitle('Robot Table')
         self._model = None
-        self.setColumnCount(7)
-        self.setHorizontalHeaderLabels(['Robot ID', 'Position', 'Total actions', 'Action number', 'Current action', 'Next action', 'Carries'])
+        self.setColumnCount(6)
+        self.setHorizontalHeaderLabels(['Robot ID', 'Position', 'Action number', 'Current action', 'Next action', 'Carries'])
 
     def update(self):
+        red_brush   = QBrush(QColor(200, 100, 100))
+        green_brush = QBrush(QColor(100, 200, 100))
+        white_brush = QBrush(QColor(255, 255, 255))
+        blue_brush  = QBrush(QColor(155, 155, 255))
         if self._model is None:
             return
         count = 0
@@ -1403,42 +1431,42 @@ class RobotTable(QTableWidget):
                 elif cc > current_step and next_action is None:
                     next_action = action
                 cc += 1
+            brush = white_brush
 
-            self.set_item_text(count, 0, robot.get_id())
-            self.set_item_text(count, 1, str(robot.get_position()[0]) + ', ' + str(robot.get_position()[1]))
-            self.set_item_text(count, 2, str(action_count) + ' / ' + str(self._model.get_num_steps()))
-            self.set_item_text(count, 3, str(current_action_num) + ' / ' + str(action_count))
+            if robot.get_state() & VIZ_STATE_DELIVERED:
+                brush = red_brush
+            elif robot.get_state() & VIZ_STATE_ACTION:
+                brush = green_brush
+            elif next_action is None and current_action is None:
+                brush = blue_brush
+
+            self.set_item_text(count, 0, robot.get_id(), brush)
+            self.set_item_text(count, 1, str(robot.get_position()[0]) + ', ' + str(robot.get_position()[1]), brush)
+            self.set_item_text(count, 2, str(current_action_num) + ' / ' + str(action_count), brush)
             if current_action is not None:
-                self.set_item_text(count, 4, current_action)
+                self.set_item_text(count, 3, current_action, brush)
             else:
-                self.set_item_text(count, 4, None)
+                self.set_item_text(count, 3, None, brush)
             if next_action is not None:
-                self.set_item_text(count, 5, next_action)
+                self.set_item_text(count, 4, next_action, brush)
             else:
-                self.set_item_text(count, 5, None)
+                self.set_item_text(count, 4, None, brush)
             if robot.get_carries() is not None:
-                self.set_item_text(count, 6, robot.get_carries().get_id())
+                self.set_item_text(count, 5, robot.get_carries().get_id(), brush)
             else:
-                self.set_item_text(count, 6, "None")                    
+                self.set_item_text(count, 5, "None", brush)                    
             count += 1
 
-        self.setSortingEnabled(True)
         super(self.__class__, self).update()
 
-    def set_item_text(self, column, row, text):
-        red_brush   = QBrush(QColor(200, 100, 100))
-        white_brush = QBrush(QColor(255, 255, 255))
+    def set_item_text(self, column, row, text, brush):
         item = self.item(column, row)
         if item is None:
             self.setItem(column, row, QTableWidgetItem(text))
             item = self.item(column, row)
-            item.setFlags( Qt.ItemIsSelectable |  Qt.ItemIsEnabled )
-        else:
-            if item.text() == text or (text is None and item.text() == ''):
-                item.setBackground(white_brush)
-            else:
-                item.setText(text)
-                item.setBackground(red_brush)
+        item.setFlags( Qt.ItemIsSelectable |  Qt.ItemIsEnabled )
+        item.setBackground(brush)
+        item.setText(text)
 
     def set_model(self, model):
         self._model = model

@@ -10,6 +10,12 @@ from . import modelView
 from . import visualizerItem
 from .configuration import *
 
+VIZ_STATE_MOVED     = 0x01
+VIZ_STATE_DELIVERED = 0x02
+VIZ_STATE_PICKED_UP = 0x04
+VIZ_STATE_PUT_DOWN  = 0x08
+VIZ_STATE_ACTION    = 0x0f
+
 def calculate_color(first_color, second_color, multiplier):
     red = (min(first_color.red(), second_color.red()), max(first_color.red(), second_color.red()))
     green = (min(first_color.green(), second_color.green()), max(first_color.green(), second_color.green()))
@@ -38,6 +44,7 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         self._display_mode = 0
         self._draw_path = False
         self.setAcceptedMouseButtons(Qt.MouseButtons(1))
+        self._state = 0x00
 
     def set_starting_position(self, x, y):
         self._start_position = (x, y)
@@ -149,6 +156,9 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         if self._actions[time_step] == None:
             return None  #break, if no action is defined     
         return self._actions[time_step]   
+
+    def get_state(self):
+        return self._state
 
     def get_draw_path(self):
         return self._draw_path
@@ -535,6 +545,7 @@ class Robot(VisualizerGraphicItem):
         return s
 
     def do_action(self, time_step):
+        self._state = self._state & ~VIZ_STATE_ACTION
         if time_step >= len(self._actions):
             return 0  #break, if no action is defined
         if self._actions[time_step] == None:
@@ -555,6 +566,7 @@ class Robot(VisualizerGraphicItem):
                 move_x = value.arguments[0].number
                 move_y = value.arguments[1].number
                 self.set_position(self._position[0] + move_x, self._position[1] + move_y)
+                self._state = self._state | VIZ_STATE_MOVED
             except:
                 self.set_position(self._position[0], self._position[1])
 
@@ -574,12 +586,14 @@ class Robot(VisualizerGraphicItem):
             if shelf is None:
                 return -2
             self.set_carries(shelf)
+            self._state = self._state | VIZ_STATE_PICKED_UP
             return 2
 
         elif action.name == 'putdown':
             if self._carries == None:
                 return -2
             self.set_carries(None)
+            self._state = self._state | VIZ_STATE_PUT_DOWN
             return 3
 
         elif action.name == 'deliver' and len(value.arguments) > 2:
@@ -592,6 +606,7 @@ class Robot(VisualizerGraphicItem):
                 if order is None:
                     return -2
                 order.deliver(value.arguments[1], value.arguments[2].number, time_step)
+                self._state = self._state | VIZ_STATE_DELIVERED
             except:
                 return -3
             return 4
@@ -606,12 +621,14 @@ class Robot(VisualizerGraphicItem):
                 if order is None:
                     return -2
                 order.deliver(value.arguments[1], 0, time_step)
+                self._state = self._state | VIZ_STATE_DELIVERED
             except:
                 return -3
             return 5
         return 0
 
     def undo_action(self, time_step):
+        self._state = self._state & ~VIZ_STATE_ACTION
         if time_step >= len(self._actions):  
             return 0  #break, if no action is defined
         if self._actions[time_step] == None: 
@@ -641,6 +658,7 @@ class Robot(VisualizerGraphicItem):
                 move_x = value.arguments[0].number
                 move_y = value.arguments[1].number
                 self.set_position(self._position[0] - move_x, self._position[1] - move_y)
+                self._state = self._state | VIZ_STATE_MOVED
             except:
                 self.set_position(self._position[0], self._position[1])
             if self._carries is not None: 
@@ -654,12 +672,14 @@ class Robot(VisualizerGraphicItem):
             if shelf is None:
                 return -2
             self.set_carries(shelf)
+            self._state = self._state | VIZ_STATE_PUT_DOWN
             return 3
 
         elif action.name == 'pickup':
             if self._carries == None:
                 return -2
             self.set_carries(None)
+            self._state = self._state | VIZ_STATE_PICKED_UP
             return 2
 
         elif action.name == 'deliver' and len(value.arguments) > 2:
@@ -672,6 +692,7 @@ class Robot(VisualizerGraphicItem):
                 if order is None:
                     return -2
                 order.deliver(value.arguments[1], -value.arguments[2].number, time_step)
+                self._state = self._state | VIZ_STATE_DELIVERED
             except:
                 return -3
             return 4
@@ -686,6 +707,7 @@ class Robot(VisualizerGraphicItem):
                 if order is None:
                     return -2
                 order.deliver(value.arguments[1], 0, time_step)
+                self._state = self._state | VIZ_STATE_DELIVERED
             except:
                 return -3
             return 5
