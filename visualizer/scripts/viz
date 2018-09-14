@@ -83,6 +83,8 @@ class VisualizerWindow(QMainWindow):
 
         self._instance_file_browser = InstanceFileBrowser(directory)
         self._instance_file_browser.set_parser(self._asp_parser)
+        self._instance_file_browser.show()
+
         self._splitter.addWidget(self._instance_file_browser)
         if self._args.directory is None:
             self._instance_file_browser.setVisible(False)
@@ -125,17 +127,14 @@ class VisualizerWindow(QMainWindow):
 
         self._order_widget = OrderWidget()
         self._order_widget.set_model(self._model)
-        self._control_splitter.addWidget(self._order_widget)
         self._order_widget.hide()
 
         self._product_window = ProductWindow()
         self._product_window.set_model(self._model)
-        self._control_splitter.addWidget(self._product_window)
         self._product_window.hide()
 
         self._task_widget = TaskTable()
         self._task_widget.set_model(self._model)
-        self._control_splitter.addWidget(self._task_widget)
         self._task_widget.hide()
 
         self._enable_path_widget = EnablePathWidget()
@@ -160,6 +159,7 @@ class VisualizerWindow(QMainWindow):
         self.resize(1000, 600)
         self.move(0,0)
         self.show()
+        widget_manager.set_main_widget(self)
 
         if self._args.start_solver:
             self._init_solver_dialog.on_ok(None)
@@ -177,8 +177,8 @@ class VisualizerWindow(QMainWindow):
 
     def _init_menu(self):
         self.statusBar()
-
         menu_bar = self.menuBar()
+
         menu_file = menu_bar.addMenu('File')
         menu_solver = menu_bar.addMenu('Network')
         menu_windows = menu_bar.addMenu('Tools')
@@ -394,14 +394,14 @@ class VisualizerWindow(QMainWindow):
             print('Failed to read from stdin')
 
     def switch_widget(self, widget):
-        if not widget.isVisible():
-            widget.show()
-            return
-        if widget.parent() == self._control_splitter:
-            widget.setParent(None)
-            widget.show()
+        if widget.parent() is None:
+            widget.resize(200, self._splitter.height())
+            self._splitter.addWidget(widget)
+            widget.resize(200, self._splitter.height())
+        if widget.isVisible():
+            widget.hide()
         else:
-            widget.setParent(self._control_splitter)
+            widget.show()
 
     def open_file_dialog(self, mode, function):
         self._file_dialog.setAcceptMode(mode)
@@ -457,6 +457,9 @@ class VisualizerWindow(QMainWindow):
         self._solver_socket.close()
         self._simulator_socket.close()
 
+    def get_splitter(self):
+        return self._splitter
+
     def closeEvent(self, event):
         self._product_window.close()
         self._order_widget.close()
@@ -466,6 +469,7 @@ class VisualizerWindow(QMainWindow):
         self._robot_monitor.close()
         self._robot_table.close()
         config.close_widget()
+        widget_manager.exit()
         return super(self.__class__, self).closeEvent(event)
 
 app = QApplication(sys.argv)

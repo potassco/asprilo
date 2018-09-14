@@ -14,10 +14,22 @@ VIZ_STATE_ACTION    = 0x0f
 class VizWidget(QWidget):
     def __init__(self):
         super(VizWidget, self).__init__()
-    
+
+    def release_widget(self):
+        parent = self.parent()
+        if parent is not None:
+            self.setParent(None)
+            self.show()
+
     def mousePressEvent(self, event):
-        self.setParent(None)
-        self.show()
+        QWidget.mousePressEvent(self, event)
+        if(event.isAccepted()):
+            return
+        #if(event.button() is not Qt.LeftButton):
+        #    return
+        event.accept()
+        self.release_widget()
+        self.move(event.globalX(), event.globalY())
         self.grabMouse()
 
     def mouseMoveEvent(self, event):
@@ -25,62 +37,136 @@ class VizWidget(QWidget):
 
     def mouseReleaseEvent(self, event):
         self.releaseMouse()
+        widget_manager.drop_widget(self, event.globalX(), event.globalY())
 
-    def moveEvent(self, event):
-        print(event.pos().x(), event.pos().y())
+class VizSplitter(QSplitter):
+    def __init__(self):
+        super(VizSplitter, self).__init__()
+        self._childrean_count = 0
 
-class InstanceFileBrowser(QTreeView):
-    def __init__(self, directory = None):
-        super(self.__class__, self).__init__()
-        self._model = QFileSystemModel()
-        self._model.setRootPath(QDir.rootPath())
-        self.setModel(self._model)
-        if directory is not None:
-            self.setRootIndex(self._model.index(directory))
+    def add_widget(self, widget):
+        splitter.addWidget(widget)
+        widget.show()
+  
+    def closeEvent(self, close):
+        for ii in range (0, self.count()):
+            widget = self.widget(ii)
+            if widget.parent() is self:
+                widget.setParent(None)
+                widget.hide()
+        widget_manager.remove(self)
+
+    def childEvent(self, event):
+        if event.added() is True:
+            self._childrean_count += 1
+        elif event.removed() is True:
+            self._childrean_count -= 1
         else:
-            self.setRootIndex(self._model.index(QDir.rootPath()))
-        self.setColumnWidth(0,self.width())
+            return
+        if self._childrean_count <= 1 and event.removed() is True:
+            self.close()
 
-        self._parser = None
-        str_filter = configuration.config.get('visualizer', 'file_filters')
-        str_filter = str_filter.replace(' ', '')
-        self._model.setNameFilters(str_filter.split(','))
-        self.setContextMenuPolicy(Qt.DefaultContextMenu)
+class VizModelWidget(VizWidget):
+    def __init__(self):
+        super(VizModelWidget, self).__init__()
+        self._model = None
+ 
+    def update_model(self):
+        pass
+
+    def update_step(self):
+        pass
+
+    def set_model(self, model):
+        self._model = model
+        if self._model is not None:
+            self._update_model
+
+class WidgetManager(object):
+    def __init__(self):
+        self._splitter = []
+        self._main_widget = None
+
+    def add(self, widget):
+        self._splitter.append(widget)
+
+    def set_main_widget(self, widget):
+        self._main_widget = widget
+
+    def remove(self, widget):
+        for splitter in self._splitter:
+            if widget is splitter:
+                self._splitter.remove(splitter)
+                return
+
+    def exit(self):
+        for splitter in self._splitter:
+            splitter.close()
+
+    def drop_widget(self, widget, x, y):
+        if widget is None:
+            return
+        #main widget
+        if self._main_widget is not None:
+            splitter = self._main_widget.get_splitter()
+            splitter_pos = splitter.mapToGlobal(splitter.pos())
+            if (splitter_pos.x() < x and splitter_pos.y() < y and
+                splitter_pos.x() + splitter.size().width() > x and
+                splitter_pos.y() + splitter.size().height() > y):
+                pos = splitter_pos.x()
+                index = 0
+                for size in splitter.sizes():
+                    if x > pos and x < pos + size:
+                        if x < pos + size/2:
+                            splitter.insertWidget(index, widget)
+                            splitter.resize(splitter.width() + widget.width(), splitter.height())
+                            return
+                        else:
+                            splitter.insertWidget(index + 1, widget)
+                            splitter.resize(splitter.width() + widget.width(), splitter.height())
+                            return
+                    else:
+                        pos += size
+                        index += 1
+
+        #other widgets
+        for splitter in self._splitter:
+            if (splitter.pos().x() < x and splitter.pos().y() < y and
+                splitter.pos().x() + splitter.size().width() > x and
+                splitter.pos().y() + splitter.size().height() > y):
+                pos = splitter.pos().x()
+                index = 0
+                for size in splitter.sizes():
+                    if x > pos and x < pos + size:
+                        if x < pos + size/2:
+                            splitter.insertWidget(index, widget)
+                            splitter.resize(splitter.width() + widget.width(), splitter.height())
+                            return
+                        else:
+                            splitter.insertWidget(index + 1, widget)
+                            splitter.resize(splitter.width() + widget.width(), splitter.height())
+                            return
+                    else:
+                        pos += size
+                        index += 1
+
+        #create new widget
+        splitter = VizSplitter()
+        splitter.insertWidget(0, widget)
+        splitter.resize(widget.size())
+        splitter.move(x,y)
+        widget.show()
+        splitter.show()
+        self._splitter.append(splitter)
+
+widget_manager = WidgetManager()
+
+class InstanceFileTree(QTreeView):
+    def __init__(self, widget):
+        super(InstanceFileTree, self).__init__(widget)
         self._menu = QMenu()
-
-    def _load_selected(self, clear = True, clear_actions = False, ground = True):
-        indexes = self.selectedIndexes()
-        if len(indexes) != 0:
-            if not self._model.isDir(indexes[0]) and not self._parser is None:
-                if clear and ground:
-                    self._parser.load_instance(self._model.filePath(indexes[0]))
-                elif ground:
-                    self._parser.parse_file(self._model.filePath(indexes[0]),
-                                            clear = clear,
-                                            clear_actions = clear_actions)
-                else:
-                    self._parser.load(self._model.filePath(indexes[0]))
-
-    def resizeEvent (self, event):
-        self.setColumnWidth(0,self.width())
-        return super(self.__class__, self).resizeEvent(event)
-
-    def mouseClickEvent (self, event):
-        self._menu.hide()
-        return super(self.__class__, self).mouseDoubleClickEvent(event)
-
-    def mouseDoubleClickEvent (self, event):
-        self._load_selected()
-        return super(self.__class__, self).mouseDoubleClickEvent(event)
-
-    def keyPressEvent (self, event):
-        if event.key() == Qt.Key_Return:
-            self._load_selected()
-        elif event.key() == Qt.Key_W:
-            self.setTreePosition(self.treePosition() + 1)
-        elif event.key() == Qt.Key_S:
-            self.setTreePosition(self.treePosition() - 1)
-        return super(self.__class__, self).keyPressEvent(event)
+        self.setContextMenuPolicy(Qt.DefaultContextMenu)
+        self._parser = None
 
     def contextMenuEvent(self, event):
         self._menu.clear()
@@ -107,8 +193,64 @@ class InstanceFileBrowser(QTreeView):
 
         self._menu.popup(self.mapToGlobal(QPoint(event.x(),event.y())))
 
+    def _load_selected(self, clear = True, clear_actions = False, ground = True):
+        indexes = self.selectedIndexes()
+        if len(indexes) != 0:
+            if not self.model().isDir(indexes[0]) and not self._parser is None:
+                if clear and ground:
+                    self._parser.load_instance(self.model().filePath(indexes[0]))
+                elif ground:
+                    self._parser.parse_file(self.model().filePath(indexes[0]),
+                                            clear = clear,
+                                            clear_actions = clear_actions)
+                else:
+                    self._parser.load(self.model().filePath(indexes[0]))
+
+    def mouseClickEvent (self, event):
+        self._menu.hide()
+        return super(self.__class__, self).mouseDoubleClickEvent(event)
+
+    def mouseDoubleClickEvent (self, event):
+        self._load_selected()
+        return super(self.__class__, self).mouseDoubleClickEvent(event)
+
+    def keyPressEvent (self, event):
+        if event.key() == Qt.Key_Return:
+            self._load_selected()
+        elif event.key() == Qt.Key_W:
+            self.setTreePosition(self.treePosition() + 1)
+        elif event.key() == Qt.Key_S:
+            self.setTreePosition(self.treePosition() - 1)
+        return super(self.__class__, self).keyPressEvent(event)
+
     def set_parser(self, parser):
         self._parser = parser
+
+class InstanceFileBrowser(VizWidget):
+    def __init__(self, directory = None):
+        super(InstanceFileBrowser, self).__init__()
+        self._tree_model = QFileSystemModel()
+        self._tree_model.setRootPath(QDir.rootPath())
+
+        self._tree = InstanceFileTree(self)
+        self._tree.setModel(self._tree_model)
+        self._tree.move(0,20)
+        if directory is not None:
+            self._tree.setRootIndex(self._tree_model.index(directory))
+        else:
+            self._tree.setRootIndex(self._tree_model.index(QDir.rootPath()))
+
+        self._parser = None
+        str_filter = configuration.config.get('visualizer', 'file_filters')
+        str_filter = str_filter.replace(' ', '')
+        self._tree_model.setNameFilters(str_filter.split(','))
+
+    def resizeEvent (self, event):
+        self._tree.setColumnWidth(0,self.width())
+        self._tree.resize(self.width(), self.height()-20)
+
+    def set_parser(self, parser):
+        self._tree.set_parser(parser)
 
 class TimestepWidget(QTextEdit):
     def __init__(self):
@@ -316,17 +458,22 @@ class OccursWidget(QTextEdit):
         if self._model is not None:
             self._model.add_window(self)
 
-class ControlSplitter(QSplitter):
+class ControlSplitter(VizWidget):
     def __init__(self):
-        super(self.__class__, self).__init__(Qt.Vertical)
+        super(ControlSplitter, self).__init__()
+        self._splitter = QSplitter(Qt.Vertical, self)
         self._timestep_widget = TimestepWidget()
         self._control_widget = ControlWidget()
         self._occurs_widget = OccursWidget()
-        self.addWidget(self._timestep_widget)
-        self.addWidget(self._control_widget)
-        self.addWidget(self._occurs_widget)
+        self._splitter.addWidget(self._timestep_widget)
+        self._splitter.addWidget(self._control_widget)
+        self._splitter.addWidget(self._occurs_widget)
         self._control_widget.set_timestep_widget(self._timestep_widget)
-        self.setSizes([40, 105, self.size().height() - 145])
+        self._splitter.setSizes([40, 105, self.size().height() - 145])
+        self._splitter.show()
+        self._timestep_widget.show()
+        self._control_widget.show()
+        self._occurs_widget.show()
 
     def set_model_view(self, model_view):
         self._timestep_widget.set_model_view(model_view)
@@ -334,6 +481,9 @@ class ControlSplitter(QSplitter):
 
     def set_model(self, model):
         self._occurs_widget.set_model(model)
+
+    def resizeEvent(self, event):
+        self._splitter.resize(event.size())
 
 class ServerDialog(QWidget):
     def __init__(self, title, host, port, socket):
@@ -479,8 +629,8 @@ class GridSizeDialog(QWidget):
         if not self._model.get_editable():
             return
         try:
-            self._model.set_grid_size(int(self._width_textbox.text()), 
-                                      int(self._height_textbox.text()), 
+            self._model.set_grid_size(int(self._width_textbox.text()),
+                                      int(self._height_textbox.text()),
                                       self._checkbox.isChecked())
         except ValueError:
             print('x and y must be interger values')
@@ -573,11 +723,12 @@ class OrderDialog(QWidget):
         self._model = model
 
 class OrderTable(QTableWidget):
-    def __init__(self, parent):
-        super(self.__class__, self).__init__(parent)
+    def __init__(self):
+        super(self.__class__, self).__init__()
         self._model = None
         self.setColumnCount(6)
         self.setHorizontalHeaderLabels(['Order ID', 'Picking Station', 'Product', 'Product Amount', 'Delivered', 'Open'])
+        self.setMinimumHeight(60)
 
         self.setContextMenuPolicy(Qt.DefaultContextMenu)
         self._menu = QMenu()
@@ -664,22 +815,31 @@ class OrderTable(QTableWidget):
             self._model.remove_item(order)
         self._model.update_windows()
 
-class OrderWidget(QSplitter):
+class VizTableWidgetItem(QTableWidgetItem):
+    def __lt__(self, other):
+        try:
+            return int(self.text()) < int(other.text())
+        except:
+            return super(VizTableWidgetItem, self).__lt__(other)
+
+class OrderWidget(VizWidget):
     def __init__(self):
-        super(self.__class__, self).__init__(Qt.Vertical)
+        super(self.__class__, self).__init__()
+        self._splitter = QSplitter(Qt.Vertical, self)
         self._model = None
-        self._table = OrderTable(self)
+        self._table = OrderTable()
         self._table.setSortingEnabled(True)
-        self.resize(600, 400)
         self.setWindowTitle('Orders')
         self._do_update = False
+        self._splitter.addWidget(self._table)
 
         self._control_widget = QWidget()
-        self.addWidget(self._control_widget)
+        self._splitter.addWidget(self._control_widget)
+        self._control_widget.setFixedHeight(24)
 
         self._deliver_widget = QTextEdit()
         self._deliver_widget.setReadOnly(True)
-        self.addWidget(self._deliver_widget)
+        self._splitter.addWidget(self._deliver_widget)
 
         self._table.itemChanged.connect(self.changed_item)
 
@@ -689,7 +849,6 @@ class OrderWidget(QSplitter):
         self._discard_button = QPushButton('Discard orders', self._control_widget)
         self._discard_button.move(140,00)
         self._discard_button.clicked.connect(self.on_discard)
-        self.setSizes([self.size().height()*0.46, self.size().height()*0.08, self.size().height()*0.46])
 
     def update(self):
         self._deliver_widget.clear()
@@ -762,7 +921,7 @@ class OrderWidget(QSplitter):
     def set_item_text(self, column, row, text, editable = False):
         item = self._table.item(column, row)
         if item is None:
-            self._table.setItem(column, row, QTableWidgetItem(text))
+            self._table.setItem(column, row, VizTableWidgetItem(text))
             item = self._table.item(column, row)
         else:
             item.setText(text)
@@ -789,6 +948,9 @@ class OrderWidget(QSplitter):
             return
         self._model.discard_new_items(['order'])
         self.update()
+
+    def resizeEvent(self, event):
+        self._splitter.resize(event.size().width(), event.size().height())
 
     def changed_item(self, item):
         if self._do_update:
@@ -867,9 +1029,25 @@ class ProductDialog(QWidget):
     def on_cancel(self, event):
         self.hide()
 
-class ProductWindow(QTreeWidget):
-    def __init__(self):                        #init item window
-        super(self.__class__, self).__init__()
+class ProductWindow(VizWidget):
+    def __init__(self):
+        super(ProductWindow, self).__init__()
+        self._table = ProductTable()
+        self._table.setParent(self)
+        self._table.move(0, 20)
+
+    def set_model(self, model):
+        self._table.set_model(model)
+
+    def update(self):
+        self._table.update()
+
+    def resizeEvent(self, event):
+        self._table.resize(event.size().width(), event.size().height() - 20)
+
+class ProductTable(QTreeWidget):
+    def __init__(self):
+        super(ProductTable, self).__init__()
         self._model = None
         self.setWindowTitle('Products')
 
@@ -1056,11 +1234,13 @@ class ProgramEntry(object):
         self.short_program_name = short_program_name;
         self.text_field = None;
 
-class ParserWidget(QSplitter):
+class ParserWidget(VizWidget):
     def __init__(self):
-        super(self.__class__, self).__init__(Qt.Vertical)
-        self._button_widget = QWidget(self)
-        text_splitter = QSplitter(Qt.Horizontal, self)
+        super(self.__class__, self).__init__()
+        self._splitter = QSplitter(Qt.Vertical, self)
+        self._splitter.move(0, 20)
+        self._button_widget = QWidget(self._splitter)
+        text_splitter = QSplitter(Qt.Horizontal, self._splitter)
         self.setWindowTitle('Parser')
         self._program_tab = QTabWidget(text_splitter)
         self._program_list = []
@@ -1113,7 +1293,10 @@ class ParserWidget(QSplitter):
 
         self.move(0,0)
         self.resize(700,600)
-        self.setSizes([70, 530])
+        self._splitter.setSizes([70, 530])
+
+    def resizeEvent(self, event):
+        self._splitter.resize(event.size().width(), event.size().height())
 
     def set_parser(self, parser):
         if parser is self._parser:
@@ -1256,7 +1439,7 @@ class EnablePathWidget(QScrollArea):
         self._enable_all_button.move(5, 5)
         self._disable_all_button.move(140, 5)
         self._enable_all_button.clicked.connect(lambda: self.on_enable_all(True))
-        self._disable_all_button.clicked.connect(lambda: self.on_enable_all(False))        
+        self._disable_all_button.clicked.connect(lambda: self.on_enable_all(False))
 
         self._ok_button = QPushButton('Ok', self._area)
         self._cancel_button = QPushButton('Cancel', self._area)
@@ -1316,7 +1499,7 @@ class EnablePathWidget(QScrollArea):
             self._model.add_window(self)
         self.update()
 
-class RobotMonitor(QWidget):
+class RobotMonitor(VizWidget):
     def __init__(self):
         super(self.__class__, self).__init__()
         self.setWindowTitle('Robot Monitor')
@@ -1396,13 +1579,16 @@ class RobotMonitor(QWidget):
             self._model.add_window(self)
         self.update()
 
-class RobotTable(QTableWidget):
+class RobotTable(VizWidget):
     def __init__(self):
         super(self.__class__, self).__init__()
+        self._table = QTableWidget(self)
+        self._table.move(0, 20)
         self.setWindowTitle('Robot Table')
         self._model = None
-        self.setColumnCount(6)
-        self.setHorizontalHeaderLabels(['Robot ID', 'Position', 'Action number', 'Current action', 'Next action', 'Carries'])
+        self._table.setColumnCount(6)
+        self._table.setHorizontalHeaderLabels(['Robot ID', 'Position', 'Action number', 'Current action', 'Next action', 'Carries'])
+        self.resize(200,200)
 
     def update(self):
         red_brush   = QBrush(QColor(200, 100, 100))
@@ -1413,7 +1599,7 @@ class RobotTable(QTableWidget):
             return
         count = 0
         robots = self._model.filter_items(item_kind = 'robot')
-        self.setRowCount(len(robots))
+        self._table.setRowCount(len(robots))
         current_step = self._model.get_current_step()
         for robot in robots:
             cc = 0
@@ -1454,16 +1640,16 @@ class RobotTable(QTableWidget):
             if robot.get_carries() is not None:
                 self.set_item_text(count, 5, robot.get_carries().get_id(), brush)
             else:
-                self.set_item_text(count, 5, "None", brush)                    
+                self.set_item_text(count, 5, "None", brush)
             count += 1
 
         super(self.__class__, self).update()
 
     def set_item_text(self, column, row, text, brush):
-        item = self.item(column, row)
+        item = self._table.item(column, row)
         if item is None:
-            self.setItem(column, row, QTableWidgetItem(text))
-            item = self.item(column, row)
+            self._table.setItem(column, row, QTableWidgetItem(text))
+            item = self._table.item(column, row)
         item.setFlags( Qt.ItemIsSelectable |  Qt.ItemIsEnabled )
         item.setBackground(brush)
         item.setText(text)
@@ -1474,5 +1660,6 @@ class RobotTable(QTableWidget):
             self._model.add_window(self)
         self.update()
 
-
+    def resizeEvent(self, event):
+        self._table.resize(event.size().width(), event.size().height() - 20)
 

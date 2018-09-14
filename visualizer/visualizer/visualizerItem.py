@@ -142,7 +142,7 @@ class Order(VisualizerItem):
             + str(self._id) + '),value(pickingStation,'
             + str(self._station_id) + ')).')
         for request in self._requests:
-            s += ('\ninit(object(order,'
+            s += ('init(object(order,'
                 + str(self._id) + '),value(line,('
                 + str(request.product_id) + ','
                 + str(request.requested) + '))).')

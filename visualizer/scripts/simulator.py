@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from network import *
+from visualizer.network import ServerSocket
 import clingo
 
 VERSION = '0.1.2'
@@ -40,7 +40,7 @@ class Simulator(Network):
                 try:
                     step = int(atom.arguments[2].number)
                 except Exception as error:
-                    print error
+                    print(error)
                     continue
                 if step not in self._to_send:
                     self._to_send[step] = []

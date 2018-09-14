@@ -89,8 +89,8 @@ class Model(object):
         for socket in self._sockets:
             for item in add_items:
                 socket.model_expanded(item.to_init_str())
-            #if len(add_items) > 0:
-            #    socket.model_expanded('\n')
+            if len(add_items) > 0:
+                socket.model_expanded('\n')
 
     def discard_new_items(self, item_kinds = None):
         if item_kinds == None:

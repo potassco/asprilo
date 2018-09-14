@@ -79,6 +79,7 @@ class VisualizerSocket(object):
         if msg == '':
             return
         self._s.send(msg.encode('utf-8'))
+        pass
 
     def done_step(self, step):
         if self._s is None:
@@ -152,7 +153,7 @@ class SolverSocket(VisualizerSocket):
             self._model.add_socket(self)
 
     def model_expanded(self, msg):
-        self.send(msg.encode('utf-8'))
+        self.send(msg)
         self._waiting = True
 
     def receive(self):
