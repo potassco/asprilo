@@ -321,6 +321,12 @@ class VisualizerWindow(QMainWindow):
             menu_windows.addAction(action)
             self.addAction(action)
 
+        action = QAction('Control', self)
+        action.setShortcut('Ctrl+C')
+        action.setStatusTip('Show a window to control the visualizer')
+        action.triggered.connect(lambda: self.switch_widget(self._control_splitter))
+        menu_windows.addAction(action)
+
         action = QAction('Grid size', self)
         action.setShortcut('Ctrl+G')
         action.setStatusTip('Show a window to change the grid size')
@@ -330,7 +336,7 @@ class VisualizerWindow(QMainWindow):
         action = QAction('Parser', self)
         action.setShortcut('Ctrl+P')
         action.setStatusTip('Show a window to control the parser')
-        action.triggered.connect(self._parser_widget.show)
+        action.triggered.connect(lambda: self.switch_widget(self._parser_widget))
         menu_windows.addAction(action)
         self.addAction(action)
 
@@ -344,23 +350,21 @@ class VisualizerWindow(QMainWindow):
         action = QAction('Robot monitor', self)
         action.setShortcut('Ctrl+M')
         action.setStatusTip('Show a window the contains information about a specific robot')
-        action.triggered.connect(self._robot_monitor.show)
+        action.triggered.connect(lambda: self.switch_widget(self._robot_monitor))
         menu_windows.addAction(action)
         self.addAction(action)
 
         action = QAction('Robot table', self)
         action.setShortcut('Ctrl+K')
         action.setStatusTip('Show a window the contains information about all robots')
-        action.triggered.connect(self._robot_table.show)
+        action.triggered.connect(lambda: self.switch_widget(self._robot_table))
         menu_windows.addAction(action)
         self.addAction(action)
 
         action = QAction('File browser', self)
         action.setShortcut('Ctrl+F')
         action.setStatusTip('Show a window to load files')
-        action.triggered.connect(lambda:(
-                    self._instance_file_browser.setVisible(
-                    not self._instance_file_browser.isVisible())))
+        action.triggered.connect(lambda: self.switch_widget(self._instance_file_browser))
         menu_windows.addAction(action)
         self.addAction(action)
 

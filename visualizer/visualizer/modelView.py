@@ -225,16 +225,16 @@ class ModelView(QGraphicsView):
 
     def start_timer(self):
         self.stop_timer()
+        self._timer = QTimer()
+        self._timer.timeout.connect(lambda: self.update_model(False))
         self.adjust_timer()
 
     def adjust_timer(self):
-        if self._timer is None:
-            self._timer = QTimer()
-            self._timer.timeout.connect(lambda: self.update_model(False))
         timeout = (config.get('visualizer', 'step_time') / 10) * self._timer_scale
         if timeout < 10:
             timeout = 10
-        self._timer.start(timeout)
+        if self._timer is not None:
+            self._timer.start(timeout)
 
     def switch_timer(self):
         if self._timer is None:

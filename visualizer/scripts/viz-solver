@@ -233,7 +233,6 @@ class Solver(object):
         #Note: all atoms are added to the key 0 to send all atoms immeditly after solving
         #this is different in the interactive variant
         for atom in model.symbols(atoms=True):
-            print(atom)
             if (atom.name == 'occurs' 
                 and len(atom.arguments) == 3 
                 and atom.arguments[0].name == 'object' 
