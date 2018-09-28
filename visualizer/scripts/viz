@@ -13,7 +13,7 @@ from visualizer.network import *
 from visualizer.gui import *
 from visualizer.configuration import *
 
-VERSION = '0.1.5'
+VERSION = '0.2.1'
 
 class VisualizerWindow(QMainWindow):
     def __init__(self):
@@ -127,15 +127,12 @@ class VisualizerWindow(QMainWindow):
 
         self._order_widget = OrderWidget()
         self._order_widget.set_model(self._model)
-        self._order_widget.hide()
 
         self._product_window = ProductWindow()
         self._product_window.set_model(self._model)
-        self._product_window.hide()
 
         self._task_widget = TaskTable()
         self._task_widget.set_model(self._model)
-        self._task_widget.hide()
 
         self._enable_path_widget = EnablePathWidget()
         self._enable_path_widget.set_model(self._model)
@@ -399,10 +396,9 @@ class VisualizerWindow(QMainWindow):
 
     def switch_widget(self, widget):
         if widget.parent() is None:
-            widget.resize(200, self._splitter.height())
             self._splitter.addWidget(widget)
             widget.resize(200, self._splitter.height())
-        if widget.isVisible():
+        elif widget.isVisible():
             widget.hide()
         else:
             widget.show()

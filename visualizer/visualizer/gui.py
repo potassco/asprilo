@@ -9,7 +9,11 @@ VIZ_STATE_MOVED     = 0x01
 VIZ_STATE_DELIVERED = 0x02
 VIZ_STATE_PICKED_UP = 0x04
 VIZ_STATE_PUT_DOWN  = 0x08
-VIZ_STATE_ACTION    = 0x0f
+VIZ_STATE_MOVE      = 0x10
+VIZ_STATE_DELIVER   = 0x20
+VIZ_STATE_PICK_UP   = 0x40
+VIZ_STATE_PUT_DOWN2 = 0x80
+VIZ_STATE_ACTION    = 0xff
 
 class VizWidget(QWidget):
     def __init__(self):
@@ -1617,14 +1621,15 @@ class RobotTable(VizWidget):
                 elif cc > current_step and next_action is None:
                     next_action = action
                 cc += 1
-            brush = white_brush
 
-            if robot.get_state() & VIZ_STATE_DELIVERED:
+            if robot.get_state() & VIZ_STATE_DELIVER:
                 brush = red_brush
-            elif robot.get_state() & VIZ_STATE_ACTION:
+            elif current_action is not None:
                 brush = green_brush
-            elif next_action is None and current_action is None:
+            elif next_action is None:
                 brush = blue_brush
+            else:
+                brush = white_brush
 
             self.set_item_text(count, 0, robot.get_id(), brush)
             self.set_item_text(count, 1, str(robot.get_position()[0]) + ', ' + str(robot.get_position()[1]), brush)
