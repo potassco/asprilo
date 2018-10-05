@@ -1585,13 +1585,14 @@ class RobotMonitor(VizWidget):
 
 class RobotTable(VizWidget):
     def __init__(self):
-        super(self.__class__, self).__init__()
+        super(RobotTable, self).__init__()
         self._table = QTableWidget(self)
         self._table.move(0, 20)
         self.setWindowTitle('Robot Table')
         self._model = None
-        self._table.setColumnCount(6)
-        self._table.setHorizontalHeaderLabels(['Robot ID', 'Position', 'Action number', 'Current action', 'Next action', 'Carries'])
+        self._table.setColumnCount(8)
+        self._table.setHorizontalHeaderLabels(['Robot ID', 'Position', 'Action number', 'Action count', 'Idle count', 'Current action', 'Next action', 'Carries'])
+        self._table.itemSelectionChanged.connect(self.on_selection_changed)        
         self.resize(200,200)
 
     def update(self):
@@ -1599,6 +1600,7 @@ class RobotTable(VizWidget):
         green_brush = QBrush(QColor(100, 200, 100))
         white_brush = QBrush(QColor(255, 255, 255))
         blue_brush  = QBrush(QColor(155, 155, 255))
+        ignore_first = 1
         if self._model is None:
             return
         count = 0
@@ -1609,13 +1611,18 @@ class RobotTable(VizWidget):
             cc = 0
             action_count = 0
             current_action_num = 0
+            idle_count = 0
             next_action = None
             current_action =  None
             for action in robot.to_occurs_str():
                 if action is not None:
+                    if cc == 0:
+                        ignore_first = 0
                     action_count += 1
                     if cc <= current_step:
                         current_action_num += 1
+                else:
+                    idle_count += 1
                 if cc == current_step:
                     current_action = action
                 elif cc > current_step and next_action is None:
@@ -1633,22 +1640,42 @@ class RobotTable(VizWidget):
 
             self.set_item_text(count, 0, robot.get_id(), brush)
             self.set_item_text(count, 1, str(robot.get_position()[0]) + ', ' + str(robot.get_position()[1]), brush)
-            self.set_item_text(count, 2, str(current_action_num) + ' / ' + str(action_count), brush)
+            self.set_item_text(count, 2, str(current_action_num), brush)
+            self.set_item_text(count, 3, str(action_count), brush)
+            self.set_item_text(count, 4, str(idle_count - ignore_first), brush)
             if current_action is not None:
-                self.set_item_text(count, 3, current_action, brush)
+                self.set_item_text(count, 5, current_action, brush)
             else:
-                self.set_item_text(count, 3, None, brush)
+                self.set_item_text(count, 5, None, brush)
             if next_action is not None:
-                self.set_item_text(count, 4, next_action, brush)
+                self.set_item_text(count, 6, next_action, brush)
             else:
-                self.set_item_text(count, 4, None, brush)
+                self.set_item_text(count, 6, None, brush)
             if robot.get_carries() is not None:
-                self.set_item_text(count, 5, robot.get_carries().get_id(), brush)
+                self.set_item_text(count, 7, robot.get_carries().get_id(), brush)
             else:
-                self.set_item_text(count, 5, "None", brush)
+                self.set_item_text(count, 7, "None", brush)
             count += 1
 
         super(self.__class__, self).update()
+
+    def on_selection_changed(self):
+        robot_ids = []
+        rows = []
+        for index in self._table.selectedIndexes():
+            row = index.row()
+            if row not in rows:
+                rows.append(row)
+        for row in rows:
+            robot_ids.append(self._table.item(row, 0).text())
+        robots = self._model.filter_items(item_kind = 'robot')
+        for robot in robots:
+            if robot.get_id() in robot_ids:
+                robot_ids.remove(robot.get_id())
+                robot.set_highlighted(True)
+            else:
+                robot.set_highlighted(False)
+        self._model.update_windows()
 
     def set_item_text(self, column, row, text, brush):
         item = self._table.item(column, row)

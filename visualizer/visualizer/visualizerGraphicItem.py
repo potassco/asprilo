@@ -49,6 +49,7 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         self._draw_path = False
         self.setAcceptedMouseButtons(Qt.MouseButtons(1))
         self._state = 0x00
+        self._highlighted = False
 
     def set_starting_position(self, x, y):
         self._start_position = (x, y)
@@ -215,6 +216,9 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
             return
         self.setPos(event.scenePos().x() - self._dragged[0], event.scenePos().y() - self._dragged[1])
         event.accept()
+
+    def set_highlighted(self, highlighted):
+        self._highlighted = highlighted
 
 class PickingStation(VisualizerGraphicItem):
     def __init__(self, ID = 0, x = 0, y = 0):
@@ -502,17 +506,29 @@ class Robot(VisualizerGraphicItem):
                 self._text.setHtml('<b>R(' + str(self._id) + ')</b>')
             else:
                 self._text.setHtml('R(' + str(self._id) + ')')
-            self._graphics_item.setRect(rect.x() + 0.25*rect.width(), 
-                                        rect.y() + 0.25*rect.height(),
-                                        rect.width()*0.5,
-                                        rect.height()*0.5,)
+            if not self._highlighted:
+                self._graphics_item.setRect(rect.x() + 0.25*rect.width(), 
+                                            rect.y() + 0.25*rect.height(),
+                                            rect.width()*0.5,
+                                            rect.height()*0.5,)
+            else:
+                self._graphics_item.setRect(rect.x() + 0.05*rect.width(), 
+                                            rect.y() + 0.05*rect.height(),
+                                            rect.width()*0.9,
+                                            rect.height()*0.9,)
 
         elif self._display_mode == 1:
             self._text.setPlainText('')
-            self._graphics_item.setRect(rect.x() + 0.05*rect.width(),
-                                        rect.y() + 0.05*rect.height(),
-                                        rect.width()*0.9,
-                                        rect.height()*0.9)
+            if not self._highlighted:
+                self._graphics_item.setRect(rect.x() + 0.05*rect.width(), 
+                                            rect.y() + 0.05*rect.height(),
+                                            rect.width()*0.9,
+                                            rect.height()*0.9)
+            else:
+                self._graphics_item.setRect(rect.x() - 0.15*rect.width(), 
+                                            rect.y() - 0.15*rect.height(),
+                                            rect.width()*1.3,
+                                            rect.height()*1.3,)
 
         if self._carries is not None:
             self._carries.set_rect(rect)
