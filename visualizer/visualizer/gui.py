@@ -1221,7 +1221,7 @@ class TaskTable(QTableWidget):
     def set_item_text(self, column, row, text):
         item = self.item(column, row)
         if item is None:
-            self.setItem(column, row, QTableWidgetItem(text))
+            self.setItem(column, row, VizTableWidgetItem(text))
             item = self.item(column, row)
             item.setFlags( Qt.ItemIsSelectable |  Qt.ItemIsEnabled )
         else:
@@ -1592,10 +1592,13 @@ class RobotTable(VizWidget):
         self._model = None
         self._table.setColumnCount(8)
         self._table.setHorizontalHeaderLabels(['Robot ID', 'Position', 'Action number', 'Action count', 'Idle count', 'Current action', 'Next action', 'Carries'])
-        self._table.itemSelectionChanged.connect(self.on_selection_changed)        
+        self._table.itemSelectionChanged.connect(self.on_selection_changed)
+        self._table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self._table_items = {}
         self.resize(200,200)
 
     def update(self):
+        self._table.setSortingEnabled(False)
         red_brush   = QBrush(QColor(200, 100, 100))
         green_brush = QBrush(QColor(100, 200, 100))
         white_brush = QBrush(QColor(255, 255, 255))
@@ -1605,7 +1608,10 @@ class RobotTable(VizWidget):
             return
         count = 0
         robots = self._model.filter_items(item_kind = 'robot')
-        self._table.setRowCount(len(robots))
+        if(len(robots) != self._table.rowCount()):
+            self._table.clearSelection()
+            self._table_items = {}
+            self._table.setRowCount(len(robots))
         current_step = self._model.get_current_step()
         for robot in robots:
             cc = 0
@@ -1656,7 +1662,7 @@ class RobotTable(VizWidget):
             else:
                 self.set_item_text(count, 7, "None", brush)
             count += 1
-
+        self._table.setSortingEnabled(True)
         super(self.__class__, self).update()
 
     def on_selection_changed(self):
@@ -1678,13 +1684,14 @@ class RobotTable(VizWidget):
         self._model.update_windows()
 
     def set_item_text(self, column, row, text, brush):
-        item = self._table.item(column, row)
-        if item is None:
-            self._table.setItem(column, row, QTableWidgetItem(text))
-            item = self._table.item(column, row)
-        item.setFlags( Qt.ItemIsSelectable |  Qt.ItemIsEnabled )
-        item.setBackground(brush)
-        item.setText(text)
+        if not row in self._table_items:
+            self._table_items[row] = {}
+        if not column in self._table_items[row]:
+            self._table_items[row][column] = VizTableWidgetItem(text)
+            self._table.setItem(column, row, self._table_items[row][column])
+        self._table_items[row][column].setFlags( Qt.ItemIsSelectable |  Qt.ItemIsEnabled )
+        self._table_items[row][column].setBackground(brush)
+        self._table_items[row][column].setText(text)
 
     def set_model(self, model):
         self._model = model
