@@ -336,7 +336,7 @@ class Shelf(VisualizerGraphicItem):
     def to_init_str(self):
         s = super(self.__class__, self).to_init_str()
         for product in self._products:
-            s += ('\ninit(object(product,' 
+            s += ('init(object(product,' 
                     + str(product[0]) + '),value(on,('
                     + str(self._id) + ',' 
                     + str(product[1]) + '))).')

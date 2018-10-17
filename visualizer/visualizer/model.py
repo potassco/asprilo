@@ -468,7 +468,7 @@ class Model(object):
 
             ofile.write('%init\n')
             for ss in self.to_init_str():
-                 ofile.write(str(ss) + '\n')
+                 ofile.write(str(ss.replace(".", ".\n")))
     
         except IOError:
             ofile.close()
