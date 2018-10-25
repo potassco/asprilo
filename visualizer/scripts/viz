@@ -13,7 +13,7 @@ from visualizer.network import *
 from visualizer.gui import *
 from visualizer.configuration import *
 
-VERSION = '0.1.2'
+VERSION = '0.2.1'
 
 class VisualizerWindow(QMainWindow):
     def __init__(self):
@@ -54,7 +54,7 @@ class VisualizerWindow(QMainWindow):
                                     action='store_true')
         self._args = self._argument_parser.parse_args()
         ll_config.init_defaults(self._args)
-    
+
         self._asp_parser = AspParser()
         self._model = self._asp_parser.get_model()
 
@@ -83,6 +83,8 @@ class VisualizerWindow(QMainWindow):
 
         self._instance_file_browser = InstanceFileBrowser(directory)
         self._instance_file_browser.set_parser(self._asp_parser)
+        self._instance_file_browser.show()
+
         self._splitter.addWidget(self._instance_file_browser)
         if self._args.directory is None:
             self._instance_file_browser.setVisible(False)
@@ -125,18 +127,21 @@ class VisualizerWindow(QMainWindow):
 
         self._order_widget = OrderWidget()
         self._order_widget.set_model(self._model)
-        self._control_splitter.addWidget(self._order_widget)
-        self._order_widget.hide()
 
         self._product_window = ProductWindow()
         self._product_window.set_model(self._model)
-        self._control_splitter.addWidget(self._product_window)
-        self._product_window.hide()
 
         self._task_widget = TaskTable()
         self._task_widget.set_model(self._model)
-        self._control_splitter.addWidget(self._task_widget)
-        self._task_widget.hide()
+
+        self._enable_path_widget = EnablePathWidget()
+        self._enable_path_widget.set_model(self._model)
+
+        self._robot_monitor = RobotMonitor()
+        self._robot_monitor.set_model(self._model)
+
+        self._robot_table = RobotTable()
+        self._robot_table.set_model(self._model)
 
         self._splitter.setSizes([200, 600, 200])
         self._model_view.resize_to_fit()
@@ -151,6 +156,7 @@ class VisualizerWindow(QMainWindow):
         self.resize(1000, 600)
         self.move(0,0)
         self.show()
+        widget_manager.set_main_widget(self)
 
         if self._args.start_solver:
             self._init_solver_dialog.on_ok(None)
@@ -168,8 +174,8 @@ class VisualizerWindow(QMainWindow):
 
     def _init_menu(self):
         self.statusBar()
-
         menu_bar = self.menuBar()
+
         menu_file = menu_bar.addMenu('File')
         menu_solver = menu_bar.addMenu('Network')
         menu_windows = menu_bar.addMenu('Tools')
@@ -312,6 +318,12 @@ class VisualizerWindow(QMainWindow):
             menu_windows.addAction(action)
             self.addAction(action)
 
+        action = QAction('Control', self)
+        action.setShortcut('Ctrl+C')
+        action.setStatusTip('Show a window to control the visualizer')
+        action.triggered.connect(lambda: self.switch_widget(self._control_splitter))
+        menu_windows.addAction(action)
+
         action = QAction('Grid size', self)
         action.setShortcut('Ctrl+G')
         action.setStatusTip('Show a window to change the grid size')
@@ -321,16 +333,35 @@ class VisualizerWindow(QMainWindow):
         action = QAction('Parser', self)
         action.setShortcut('Ctrl+P')
         action.setStatusTip('Show a window to control the parser')
-        action.triggered.connect(self._parser_widget.show)
+        action.triggered.connect(lambda: self.switch_widget(self._parser_widget))
+        menu_windows.addAction(action)
+        self.addAction(action)
+
+        action = QAction('Paths', self)
+        action.setShortcut('Ctrl+W')
+        action.setStatusTip('Show a window to enable and disable path drawing')
+        action.triggered.connect(self._enable_path_widget.show)
+        menu_windows.addAction(action)
+        self.addAction(action)
+
+        action = QAction('Robot monitor', self)
+        action.setShortcut('Ctrl+M')
+        action.setStatusTip('Show a window the contains information about a specific robot')
+        action.triggered.connect(lambda: self.switch_widget(self._robot_monitor))
+        menu_windows.addAction(action)
+        self.addAction(action)
+
+        action = QAction('Robot table', self)
+        action.setShortcut('Ctrl+K')
+        action.setStatusTip('Show a window the contains information about all robots')
+        action.triggered.connect(lambda: self.switch_widget(self._robot_table))
         menu_windows.addAction(action)
         self.addAction(action)
 
         action = QAction('File browser', self)
         action.setShortcut('Ctrl+F')
         action.setStatusTip('Show a window to load files')
-        action.triggered.connect(lambda:(
-                    self._instance_file_browser.setVisible(
-                    not self._instance_file_browser.isVisible())))
+        action.triggered.connect(lambda: self.switch_widget(self._instance_file_browser))
         menu_windows.addAction(action)
         self.addAction(action)
 
@@ -356,7 +387,6 @@ class VisualizerWindow(QMainWindow):
                                 finish_answer = True
                                 self._asp_parser.add_program('input', '.')
                                 self._asp_parser.parse()
-                count = 0
                 if not found_answer and len(lines) > 0:
                     self._asp_parser.add_program('input', ''.join(lines))
                     self._asp_parser.parse()
@@ -365,14 +395,13 @@ class VisualizerWindow(QMainWindow):
             print('Failed to read from stdin')
 
     def switch_widget(self, widget):
-        if not widget.isVisible():
-            widget.show()
-            return
-        if widget.parent() == self._control_splitter:
-            widget.setParent(None)
-            widget.show()
+        if widget.parent() is None:
+            self._splitter.addWidget(widget)
+            widget.resize(200, self._splitter.height())
+        elif widget.isVisible():
+            widget.hide()
         else:
-            widget.setParent(self._control_splitter)
+            widget.show()
 
     def open_file_dialog(self, mode, function):
         self._file_dialog.setAcceptMode(mode)
@@ -428,12 +457,19 @@ class VisualizerWindow(QMainWindow):
         self._solver_socket.close()
         self._simulator_socket.close()
 
+    def get_splitter(self):
+        return self._splitter
+
     def closeEvent(self, event):
         self._product_window.close()
         self._order_widget.close()
         self._task_widget.close()
         self._parser_widget.close()
+        self._enable_path_widget.close()
+        self._robot_monitor.close()
+        self._robot_table.close()
         config.close_widget()
+        widget_manager.exit()
         return super(self.__class__, self).closeEvent(event)
 
 app = QApplication(sys.argv)

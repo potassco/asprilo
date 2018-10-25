@@ -89,8 +89,8 @@ class Model(object):
         for socket in self._sockets:
             for item in add_items:
                 socket.model_expanded(item.to_init_str())
-            #if len(add_items) > 0:
-            #    socket.model_expanded('\n')
+            if len(add_items) > 0:
+                socket.model_expanded('\n')
 
     def discard_new_items(self, item_kinds = None):
         if item_kinds == None:
@@ -187,11 +187,18 @@ class Model(object):
                 to_remove.append(node)
         for node in to_remove:
             self._nodes.remove(node)
+            self._blocked_nodes.remove(node)
 
         if enable_nodes:
             for x in range(self._grid_size[0] + 1, X + 1):
+                for y in range(1, Y + 1):
+                    self._nodes.append((x,y))
+
+            for x in range(1, self._grid_size[0] + 1):
                 for y in range(self._grid_size[1] + 1, Y + 1):
                     self._nodes.append((x,y))
+
+
         else:
             self._blocked_nodes = []
             for x in range(1, X+1):
@@ -461,7 +468,7 @@ class Model(object):
 
             ofile.write('%init\n')
             for ss in self.to_init_str():
-                 ofile.write(str(ss) + '\n')
+                 ofile.write(str(ss.replace(".", ".\n")))
     
         except IOError:
             ofile.close()

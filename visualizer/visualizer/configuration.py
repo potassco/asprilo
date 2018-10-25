@@ -55,7 +55,7 @@ class Configuration(object):
                         ('network', 'port_simulator') : ConfigEntry(self._read_str_from_config, '5001', str, 'simulator port'),
                         ('network', 'host_simulator') : ConfigEntry(self._read_str_from_config, '127.0.0.1', str, 'simulator host'),
                         ('network', 'command_line_solver') : ConfigEntry(self._read_str_from_config, 
-                                                                            '__dir__/solver_inc.py --port 5000', str,
+                                                                            '__dir__/viz-solver --port 5000 -m default -e ./encoding.lp', str,
                                                                             'solver command line'),
                         ('network', 'command_line_simulator') : ConfigEntry(self._read_str_from_config,
                                                                                 '__dir__/simulator.py --port 5001', str,

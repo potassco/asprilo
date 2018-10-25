@@ -48,7 +48,7 @@ class Network(object):
         try:
             if self.is_ready_to_read(time_out):
                 while True:
-                    new_data = self._connection.recv(2048)
+                    new_data = self._connection.recv(2048).decode()
                     if not new_data or new_data == '':
                         self.close()
                         return 1
@@ -61,13 +61,13 @@ class Network(object):
 
         except socket.error as error:
             self.close()
-            print error
+            print(error)
             return -1
 
     def send(self, data):
         if self._connection is None:
             return
-        self._connection.send(data)
+        self._connection.send(data.encode())
 
     def connect(self):
         try:
@@ -77,11 +77,11 @@ class Network(object):
             self._socket.listen(1)
             self._connection, addr = self._socket.accept()
             self._control = clingo.Control()
-            print 'Connection with: ' + str(addr)
+            print('Connection with: ' + str(addr))
             self.on_connect()
         except socket.error as error:
             self.close()
-            print error
+            print(error)
             return -1
         return 0
 
@@ -93,7 +93,7 @@ class Network(object):
                 pass
             self._connection.close()
             self._connection = None
-            print 'close ' + self._name
+            print('close ' + self._name)
 
         if self._socket is not None:
             try:
@@ -104,7 +104,7 @@ class Network(object):
             self._socket = None
 
     def run(self):
-        print 'Start ' + self._name 
+        print('Start ' + self._name) 
         self.connect()
         while(True):
             if self.receive(1.0) != 0:
@@ -146,5 +146,5 @@ class Network(object):
         if step in self._to_send and step > self._sended:
             self._sended = step
             for atom in self._to_send[step]:
-                self._connection.send(str(atom) + '.')
-        self._connection.send('\n')
+                self._connection.send((str(atom) + '.').encode())
+        self._connection.send('\n'.encode())
