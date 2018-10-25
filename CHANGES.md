@@ -1,5 +1,46 @@
 # Changelog
 
+## Ongoing
+
+### Added
+
+-   Docs:
+    - Todo
+-   Checker:
+    - Todo
+-   Generator:
+    - Todo
+-   Visualizer:
+    - Todo
+-   Misc:
+    - Todo
+
+### Changed
+
+-   Docs:
+    - Todo
+-   Checker:
+    - Todo
+-   Generator:
+    - Todo
+-   Visualizer:
+    - Todo
+-   Misc:
+    - Todo
+
+### Fixed
+
+-   Docs:
+    - Todo
+-   Checker:
+    - Todo
+-   Generator:
+    - Todo
+-   Visualizer:
+    - Todo
+-   Misc:
+    - Todo
+
 
 ## 0.2.0
 
