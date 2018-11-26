@@ -11,7 +11,9 @@
 -   Generator:
     - Todo
 -   Visualizer:
-    - Todo
+    - Table with detailed robot information
+    - Highlighting for selected robots
+    - Add ability for robot path drawing
 -   Misc:
     - Todo
 
@@ -24,7 +26,10 @@
 -   Generator:
     - Todo
 -   Visualizer:
-    - Todo
+    - Updated to python 3
+    - Windows can now be dragged and dropped
+    - Updated solver and simulator script
+    - Performance improvements
 -   Misc:
     - Todo
 
@@ -37,7 +42,7 @@
 -   Generator:
     - Todo
 -   Visualizer:
-    - Todo
+    - Fixed various bugs
 -   Misc:
     - Todo
 

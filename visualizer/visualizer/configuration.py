@@ -58,7 +58,7 @@ class Configuration(object):
                                                                             '__dir__/viz-solver --port 5000 -m default -e ./encoding.lp', str,
                                                                             'solver command line'),
                         ('network', 'command_line_simulator') : ConfigEntry(self._read_str_from_config,
-                                                                                '__dir__/simulator.py --port 5001', str,
+                                                                                '__dir__/viz-simulator --port 5001 -t ./instance.lp', str,
                                                                                 'simulator command line'),
                         ('visualizer', 'step_time') : ConfigEntry(self._read_int_from_config, 1200, str, 'step time'),
                         ('visualizer', 'auto_solve') : ConfigEntry(self._read_bool_from_config, False, str, 'auto solving'),
