@@ -10,15 +10,17 @@ from . import modelView
 from . import visualizerItem
 from .configuration import *
 
-VIZ_STATE_MOVED     = 0x01
-VIZ_STATE_DELIVERED = 0x02
-VIZ_STATE_PICKED_UP = 0x04
-VIZ_STATE_PUT_DOWN  = 0x08
-VIZ_STATE_MOVE      = 0x10
-VIZ_STATE_DELIVER   = 0x20
-VIZ_STATE_PICK_UP   = 0x40
-VIZ_STATE_PUT_DOWN2 = 0x80
-VIZ_STATE_ACTION    = 0xff
+VIZ_STATE_MOVED     = 0x0001
+VIZ_STATE_DELIVERED = 0x0002
+VIZ_STATE_PICKED_UP = 0x0004
+VIZ_STATE_PUT_DOWN  = 0x0008
+VIZ_STATE_MOVE      = 0x0010
+VIZ_STATE_DELIVER   = 0x0020
+VIZ_STATE_PICK_UP   = 0x0040
+VIZ_STATE_PUT_DOWN2 = 0x0080
+VIZ_STATE_CHARGED   = 0x0100
+VIZ_STATE_CHARGE    = 0x1000
+VIZ_STATE_ACTION    = 0xffff
 
 def calculate_color(first_color, second_color, multiplier):
     red = (min(first_color.red(), second_color.red()), max(first_color.red(), second_color.red()))
@@ -222,8 +224,9 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
 
 class PickingStation(VisualizerGraphicItem):
     def __init__(self, ID = 0, x = 0, y = 0):
-        super(self.__class__, self).__init__(ID, x, y)
+        super(PickingStation, self).__init__(ID, x, y)
         self._kind_name = 'pickingStation'
+        self._short_name = 'P'
 
         self._items = []
         self._graphics_item = QGraphicsRectItem(self)
@@ -239,9 +242,9 @@ class PickingStation(VisualizerGraphicItem):
         self._text.setDefaultTextColor(QColor(config.get('display', 'id_font_color')))
         if self._display_mode == 0:
             if bold:
-                self._text.setHtml('<b>P(' + str(self._id) + ')</b>')
+                self._text.setHtml('<b>' + self._short_name +'(' + str(self._id) + ')</b>')
             else:
-                self._text.setHtml('P(' + str(self._id) + ')')
+                self._text.setHtml(self._short_name + '(' + str(self._id) + ')')
             self._graphics_item.setRect(rect.x(), rect.y(), rect.width(), rect.height())
             self._items[0].setRect(rect.x() + rect.width()/5, rect.y(), rect.width()/5, rect.height())
             self._items[1].setRect(rect.x() + rect.width()/5 * 3, rect.y(), rect.width()/5, rect.height())
@@ -265,6 +268,12 @@ class PickingStation(VisualizerGraphicItem):
 
     def get_rect(self):
         return self._graphics_item.rect()
+
+class ChargingStation(PickingStation):
+    def __init__(self, ID = 0, x = 0, y = 0):
+        super(ChargingStation, self).__init__(ID, x, y)
+        self._kind_name = 'chargingStation'
+        self._short_name = 'C'
 
 class Shelf(VisualizerGraphicItem):
     def __init__(self, ID = 0, x = 0, y = 0):
@@ -470,8 +479,17 @@ class Robot(VisualizerGraphicItem):
         self._initial_carries = None
         self._tasks = []
         self._graphics_item = QGraphicsRectItem(self)
+        self._energy_bar_full = QGraphicsRectItem(self)
+        self._energy_bar_empty = QGraphicsRectItem(self)
         self._text = QGraphicsTextItem(self)
         self.setZValue(1.0)
+
+        self._energy_bar_empty.setBrush(QBrush(QColor(200,0,0)))
+        self._energy_bar_full.setBrush(QBrush(QColor(0,200,0)))
+
+        self._max_energy = 0
+        self._current_energy = 0
+        self._energy_costs = {}
 
     def set_position(self, x, y):
         super(self.__class__, self).set_position(x, y)
@@ -500,6 +518,7 @@ class Robot(VisualizerGraphicItem):
         self._text.setFont(QFont('', rect.width()*0.08*scale))
         self._text.setPos(rect.x(), rect.y() + 0.2*rect.height())
         self._text.setDefaultTextColor(QColor(config.get('display', 'id_font_color')))
+        rect2 = QRectF()
 
         if self._display_mode == 0:
             if bold:
@@ -507,31 +526,57 @@ class Robot(VisualizerGraphicItem):
             else:
                 self._text.setHtml('R(' + str(self._id) + ')')
             if not self._highlighted:
-                self._graphics_item.setRect(rect.x() + 0.25*rect.width(), 
-                                            rect.y() + 0.25*rect.height(),
-                                            rect.width()*0.5,
-                                            rect.height()*0.5,)
+                rect2 = QRectF(rect.x() + 0.25*rect.width(), 
+                               rect.y() + 0.25*rect.height(),
+                               rect.width()*0.5,
+                               rect.height()*0.5)
             else:
-                self._graphics_item.setRect(rect.x() + 0.05*rect.width(), 
-                                            rect.y() + 0.05*rect.height(),
-                                            rect.width()*0.9,
-                                            rect.height()*0.9,)
+                rect2 = QRectF(rect.x() + 0.05*rect.width(), 
+                               rect.y() + 0.05*rect.height(),
+                               rect.width()*0.9,
+                               rect.height()*0.9,)
 
-        elif self._display_mode == 1:
+        else:
             self._text.setPlainText('')
             if not self._highlighted:
-                self._graphics_item.setRect(rect.x() + 0.05*rect.width(), 
-                                            rect.y() + 0.05*rect.height(),
-                                            rect.width()*0.9,
-                                            rect.height()*0.9)
+                rect2 = QRectF(rect.x() + 0.05*rect.width(), 
+                               rect.y() + 0.05*rect.height(),
+                               rect.width()*0.9,
+                               rect.height()*0.9)
             else:
-                self._graphics_item.setRect(rect.x() - 0.15*rect.width(), 
-                                            rect.y() - 0.15*rect.height(),
-                                            rect.width()*1.3,
-                                            rect.height()*1.3,)
+                rect2 = QRectF(rect.x() - 0.15*rect.width(), 
+                               rect.y() - 0.15*rect.height(),
+                               rect.width()*1.3,
+                               rect.height()*1.3,)
+
+        self._graphics_item.setRect(rect2)
+        #draw energy bar if max energy > 0
+        if self._max_energy > 0:
+            per_energy = max(0.0, min(1.0, float(self._current_energy) / self._max_energy))
+            rect2.setLeft(rect2.x() + rect2.width()*0.7)
+            rect2.setWidth(rect2.width()*0.5)
+
+            self._energy_bar_empty.setRect(rect2.x(), 
+                                           rect2.y(),
+                                           rect2.width(),
+                                           rect2.height() * (1.0 - per_energy))
+            self._energy_bar_full.setRect(rect2.x(), 
+                                          rect2.y() + rect2.height() * (1.0 - per_energy), 
+                                          rect2.width(), 
+                                          rect2.height() * per_energy)
 
         if self._carries is not None:
             self._carries.set_rect(rect)
+        self.update_tooltip()
+
+    def set_current_energy(self, energy):
+        self._current_energy = energy
+
+    def set_max_energy(self, energy):
+        self._max_energy = energy
+
+    def add_energy(self, energy):
+        self._current_energy = self._current_energy + energy
 
     def add_task(self, task):
         if task is None:
@@ -549,7 +594,27 @@ class Robot(VisualizerGraphicItem):
             self.set_initial_carries(shelf)
             self.set_carries(shelf)
             return 0
+        elif name == 'energy':
+            self.set_current_energy(value.number)
+            return 0
+        elif name == 'max_energy':
+            self.set_max_energy(value.number)
+            return 0
+        elif name == 'energy_cost':
+            self._energy_costs[value.arguments[0].name] = value.arguments[1].number
+            return 0
         return 1
+
+    def update_tooltip(self):
+        tooltip = ("robot(" + str(self._id) + ")\nenergy: " + 
+                   str(self._current_energy) + "/" + 
+                   str(self._max_energy))
+        if self._max_energy > 0:
+            tooltip += ("(" + 
+                        str(float(self._current_energy)/self._max_energy) + 
+                        "%)")
+        
+        self.setToolTip(tooltip)
 
     def restart(self):
         super(self.__class__, self).restart()
@@ -562,6 +627,18 @@ class Robot(VisualizerGraphicItem):
                     + str(self._id) + "),value(carries,"
                     + str(self._initial_carries.get_id())
                     + ")).")
+        s += ("init(object(robot," 
+                + str(self._id) + "), value(max_energy,"
+                + str(self._max_energy)
+                + ")).")
+        s += ("init(object(robot," 
+                + str(self._id) + "), value(energy,"
+                + str(self._current_energy)
+                + ")).")
+        for key in self._energy_costs:
+            s += ("init(object(robot,"
+                    + str(self._id) + "),value(energy_cost, ("
+                    + key + ", " + str(self._energy_costs[key]) + "))).")
         return s
 
     def do_action(self, time_step):
@@ -579,6 +656,9 @@ class Robot(VisualizerGraphicItem):
                     self._state = self._state | VIZ_STATE_PICK_UP
                 elif action.name == 'putdown':
                     self._state = self._state | VIZ_STATE_PUT_DOWN2
+                elif action.name == 'charge':
+                    self._state = self._state | VIZ_STATE_CHARGE
+
 
         if time_step >= len(self._actions):
             return 0  #break, if no action is defined
@@ -593,6 +673,15 @@ class Robot(VisualizerGraphicItem):
         except:
             return -1
 
+        #energy cost
+        if str(action.name) in self._energy_costs:
+            try:
+                self.add_energy(-self._energy_costs[action.name])
+            except:
+                print("Energy cost is not an integer.")
+                self._energy_costs[action.name] = None
+
+        #do action
         if action.name == 'move':
             if len(value.arguments) != 2: 
                 return -1
@@ -659,6 +748,13 @@ class Robot(VisualizerGraphicItem):
             except:
                 return -3
             return 5
+
+        elif action.name == 'charge':
+            try:
+                self.add_energy(value.number)
+            except:
+                return -4
+            return 6
         return 0
 
     def undo_action(self, time_step):
@@ -675,6 +771,14 @@ class Robot(VisualizerGraphicItem):
             value = self._actions[time_step].arguments[1]
         except:
             return -1
+
+        #energy cost
+        if action.name in self._energy_costs:
+            try:
+                self.add_energy(self._energy_costs[action.name])
+            except:
+                print("Energy cost is not an integer.")
+                self._energy_costs[action.name] = None
 
         if action.name == 'move':
             if len(value.arguments) != 2: 
@@ -745,6 +849,13 @@ class Robot(VisualizerGraphicItem):
             except:
                 return -3
             return 5
+
+        elif action.name == 'charge':
+            try:
+                self.add_energy(-value.number)
+            except:
+                return -4
+            return 6
         return 0
 
     def determine_color(self, number, count, pattern = None):
@@ -806,6 +917,12 @@ class Robot(VisualizerGraphicItem):
             item2.set_starting_position(self._position[0], self._position[1])
         self.set_position(x,y)
         self.set_starting_position(x, y)
+
+    def get_current_energy(self):
+        return self._current_energy
+
+    def get_max_energy(self):
+        return self._max_energy
 
 class Checkpoint(VisualizerGraphicItem):
     def __init__(self, ID = 0, x = 0, y = 0):

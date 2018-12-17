@@ -1590,8 +1590,12 @@ class RobotTable(VizWidget):
         self._table.move(0, 20)
         self.setWindowTitle('Robot Table')
         self._model = None
-        self._table.setColumnCount(8)
-        self._table.setHorizontalHeaderLabels(['Robot ID', 'Position', 'Action number', 'Action count', 'Idle count', 'Current action', 'Next action', 'Carries'])
+        self._table.setColumnCount(10)
+        self._table.setHorizontalHeaderLabels(['Robot ID', 'Position', 
+                                               'Action number', 'Action count', 
+                                               'Idle count', 'Current action', 
+                                               'Next action', 'Carries', 
+                                               'Current Energy', 'Max Energy'])
         self._table.itemSelectionChanged.connect(self.on_selection_changed)
         self._table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self._table_items = {}
@@ -1603,6 +1607,7 @@ class RobotTable(VizWidget):
         green_brush = QBrush(QColor(100, 200, 100))
         white_brush = QBrush(QColor(255, 255, 255))
         blue_brush  = QBrush(QColor(155, 155, 255))
+        orange_brush = QBrush(QColor(255, 128, 0))
         ignore_first = 1
         if self._model is None:
             return
@@ -1637,6 +1642,11 @@ class RobotTable(VizWidget):
 
             if robot.get_state() & VIZ_STATE_DELIVER:
                 brush = red_brush
+            elif(robot.get_current_energy() < 0 or 
+                (robot.get_current_energy() > robot.get_max_energy() and 
+                 robot.get_max_energy() > 0)):
+
+                brush = orange_brush
             elif current_action is not None:
                 brush = green_brush
             elif next_action is None:
@@ -1661,6 +1671,8 @@ class RobotTable(VizWidget):
                 self.set_item_text(count, 7, robot.get_carries().get_id(), brush)
             else:
                 self.set_item_text(count, 7, "None", brush)
+            self.set_item_text(count, 8, str(robot.get_current_energy()), brush)
+            self.set_item_text(count, 9, str(robot.get_max_energy()), brush)
             count += 1
         self._table.setSortingEnabled(True)
         super(self.__class__, self).update()

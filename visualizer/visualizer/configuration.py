@@ -39,6 +39,8 @@ class Configuration(object):
                         ('color', 'color_shelf2') : ConfigEntry(self._read_hex_from_config, 0xff0000, hex, 'color carried shelf'),
                         ('color', 'color_pickingstation0') : ConfigEntry(self._read_hex_from_config, 0xffff00, hex, 'color picking station 1'),
                         ('color', 'color_pickingstation1') : ConfigEntry(self._read_hex_from_config, 0xffffff, hex, 'color picking station 2'),
+                        ('color', 'color_chargingstation0') : ConfigEntry(self._read_hex_from_config, 0x202020, hex, 'color charging station 1'),
+                        ('color', 'color_chargingstation1') : ConfigEntry(self._read_hex_from_config, 0xff2020, hex, 'color charging station 2'),
                         ('color', 'color_checkpoint0') : ConfigEntry(self._read_hex_from_config, 0x006400, hex, 'color checkpoint 1'),
                         ('color', 'color_checkpoint1') : ConfigEntry(self._read_hex_from_config, 0x006464, hex, 'color checkpoint 2'),
                         ('color', 'color_checkpoint2') : ConfigEntry(self._read_hex_from_config, 0x646464, hex, 'color checkpoint 3'),
