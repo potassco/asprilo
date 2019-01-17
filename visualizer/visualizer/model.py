@@ -229,6 +229,10 @@ class Model(object):
                 if 'pickingStation' not in self._graphic_items:
                     self._graphic_items['pickingStation'] = {}
                 dic = self._graphic_items['pickingStation']
+            elif item_kind == 'chargingStation':
+                if 'chargingStation' not in self._graphic_items:
+                    self._graphic_items['chargingStation'] = {}
+                dic = self._graphic_items['chargingStation']
             elif item_kind == 'robot':
                 if 'robot' not in self._graphic_items:
                     self._graphic_items['robot'] = {}
@@ -261,6 +265,8 @@ class Model(object):
             item = Shelf(ID)
         elif item_kind == 'pickingStation':
             item = PickingStation(ID)
+        elif item_kind == 'chargingStation':
+            item = ChargingStation(ID)
         elif item_kind == 'robot':
             item = Robot(ID)
         elif item_kind == 'order':

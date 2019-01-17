@@ -156,6 +156,20 @@ class ModelView(QGraphicsView):
             action.triggered.connect(lambda: self._add_item('pickingStation', x, y))
             self._menu.addAction(action)           
 
+        station2 = self._model.filter_items('chargingStation', position = (x,y), return_first = True)[0]
+        if station is not None:
+            action = QAction('remove charging station', self)
+            action.setShortcut('Ctrl + B')
+            action.setStatusTip('Removes a charging station from the selected node')
+            action.triggered.connect(lambda: self._remove_item(station))
+            self._menu.addAction(action)
+        elif self._model.is_node(x,y):
+            action = QAction('add charging station', self)
+            action.setShortcut('Ctrl + B')
+            action.setStatusTip('Adds a charging Station to the selected node')
+            action.triggered.connect(lambda: self._add_item('chargingStation', x, y))
+            self._menu.addAction(action)
+
         self._menu.popup(QPoint(event.x(),event.y()))
 
     def mousePressEvent(self, event):

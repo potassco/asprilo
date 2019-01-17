@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-#This script is an example for an solver for the asprilo visualizer.
+#This script is an example for a solver for the asprilo visualizer.
 #It contains 3 different ways to solve instances and delivers plans for visualization.
 #All solvers use a given encoding to solve the problems. The solvers use the networking
 #interface from the visualizer and are written to work along with it. 
@@ -128,7 +128,7 @@ class Solver(object):
                     #read data
                     new_data = self._connection.recv(2048).decode()
                     #close the socket if the visualizer closed the socket
-                    if not new_data or new_data == '': #changes this?
+                    if not new_data or new_data == '':
                         self.close()
                         return 1
                     self._raw_data += new_data
