@@ -8,8 +8,8 @@ import logging
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 import clingo
-from observer import Observer
-from aspif import AspifObserver
+from .observer import Observer
+from .aspif import AspifObserver
 
 LOG = logging.getLogger('custom')
 
@@ -74,7 +74,7 @@ class BasicGenerator(InstanceGenerator):
         for atm in [atm for atm in atoms_list if atm.name == "init"]:
             self._inits.append(atm)
         self._update_object_counter(atoms_list)
-        LOG.info("Stats: %s", {k: int(v) for k, v in self._object_counters.items()})
+        LOG.info("Stats: %s", {k: int(v) for k, v in list(self._object_counters.items())})
         self._save()
 
     def _update_object_counter(self, atoms_list):
@@ -436,7 +436,7 @@ class BasicGenerator(InstanceGenerator):
         self._prg.solve()
         ctx = self._aspif_obs.finalize()
         aspif = 'asp 1 0 0\n'
-        for stype, statements in ctx.get().items():
+        for stype, statements in list(ctx.get().items()):
             for stm in statements:
                 aspif += str(stype) + ' ' + ' '.join([str(sym) for sym in stm]) + '\n'
         aspif += '0'

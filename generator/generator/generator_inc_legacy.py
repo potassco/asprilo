@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Instance Generator Core."""
 
-from __future__ import absolute_import
+
 import logging
 import math
 from generator.utils.auxiliary import clone_args
@@ -74,7 +74,7 @@ class IncrementalGeneratorLegacy(InstanceGenerator):
             grid_template = args_dict['template_str']
             templates = []
             dest_dirs = []
-            for select in xrange(self._args.num):
+            for select in range(self._args.num):
                 LOG.info("\n** INC MODE: Adding shelves to previous template %s", str(select + 1))
                 args_dict['template_str'] = grid_template
                 template, _dest_dirs = self._add_objs_inc({'shelves' : [self._args.shelves, 20]},
@@ -100,7 +100,7 @@ class IncrementalGeneratorLegacy(InstanceGenerator):
             else:
                 inc_products = 1
                 inc_product_units = ratio_untits_vs_products
-            for select in xrange(self._args.num):
+            for select in range(self._args.num):
                 LOG.info("\n** INC MODE: Adding products and product units to previous template %s",
                          str(select))
                 args_dict['template_str'] = prev_templates[select]
@@ -117,7 +117,7 @@ class IncrementalGeneratorLegacy(InstanceGenerator):
             prev_templates = templates
             templates = []
             dest_dirs = []
-            for select in xrange(self._args.num):
+            for select in range(self._args.num):
                 LOG.info("\n** INC MODE: Adding orders to previous template %s", str(select))
                 args_dict['template_str'] = prev_templates[select]
                 template, _dest_dirs = self._add_objs_inc(
@@ -134,7 +134,7 @@ class IncrementalGeneratorLegacy(InstanceGenerator):
         maxed_objs = []
         args_dict['instance_count'] = instance_count
         while len(maxed_objs) < len(objs_settings):
-            for setting in objs_settings.items():
+            for setting in list(objs_settings.items()):
                 otype, (max_count, inc_size) = setting
                 args_dict[otype] = args_dict[otype] or 0
                 if args_dict[otype] + inc_size < max_count:
