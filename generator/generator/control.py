@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """General Execution Control."""
-from __future__ import absolute_import
+
 import os
 import sys
 import math
@@ -27,7 +27,7 @@ class Control(object):
     def __init__(self, args=None, parent=None):
         namespace = None
         if parent: # Carrying over settings from parent
-            nsdict = {k: copy.deepcopy(v) for k, v in vars(parent.args).items()
+            nsdict = {k: copy.deepcopy(v) for k, v in list(vars(parent.args).items())
                       if k != 'batch'}
             if parent.args.skip_existing_sub:
                 nsdict['skip_existing'] = True
@@ -99,7 +99,7 @@ class Control(object):
                     try:
                         LOG.info("Running invocation for pars: %s ", str(invoc))
                         Control(invoc, self).run()
-                    except Exception, exc:
+                    except Exception as exc:
                         LOG.error("""During batch mode, received exception \'%s\' while running with
                         parameters %s""", exc, str(invoc))
         except IOError as err:
@@ -132,7 +132,7 @@ class Control(object):
         global_settings = []
         invocations = []
         if isinstance(content, OrderedDict):
-            for key, val in content.items():
+            for key, val in list(content.items()):
                 if key == 'global_settings':
                     LOG.debug("Global settings found: %s", str(val))
                     global_settings.extend(self._conv_args_dict(val, parent_path))
@@ -152,7 +152,7 @@ class Control(object):
             output_invocs = []
             found_args_list = []
             nested = False
-            if content.has_key('args'):
+            if 'args' in content:
                 val = content['args']
                 LOG.debug("Args found: %s", str(val))
                 if isinstance(val, list):
@@ -164,7 +164,7 @@ class Control(object):
                                                                      None, val)
                 else:
                     raise ValueError("For key 'args', the value must be a list or dict.")
-            for key, val in [(key, val) for key, val in content.items() if key != 'args']:
+            for key, val in [(key, val) for key, val in list(content.items()) if key != 'args']:
                 LOG.debug("Config found: %s", key)
                 nested = True
                 subconf_invocs = None
@@ -193,7 +193,7 @@ class Control(object):
     def _conv_args_dict(self, adict, parent_path):
         args = []
         rel_template_path = False
-        for elm in [elm for tup in adict.items() for elm in tup]:
+        for elm in [elm for tup in list(adict.items()) for elm in tup]:
             if isinstance(elm, list):
                 args += [str(itm) for itm in elm]
             elif isinstance(elm, bool):
