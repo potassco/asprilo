@@ -14,6 +14,6 @@ setup(name='generator',
       #                   'pyyaml>=3.12'],
       # ********************************************************************************************
       packages=find_packages(),
-      scripts=['scripts/gen'],
+      entry_points={'console_scripts': ['gen = generator.__main__:main']},
       data_files=[('encodings', glob('encodings/*'))],
      )
