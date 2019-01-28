@@ -312,7 +312,9 @@ class BasicGenerator(InstanceGenerator):
         LOG.info("Solve result: %s", str(solve_result))
         LOG.info("Search finished: %s", str(not solve_result.interrupted))
         LOG.info("Search space exhausted: %s", str(solve_result.exhausted))
-        LOG.debug("Statistics: %s", self._prg.statistics)
+        import json
+        LOG.debug("Statistics: %s", json.dumps(self._prg.statistics, sort_keys=True, indent=4,
+                                               separators=(',', ': ')))
 
         if self._args.grounding_stats:
             self._print_grounding_stats("AFTER CONCLUDING SOLVE CALL", self._args.grounding_stats)
