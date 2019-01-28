@@ -417,7 +417,7 @@ class Control(object):
                                       "generator encoding, takes optional argument %(metavar)s:\n"
                                       "  stats : shows the grounding size statistics (implied by default)\n"
                                       "  atoms : additionally shows the grounded program and output atoms & terms"))
-        basic_args.add_argument('--aspif', nargs='?', const='stats', dest='aspif', metavar="OPT",
+        basic_args.add_argument('--aspif', nargs='?', const='print', dest='aspif', metavar="OPT",
                                 help=("R|WARNING: FOR ANALYTICAL PURPOSE ONLY, DO NOT USE FOR PRODUCTION!\n"
                                       "Prints the current aspif program for each solving step of the instance\n"
                                       " generation, takes optional argument %(metavar)s:\n"
