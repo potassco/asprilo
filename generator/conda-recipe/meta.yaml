@@ -25,6 +25,10 @@ test:
   imports:
     - generator
 
+build:
+  entry_points:
+    - gen = generator.__main__:main
+
 about:
   home: https://github.com/potassco/asprilo/tree/develop/generator
   summary: "The Asprilo Instance Generator - https://potassco.org/asprilo"
