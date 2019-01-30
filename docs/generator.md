@@ -12,13 +12,47 @@ output:
 
 This is the user manual of the instance generator of [asprilo](index.md).
 
-# Requirements
+# Installation
 
-The generator requires the following software installed on your system:
+We highly recommend to install the generator with [conda](https://conda.io/):
 
-1. [clingo5](http://github.com/potassco/clingo), version 5.2.2 or later
-2. [Python interpreter version 2.7.x](http://www.python.org)
-3. [PyYAML](https://github.com/yaml/pyyaml).
+1.  [Install either Anaconda or Miniconda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
+2.  [Create and activate a fresh conda environment](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html), e.g. via
+
+    ``` bash
+    conda create -n myenv
+    conda activate myenv
+    ```
+
+3.  To install the generator in your environment, run
+
+    ``` bash
+    conda install -c potassco -c asprilo generator
+    ```
+
+4.  Run
+
+    ``` bash
+    gen -h
+    ```
+
+    to verify that the generator installed correctly.
+
+## Manual Installation (Not Supported!)
+
+Alternatively, you can install the generator manually by downloading its source code from
+[https://github.com/potassco/asprilo](https://github.com/potassco/asprilo). However, you must install all
+requirements by yourself and probably adjust some environment variables (e.g. `PATH`, `PYTHONPATH`).
+Please note that this method is **not supported**!
+
+## Requirements
+
+For manual installation, the generator requires the following software installed on
+your system:
+
+1. [clingo5](http://github.com/potassco/clingo)>=5.3.0
+2. [Python interpreter version >=3.6.x](http://www.python.org)
+3. [PyYAML](https://github.com/yaml/pyyaml)>=3.12
 
 # Usage
 
