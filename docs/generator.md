@@ -1,6 +1,6 @@
 ---
-layout: default
-title: generator
+layout: page
+title: Generator
 output:
     html_document:
         toc: true

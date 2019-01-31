@@ -1,3 +1,13 @@
+---
+layout: page
+title: Benchmark Set
+output:
+    html_document:
+        toc: true
+        toc_depth: 3
+        toc_float: true
+---
+
 # About
 
 This is the description of the pre-generated benchmark instance sets for asprilo.

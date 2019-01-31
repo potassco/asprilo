@@ -1,6 +1,6 @@
 ---
-layout: default
-title: specification
+layout: page
+title: Specification
 output:
     html_document:
         toc: true
