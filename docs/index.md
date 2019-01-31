@@ -10,14 +10,16 @@ output:
 
 # What is *asprilo*?
 
-**asprilo** is an empirical framework to study typical scenarios in intra-logistics and warehouse
-automation with multiple mobile robots. Due to the diverse and complex nature of this domain,
-asprilo offers an ideal test bed not only for modern industrial scenarios but complex dynamic
-problems in general. Although, the implementation of asprilo relies on [answer set programming
+**asprilo** is an benchmarking framework to study typical scenarios in intra-logistics and warehouse
+automation with multiple mobile robots. It offers a concise specification of this problem domain
+accompanied by a set of tools to generate benchmark instances, verify plans, as well as visualize
+both instances and plans. Due to the diverse and complex nature of this domain, asprilo offers an
+ideal test bed not only for modern industrial scenarios but complex dynamic problems in
+general. Although, the implementation of asprilo relies on [answer set programming
 (ASP)](https://en.wikipedia.org/wiki/Answer_set_programming) and Python, it also supports any other
 approach that complies with its fact-based I/O interface.
 
-|   |   |
+| "Full Warehouse Domain" (A-Domain)  | "Movement-Only Domain" (M-Domain) |
 |:-:|:-:|
 [![](https://img.youtube.com/vi/ifYKHIvdnjw/0.jpg)](https://www.youtube.com/watch?v=ifYKHIvdnjw) | [![](https://img.youtube.com/vi/GHRwpWzL0j8/0.jpg)](https://www.youtube.com/watch?v=GHRwpWzL0j8)
 

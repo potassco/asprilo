@@ -14,7 +14,7 @@ This is the user manual of the instance generator of [asprilo](index.md).
 
 # Installation
 
-We highly recommend to install the generator with [conda](https://conda.io/):
+We **highly recommend** to install the generator with [conda](https://conda.io/):
 
 1.  [Install either Anaconda or Miniconda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
 2.  [Create and activate a fresh conda environment](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html), e.g. via
