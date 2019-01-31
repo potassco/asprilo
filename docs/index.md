@@ -17,9 +17,11 @@ problems in general. Although, the implementation of asprilo relies on [answer s
 (ASP)](https://en.wikipedia.org/wiki/Answer_set_programming) and Python, it also supports any other
 approach that complies with its fact-based I/O interface.
 
-<iframe width="49%" height="315" src="https://www.youtube.com/embed/ifYKHIvdnjw" frameborder="0" allowfullscreen align="left"></iframe>
-<iframe width="49%" height="315" src="https://www.youtube.com/embed/GHRwpWzL0j8" frameborder="0" allowfullscreen align="right"></iframe>
+|   |   |
+|:-:|:-:|
+[![](https://img.youtube.com/vi/ifYKHIvdnjw/0.jpg)](https://www.youtube.com/watch?v=ifYKHIvdnjw) | [![](https://img.youtube.com/vi/GHRwpWzL0j8/0.jpg)](https://www.youtube.com/watch?v=GHRwpWzL0j8)
 
+(*Click images for video playback*)
 
 # Key Components
 
