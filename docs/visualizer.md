@@ -1,6 +1,6 @@
 ---
 layout: page
-title: visualizer
+title: Visualizer
 output:
     html_document:
         toc: true

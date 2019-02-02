@@ -1,6 +1,6 @@
 ---
-layout: default
-title: experiments
+layout: page
+title: Experiments
 output:
     html_document:
         toc: true
