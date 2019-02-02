@@ -6,6 +6,7 @@ output:
         toc: true
         toc_depth: 3
         toc_float: true
+asprilourl: "https://asprilo.github.io"
 ---
 
 # What is *asprilo*?
@@ -47,6 +48,6 @@ Information about our conducted experiments with asprilo can be found [here](exp
 
 # Publications
 
-1. Gebser, M., Obermeier, P., Otto, T., Schaub, T., Sabuncu, O., Nguyen, V., & Son, T. C. (2018). Experimenting with robotic intra-logistics domains. *CoRR*, abs/1804.10247. [[pdf](https://www.cs.uni-potsdam.de/wv/publications/DBLP_journals/corr/abs-1804-10247.pdf)] [[bib](https://www.cs.uni-potsdam.de/wv/publications/DBLP_journals/corr/abs-1804-10247.html)]
-2. Gebser, M., Obermeier, P., Otto, T., Schaub, T., Sabuncu, O., Nguyen, V., & Son, T. C. (2018). Experimenting with robotic intra-logistics domains. *TPLP*, 18(3-4), 502–519. [[bib](https://www.cs.uni-potsdam.de/wv/publications/DBLP_journals/tplp/GebserOOS18.html)]
-3. Nguyen, V., Obermeier, P., Son, T. C., Schaub, T., & Yeoh, W. (2017). Generalized Target Assignment and Path Finding Using Answer Set Programming. In *IJCAI* (pp. 1216–1223). ijcai.org. [[pdf](https://www.cs.uni-potsdam.de/wv/publications/DBLP_conf/ijcai/NguyenOSS017.pdf)] [[bib](https://www.cs.uni-potsdam.de/wv/publications/DBLP_conf/ijcai/NguyenOSS017.html)]
+- Gebser, M., Obermeier, P., Otto, T., Schaub, T., Sabuncu, O., Nguyen, V., & Son, T. C. (2018). [Experimenting with robotic intra-logistics domains]({{ site.publicationurl }}//#DBLP:journals/corr/abs-1804-10247). *CoRR*, abs/1804.10247. [[Experiments]({{ page.asprilourl }}/experiments/#evaluation-2018-02)]
+- Gebser, M., Obermeier, P., Otto, T., Schaub, T., Sabuncu, O., Nguyen, V., & Son, T. C. (2018). [Experimenting with robotic intra-logistics domains]({{ site.publicationurl }}//#DBLP:journals/tplp/GebserOOS18). *TPLP*, 18(3-4), 502–519. [[Experiments]({{ page.asprilourl }}/experiments/#evaluation-2018-02)]
+- Nguyen, V., Obermeier, P., Son, T. C., Schaub, T., & Yeoh, W. (2017). [Generalized Target Assignment and Path Finding Using Answer Set Programming]({{ site.publicationurl }}//#DBLP:conf/ijcai/NguyenOSS017). In *IJCAI* (pp. 1216–1223). ijcai.org.
