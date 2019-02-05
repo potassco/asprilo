@@ -224,7 +224,7 @@ class FactFilter(object):
         prg = clingo.Control()
         prg.add('base', [], self._instance)
         prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                              '../encodings/inc_filter.lp'))
+                              'encodings/inc_filter.lp'))
         prg.ground([('base', [])])
         prg.ground([(self._stage, self._stage_args)])
         prg.ground([('project', [])])

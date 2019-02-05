@@ -159,8 +159,7 @@ class BasicGenerator(InstanceGenerator):
         self._prg.register_observer(self._aspif_obs)
 
         # Problem encoding
-        self._prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                    '../encodings/ig.lp'))
+        self._prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'encodings/ig.lp'))
 
         # Templates
         for template in self._args.template:
@@ -415,7 +414,7 @@ class BasicGenerator(InstanceGenerator):
         ctx = self._observer.finalize()
         prg = clingo.Control()
         prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                              '../encodings/grnd_stats.lp'))
+                              'encodings/grnd_stats.lp'))
         if show == 'stats':
             prg.add('base', [], '#show stats/2. #show stats_total/1.')
         elif show == 'atoms':
