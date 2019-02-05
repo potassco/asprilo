@@ -51,7 +51,7 @@ class IncrementalGenerator(InstanceGenerator):
         # Add picking stations to instance
         if self._args.picking_stations:
             input_instance = templates[0]
-            args_dict['template_str'] = FactFilter(input_instance, 'picking_stations', []).apply()
+            args_dict['template_str'] = FactFilter(self._args, input_instance, 'picking_stations', []).apply()
             args_dict['picking_stations'] = self._args.picking_stations
             if not self._args.inc_im:
                 args_dict['write_instance'] = False
@@ -65,7 +65,7 @@ class IncrementalGenerator(InstanceGenerator):
         # Add robots to instance
         if self._args.robots:
             input_instance = templates[0]
-            args_dict['template_str'] = FactFilter(input_instance, 'robots', []).apply()
+            args_dict['template_str'] = FactFilter(self._args, input_instance, 'robots', []).apply()
             args_dict['robots'] = self._args.robots
             if not self._args.inc_im:
                 args_dict['write_instance'] = False
@@ -85,7 +85,7 @@ class IncrementalGenerator(InstanceGenerator):
         if self._args.shelves:
             LOG.info("\n** INC MODE: Generating Shelves ****************************************")
             input_instance = templates[0]
-            grid_template = FactFilter(input_instance, 'shelves', []).apply()
+            grid_template = FactFilter(self._args, input_instance, 'shelves', []).apply()
             # grid_template = args_dict['template_str']
             templates = []
             dest_dirs = []
@@ -101,7 +101,7 @@ class IncrementalGenerator(InstanceGenerator):
         if self._args.products:
             LOG.info("\n** INC MODE: Generating Products and Product Units *********************")
             prev_templates = templates
-            filtered_templates = [FactFilter(instance, 'products', []).apply()
+            filtered_templates = [FactFilter(self._args, instance, 'products', []).apply()
                                   for instance in prev_templates]
             templates = []
             dest_dirs = []
@@ -132,7 +132,7 @@ class IncrementalGenerator(InstanceGenerator):
         if self._args.orders:
             LOG.info("\n **INC MODE: Generating Orders *****************************************")
             prev_templates = templates
-            filtered_templates = [FactFilter(instance, 'orders', []).apply()
+            filtered_templates = [FactFilter(self._args, instance, 'orders', []).apply()
                                   for instance in prev_templates]
             templates = []
             dest_dirs = []
@@ -206,14 +206,16 @@ class IncrementalGenerator(InstanceGenerator):
 class FactFilter(object):
     """Selects relevant facts for incremental generator stages."""
 
-    def __init__(self, instance, stage, stage_args):
+    def __init__(self, conf_args, instance, stage, stage_args):
         """Init.
 
+        :param conf_args: argspace.Namespace holding all configuration settings
         :param str instance: Input ASP instance
         :param str stage: ASP program name for filtering facts of next incremental generation stage
         :param list stage_args: List of ASP program integer parameters required for grounding
 
         """
+        self._args = conf_args
         self._instance = instance
         self._stage = stage
         self._stage_args = stage_args
@@ -223,8 +225,7 @@ class FactFilter(object):
         "Returns filtered facts."
         prg = clingo.Control()
         prg.add('base', [], self._instance)
-        prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                              '../encodings/inc_filter.lp'))
+        prg.load(os.path.join(self._args.enc_dir, 'inc_filter.lp'))
         prg.ground([('base', [])])
         prg.ground([(self._stage, self._stage_args)])
         prg.ground([('project', [])])

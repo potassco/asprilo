@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from glob import glob
 from setuptools import setup, find_packages
 
 setup(name='generator',
@@ -15,5 +14,5 @@ setup(name='generator',
       # ********************************************************************************************
       packages=find_packages(),
       entry_points={'console_scripts': ['gen = generator.__main__:main']},
-      data_files=[('encodings', glob('encodings/*'))],
+      package_data={'generator': ['encodings/*']},
      )
