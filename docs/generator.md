@@ -27,7 +27,7 @@ We **highly recommend** to install the generator with [conda](https://conda.io/)
 3.  To install the generator in your environment, run
 
     ``` bash
-    conda install -c potassco -c asprilo generator
+    conda install -c potassco asprilo-generator
     ```
 
 4.  Run
