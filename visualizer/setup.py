@@ -3,10 +3,13 @@
 from setuptools import setup
 
 setup(name='visualizer',
-      version='0.1.2',
+      version='0.2.2',
       description='Python visualizer package',
       author='Thomas Otto',
       url='https://github.com/potassco/asprilo/tree/develop/visualizer',
       packages=['visualizer'],
-      scripts=['scripts/viz'],
+      entry_points={'console_scripts': 
+                           ['viz = visualizer.__main__:main'], 
+                           ['viz-solver = visualizer.solver:main'],
+                           ['viz-simulatur = visualizer.simulator:main']},
      )
