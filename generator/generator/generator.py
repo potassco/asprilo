@@ -3,6 +3,7 @@
 """Instance Generator Core."""
 
 import os
+import sys
 import signal
 import logging
 from abc import ABCMeta, abstractmethod
@@ -358,7 +359,12 @@ class BasicGenerator(InstanceGenerator):
             file_name = (dest_dir + "/" + local_name + ".lp")
 
         # Instance preamble
-        instance = ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n"
+        instance = ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n"
+                    "%\n"
+                    "% = Command-line Arguments =================================\n"
+                    "% {}\n"
+                    "%\n"
+                    "% = Instance Statistics ====================================\n"
                     "% Grid Size X:                      {}\n"
                     "% Grid Size Y:                      {}\n"
                     "% Number of Nodes:                  {}\n"
@@ -369,8 +375,10 @@ class BasicGenerator(InstanceGenerator):
                     "% Number of Products:               {}\n"
                     "% Number of Product Units in Total: {}\n"
                     "% Number of Orders:                 {}\n"
+                    "%\n"
                     "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n")
-        instance = instance.format(str(self._object_counters["x"]),
+        instance = instance.format(" ".join(sys.argv[1:]),
+                                   str(self._object_counters["x"]),
                                    str(self._object_counters["y"]),
                                    str(self._object_counters["node"]),
                                    str(self._object_counters["highway"]),
