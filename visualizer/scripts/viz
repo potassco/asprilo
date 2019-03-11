@@ -8,11 +8,12 @@ import os
 # Add visualizer module path to sys.path
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-import visualizer.__main__
+from visualizer.control import VizControl
 
 #main
 def main():
-    visualizer.__main__.main()
+    control = VizControl()
+    control.run()
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
