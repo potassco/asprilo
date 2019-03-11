@@ -4,7 +4,7 @@ import sys
 
 def main():
     control = VizControl()
-    control.run(self)
+    control.run()
 
 if __name__ == '__main__':
     sys.exit(main())
