@@ -209,7 +209,7 @@ class Solver(object):
         #loads the given encoding and ground
         self._control.load(self._args.encoding)
         self._control.ground([('base', [])])
-        solve_future = self._control.solve(on_model = self.on_model, async = True)
+        solve_future = self._control.solve(on_model = self.on_model, async_ = True)
         self._solve_start = time.clock()
         #check if data was sended to the solver while solving to interrupt solving if needed
         while(True):
@@ -274,7 +274,7 @@ class SolverInc(Solver):
             self._control.assign_external(clingo.Function('query', [step]), True)
 
             print('solve: ' + str(step))
-            solve_future = self._control.solve(on_model = self.on_model, async = True)
+            solve_future = self._control.solve(on_model = self.on_model, async_ = True)
             #check if data was sended to the solver while solving to interrupt solving if needed
             while(True):
                 if self.is_ready_to_read():
