@@ -223,27 +223,15 @@ class Control(object):
         return _invocations
 
     def _gen_basic(self):
-        """Regular instance generation.
-
-        :param conf_args: Optional argparse.Namespace configuration settings
-
-        """
+        """Regular instance generation."""
         return BasicGenerator(self._args).generate()
 
     def _gen_inc(self):
-        """Incremental generation of an instance.
-
-        :param conf_args: Optional argparse.Namespace configuration settings
-
-        """
+        """Incremental generation of an instance."""
         return IncrementalGenerator(self._args, self._cl_parser).generate()
 
     def _gen_split(self):
-        """Execution with split up warehouse and order instances.
-
-        :param conf_args: Optional argparse.Namespace configuration settings
-
-        """
+        """Execution with split up warehouse and order instances."""
         return SplitGenerator(self._args, self._cl_parser).generate()
 
     def _check_related_cl_args(self):
