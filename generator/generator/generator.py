@@ -81,7 +81,7 @@ class BasicGenerator(InstanceGenerator):
     def _update_object_counter(self, atoms_list):
         '''Count objects in atom list.'''
         self._object_counters = {"x" : 0, "y" : 0, "node" : 0, "highway" :0, "robot" : 0, "shelf" :
-                                 0, "pickingStation" : 0, "product" : 0, "order" : 0, "units" : 0}
+                                 0, "pickingStation" : 0, "product" : 0, "unit" : 0, "order" : 0, "line" : 0}
         objects = []
         for atm in [atm for atm in atoms_list if atm.name == "init"]:
             args = atm.arguments
@@ -107,8 +107,10 @@ class BasicGenerator(InstanceGenerator):
                     value_type = args[1].arguments[0].name
                     value_value = args[1].arguments[1]
                     if value_type == "on" and len(value_value.arguments) == 2:
-                        self._object_counters["units"] = (self._object_counters["units"] +
-                                                          value_value.arguments[1].number)
+                        self._object_counters["unit"] = (self._object_counters["unit"] +
+                                                         value_value.arguments[1].number)
+                if object_name == "order" and args[1].arguments[0].name == 'line':
+                    self._object_counters["line"] += 1
 
     def generate(self):
         """Regular instance generation.
@@ -134,18 +136,17 @@ class BasicGenerator(InstanceGenerator):
 
         signal.signal(signal.SIGINT, sig_handler)
         signal.signal(signal.SIGALRM, sig_handler)
-        igen = BasicGenerator(self._args)
         try:
             signal.alarm(self._args.wait)
-            instances = igen._solve()
-            return instances, igen.dest_dirs
+            instances = self._solve()
+            return instances, self.dest_dirs
         except Exception as exc:
             if sig_handled[0]:
                 pass
             else:
                 LOG.error("%s: %s", type(exc).__name__, exc)
         finally:
-            igen.interrupt()
+            self.interrupt()
 
     def _solve(self):
         """Grounds and solves the relevant programs for instance generation."""
@@ -343,8 +344,9 @@ class BasicGenerator(InstanceGenerator):
                                     "s" + str(self._object_counters["shelf"]),
                                     "ps" + str(self._object_counters["pickingStation"]),
                                     "pr" + str(self._object_counters["product"]),
-                                    "u" + str(self._object_counters["units"]),
+                                    "u" + str(self._object_counters["unit"]),
                                     "o" + str(self._object_counters["order"]),
+                                    "l" + str(self._object_counters["line"]),
                                     "N" + str(instance_count).zfill(3)]))
             if self._args.instance_dir:
                 dir_suffix = local_name
@@ -375,6 +377,7 @@ class BasicGenerator(InstanceGenerator):
                     "% Number of Products:               {}\n"
                     "% Number of Product Units in Total: {}\n"
                     "% Number of Orders:                 {}\n"
+                    "% Number of Orders Lines:           {}\n"
                     "%\n"
                     "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n")
         instance = instance.format(" ".join(sys.argv[1:]),
@@ -386,8 +389,9 @@ class BasicGenerator(InstanceGenerator):
                                    str(self._object_counters["shelf"]),
                                    str(self._object_counters["pickingStation"]),
                                    str(self._object_counters["product"]),
-                                   str(self._object_counters["units"]),
-                                   str(self._object_counters["order"]))
+                                   str(self._object_counters["unit"]),
+                                   str(self._object_counters["order"]),
+                                   str(self._object_counters["line"]))
 
         # Instance facts
         instance += ("#program base.\n\n"
