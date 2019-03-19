@@ -81,7 +81,7 @@ class BasicGenerator(InstanceGenerator):
     def _update_object_counter(self, atoms_list):
         '''Count objects in atom list.'''
         self._object_counters = {"x" : 0, "y" : 0, "node" : 0, "highway" :0, "robot" : 0, "shelf" :
-                                 0, "pickingStation" : 0, "product" : 0, "order" : 0, "unit" : 0}
+                                 0, "pickingStation" : 0, "product" : 0, "unit" : 0, "order" : 0, "line" : 0}
         objects = []
         for atm in [atm for atm in atoms_list if atm.name == "init"]:
             args = atm.arguments
@@ -108,7 +108,9 @@ class BasicGenerator(InstanceGenerator):
                     value_value = args[1].arguments[1]
                     if value_type == "on" and len(value_value.arguments) == 2:
                         self._object_counters["unit"] = (self._object_counters["unit"] +
-                                                          value_value.arguments[1].number)
+                                                         value_value.arguments[1].number)
+                if object_name == "order" and args[1].arguments[0].name == 'line':
+                    self._object_counters["line"] += 1
 
     def generate(self):
         """Regular instance generation.
@@ -344,6 +346,7 @@ class BasicGenerator(InstanceGenerator):
                                     "pr" + str(self._object_counters["product"]),
                                     "u" + str(self._object_counters["unit"]),
                                     "o" + str(self._object_counters["order"]),
+                                    "l" + str(self._object_counters["line"]),
                                     "N" + str(instance_count).zfill(3)]))
             if self._args.instance_dir:
                 dir_suffix = local_name
@@ -374,6 +377,7 @@ class BasicGenerator(InstanceGenerator):
                     "% Number of Products:               {}\n"
                     "% Number of Product Units in Total: {}\n"
                     "% Number of Orders:                 {}\n"
+                    "% Number of Orders Lines:           {}\n"
                     "%\n"
                     "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n")
         instance = instance.format(" ".join(sys.argv[1:]),
@@ -386,7 +390,8 @@ class BasicGenerator(InstanceGenerator):
                                    str(self._object_counters["pickingStation"]),
                                    str(self._object_counters["product"]),
                                    str(self._object_counters["unit"]),
-                                   str(self._object_counters["order"]))
+                                   str(self._object_counters["order"]),
+                                   str(self._object_counters["line"]))
 
         # Instance facts
         instance += ("#program base.\n\n"
