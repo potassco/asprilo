@@ -184,7 +184,7 @@ class Solver(object):
 
     #sends the data from the _to_send dictonary
     def send_step(self, step):
-        #only sends data if it wasn´t send yet
+        #only sends data if it was not send yet
         if step in self._to_send and step > self._sended:
             self._sended = step
             #send the atoms
