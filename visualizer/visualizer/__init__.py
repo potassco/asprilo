@@ -6,4 +6,5 @@ from .network import *
 from .parser import *
 from .visualizerItem import *
 from .visualizerGraphicItem import *
-
+from .solver import *
+from .simulator import *
