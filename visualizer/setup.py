@@ -11,5 +11,5 @@ setup(name='visualizer',
       entry_points={'console_scripts': [
                            'viz = visualizer.__main__:main',
                            'viz-solver = visualizer.solver:main',
-                           'viz-simulatur = visualizer.simulator:main']},
+                           'viz-simulator = visualizer.simulator:main']},
      )
