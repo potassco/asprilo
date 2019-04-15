@@ -24,8 +24,8 @@ err(deliver, noShelf, (R, T)) :-  occurs(object(robot, R), action(deliver, (_, _
 err(deliver, noOrder, (R, T)) :-     occurs(object(robot,           R ), action(deliver,         (O, P, _)), T  );
                                      holds( object( robot,          R ), value( at,              (X, Y)   ), T-1);
                                      holds( object( pickingStation, PS), value( at,              (X, Y)   ), T-1);
-                                     holds( object(order,           O ), value( pickingStation,  PS       ), T-1);
-                                 not holds(object(order,            O ), value( line,            (P, _)   ), T-1).
+                                   { holds( object(order,           O ), value( pickingStation,  PS       ), T-1);
+                                     holds( object(order,           O ), value( line,            (P, _)   ), T-1) } < 2.
 
 % Robot delivers higher amount than requested
 err(deliver, orderAmount, (R, T)) :- occurs(object(robot, R), action(deliver, (O, P, Q)), T);
