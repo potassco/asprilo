@@ -14,6 +14,10 @@
     - Table with detailed robot information
     - Highlighting for selected robots
     - Add ability for robot path drawing
+    - Added energy management for robots
+    - Added energy overview to the robots table
+    - Added energy display to the model view
+    - Updated visualizer for noarch conda version
 -   Misc:
     - Todo
 
