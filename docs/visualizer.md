@@ -12,12 +12,13 @@ output:
 This is the user manual of the instance and plan visualizer of [ASPRILO](index.md).
 
 # Installation
-It is recommended to install the visualizer with anaconda. First download and install Anaconda from [www.anaconda.com/download](https://www.anaconda.com/download). Then add the potassco and the `asprilo` channel to your `Anaconda` enviroment.  
-`conda config --add channels asprilo`  
+It is recommended to install the visualizer with anaconda. First download and install Anaconda from [www.anaconda.com/download](https://www.anaconda.com/download). Then add the potassco channel to your `Anaconda` enviroment.  
 `conda config --add channels potassco`  
 Now you can download and install the visualizer with the conda command:  
-`conda install visualizer`  
-Anaconda should install all requirements by itself. Use `viz` to run the visualizer.
+`conda install asprilo-visualizer`  
+You can also install the visualizer without adding channels to your configuration by using just the command:
+`conda install asprilo-visualizer -c potassco`.
+Anaconda should install all requirements by itself. Use `viz` to run the visualizer.  
 
 You can install the visualizer manually by downloading its source code from [https://github.com/potassco/asprilo](https://github.com/potassco/asprilo). But you must install all requirements by yourself. There is no support for this variant.
 
@@ -28,6 +29,10 @@ The visualizer requires the following software installed on your system:
 2. [Python interpreter version 3.x](http://www.python.org)
 3. [Qt5](http://qt-project.org/qt5)
 4. [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/installation.html), version 5.6 or later
+
+# Deinstallation
+To remove the visualizer from your system run the command:
+`conda remove asprilo-visualizer`.
 
 # Usage
 
