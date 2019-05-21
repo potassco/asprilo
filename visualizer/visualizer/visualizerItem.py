@@ -1,90 +1,195 @@
-# This is the templete class for visualizer items.
-# There should never be an instance of this class.
-# A visualizer item is a part of the visualizer model
-# that is not drawn in any ways on the model view
-# but can be represented in the gui.
-# To add a new kind of visualizer item create a child class
-# of VisualizerItem in this file and add it in the model.create_item
-# function to the model. This is the only function in the model
-# that should be changed. The behaivor and values of the object
-# should be defindes inside of its own class.
+"""
+To add a new kind of visualizer item create a child class
+of VisualizerItem in this file and add it in the model.create_item
+function to the model. This is the only function in the model
+that should be changed. The behaivor and values of the object
+should be defined inside of its own class.
+
+To add new properties to a class modify the attributes of a class
+and modify the 'parse_init_value', the 'to_init_str', the 'restart', the 'on_step_update' and
+the 'on_step_undo' methods to adjust the objects behaivor.
+
+Look at the method definitions of other classes for examples.
+"""
+
 class VisualizerItem(object):
+    """
+    This is the templete class for visualizer item.
+    There should never be an instance of this class.
+    A visualizer item is a part of the visualizer model
+    that is not drawn in any ways on the model view
+    but can be represented in the gui.
+
+    Attributes:
+    _kind_name: str
+        The name of this kind of object.
+    _ID: int
+        The id of this object.
+    _model:
+        The model this object belongs to
+    """
+
     def __init__(self, ID = 0):
+        """
+        Parameters:
+        ID : int, optional
+            The ID of the object
+        """
         self._kind_name = ''
         self._id = ID
         self._model = None
 
-    # Sets the model of this item.
-    # [Parameter model] should be an instance of the model.Model class.
     def set_model(self, model):
+        """
+        Sets the model of this object.
+        Parameters:
+        model: model.Model
+            The model this object belongs to.
+        """
+
         if self._model == model:
             return
         self._model = model
 
-    # This function is called by the model every time a step forward
-    # was made. It defines the item specific behavior for time steps.
-    # [Parameter time_step] is the current time step.
     def on_step_update(self, time_step):
+        """    
+        This function is called by the model every time a step forward
+        was made. It defines the object specific behavior for time steps.
+        Parameters:
+        time_step: int
+            This represents the current time step.
+        """
+
         pass
 
-    # This function is called by the model every time a step backwards
-    # was made. It defines the item specific behavior for time steps.
-    # [Parameter time_step] is the current time step.
     def on_step_undo(self, time_step):
+        """
+        This function is called by the model every time a step backwards
+        was made. It defines the object specific behavior for time steps.
+        Parameters:
+        time_step: int
+            This represents the time step that will be undone.
+        """
+
         pass
 
-    # This function handels the input phrases for every item.
-    # This is called for every phrase the model receives with the
-    # following syntax: 
-    # init(object([object type], [object ID]), value([value name], [value])).
-    # While [object type] is the same as self._kind_name and [object ID]
-    # is the ID of the object and is the same as self._id.
-    # The model decides based on this value the object the receives
-    # the phrase.
-    # [Parameter name] is the name of the value.
-    # [value name] part of the phrase. It is represented by an instance 
-    # of a clingo.Symbol object.
-    # [Parameter value] is the actual value. It contains the [value]
-    # part of the phrase. It is represented by an instance of a
-    # clingo.Symbol object.
-    # Returns 1 if the phrase cannot be parsed, -1 if one parameter is
-    # invalid and 0 if the function succeeded.
     def parse_init_value(self, name, value):
+        """
+        This function handels the input phrases for every object.
+        This is called for every phrase the model receives with the
+        following syntax: 
+        init(object([object type], [object ID]), value([value name], [value])).
+        While [object type] is the same as self._kind_name and [object ID]
+        is the ID of the object and is the same as self._id.
+        The model decides based on this value the object that receives
+        the phrase.
+
+        Returns 1 if the phrase cannot be parsed, -1 if one parameter is
+        invalid and 0 if the function succeeded.
+
+        Parameters:
+        name: str
+            This is the name of the value.
+        value: clingo.Symbol
+            This is the actual value. It contains the [value]
+            part of the phrase.
+        """
+
         if value is None or name is None:
             return -1
         return 1
 
-    # Resets the item to its original values.
     def restart(self):
+        """
+        Resets the object to its original values.
+        """
+
         return
 
-    # Converts the item to a string that represents the object.
-    # This function is used to send the whole model to a solver
-    # and to save a instance to a file.
     def to_init_str(self):
+        """
+        Converts the object to a string that represents its values.
+        This function is used to send the whole model to a solver
+        and to save a instance to a file.
+        """
+
         return ''
 
-    # Returns the id of the item.
     def get_id(self):
+        """
+        Returns the id of the object.
+        """
+
         return self._id
 
-    # Returns the name of the item.
     def get_kind_name(self):
+        """
+        Returns the name of the object.
+        """
         return self._kind_name
 
-#This class represents a single request or order line.
 class Request(object):
+    """
+    This class represents a single request or order line.
+
+    Attributes:
+    product_id : int
+        The ID of the requested product
+    requested : int
+        The amount of requested products
+    delivered : int
+        The amount of already delivered products
+    changed : bool
+        Saves whether this request was edited 
+        at the last time step.
+    """
+
     def __init__(self, product_id = 0, requested = 1):
+        """
+        Parameters:
+        product_id : int, optional
+            The ID of the requested product
+        requested : int, optional
+            The amount of requested products
+        """
+
         super(self.__class__, self).__init__()
         self.product_id = product_id
         self.requested = requested   
         self.delivered = 0
         self.changed = False
 
-# This class represents an order. It consist out of one
-# or more requests.
+
 class Order(VisualizerItem):
+    """
+    This class represents an order. It consist out of one
+    or more requests.
+
+    Attributes:
+    _kind_name: str
+        The name of this kind of object. This is always 'order'.
+    _station_id: int
+        The destination packing station for an order
+    _requests: list
+        A list of one or more requests
+    _delivered: list
+        A list of triples that contains a time step,
+        a product id and a delivered amount.
+    _time_step: int
+        At this time step this order occurred.
+    _is_fullfilled_at:
+        At this time step this order is fulfilled.
+        This will be 'None' until this time step will
+        be reached for the first time.
+    """
+
     def __init__(self, ID = 0):
+        """
+        Parameters:
+        product_id : int, optional
+            The ID of the order
+        """
+
         super(self.__class__, self).__init__(ID)
         self._kind_name = 'order'
         self._station_id = None
@@ -93,31 +198,56 @@ class Order(VisualizerItem):
         self._time_step = 0
         self._is_fulfilled_at = None
 
-    # Sets the packing station for an order.
     def set_station_id(self, station_id):
+        """
+        Sets the packing station for an order.
+        """
+
         self._station_id = station_id
 
-    # Sets the time step in which an order occurs.
     def set_time_step(self, time_step):
+        """
+        Sets the time step in which an order occurs.
+        """
+
         self._time_step = time_step
 
-    # Sets the amount of requested products.
-    # This function only overrides requests and does not
-    # add new requests to the order. To add new requests
-    # use the add_request function.
-    # [Parameter product_id] is the id of a product.
-    # [Parameter requested_amount] is the requested amount.
     def set_requested_amount(self, product_id, requested_amount):
+        """
+        Sets the amount of requested products.
+        This function only overrides requests and does not
+        add new requests to the order. To add new requests
+        use the add_request function.
+
+        Parameters:
+        product_id: int
+            The id of a product
+        requested_amount: int
+            The requested amount
+        """
+
         for temp_request in self._requests: 
             if str(temp_request.product_id) == str(product_id):
                 temp_request.requested = requested_amount
                 return
 
-    # This function parses input phrases for orders. 
-    # See VisualizerItem.parse_init_value for detailed informations.
-    # Returns 1 if the phrase cannot be parsed, -1 if one parameter is
-    # invalid and 0 if the function succeeded.
+
     def parse_init_value(self, name, value):
+        """
+        This function parses input phrases for orders. 
+        See VisualizerItem.parse_init_value for detailed informations.
+
+        Returns 1 if the phrase cannot be parsed, -1 if one parameter is
+        invalid and 0 if the function succeeded.
+
+        Parameters:
+        name: str
+            This is the name of the value.
+        value: clingo.Symbol
+            This is the actual value. It contains the [value]
+            part of the phrase.
+        """
+
         result = super(self.__class__, self).parse_init_value(name, value)
         if result <= 0: 
             return result
@@ -132,12 +262,17 @@ class Order(VisualizerItem):
             return 0
         return 1
 
-    # Removes a request from an order.
-    # !This function will remove the order from the model if it deletes
-    # the last request of this order.
-    # [Parameter product_id] is the id of a product that should be removed.
-    # If the order does not contain this item the function does nothing.
     def remove_request(self, product_id):
+        """
+        Removes a request from an order.
+        !This function will remove the order from the model if it deletes
+        the last request of this order.
+
+        Parameters:
+            product_id: int
+                The id of the product that will be removed.
+        """
+
         for temp_request in self._requests: 
             if str(temp_request.product_id) == str(product_id):
                 self._requests.remove(temp_request)
@@ -145,13 +280,19 @@ class Order(VisualizerItem):
                     self._model.remove_item(self)
                 return
 
-    # Adds a request to an order.
-    # If the item already is requested by this order the requested
-    # amount will be added to the existing request.
-    # [Parameter product_id] is the id of a product that should
-    # be added.
-    # [Parameter requested_amount] is the requested amount.
     def add_request(self, product_id, requested_amount):
+        """
+        Adds a request to an order.
+        If the item already is requested by this order the requested
+        amount will be added to the existing request.
+
+        Parameters:
+        product_id: int
+            The id of the product that will be added
+        requested_amount: 
+            The requested amount
+        """
+
         request = None
         for temp_request in self._requests: 
             if str(temp_request.product_id) == str(product_id):
@@ -164,14 +305,21 @@ class Order(VisualizerItem):
         else:
             request.requested = requested_amount
 
-    # This function will be called if a robot delivers a product to
-    # this order. This function is also be used to undo a deliver by
-    # using a negative delivered amount.
-    # [Parameter product_id] is the id of the deliverd product.
-    # [Parameter delivered_amount] is the delivered amount. If this
-    # value is 0 all requested products of a request will be delivered.
-    # [Parameter product_id] is the current time step.
     def deliver(self, product_id, delivered_amount, time_step):
+        """
+        This function will be called if a robot delivers a product to
+        this order. This function is also be used to undo a delivery by
+        using a negative delivered amount.
+
+        Parameters:
+        product_id: 
+            The id of the deliverd product.
+        delivered_amount: The delivered amount. If this
+        value is 0 all requested products of a request will be delivered.
+        product_id: 
+            The current time step.
+        """
+
         undo = False
         if (time_step, product_id, -delivered_amount) in self._delivered:
             self._delivered.remove((time_step, product_id, -delivered_amount))
@@ -189,10 +337,14 @@ class Order(VisualizerItem):
         if self._is_fulfilled_at is None and self.is_fulfilled(time_step):
             self._is_fulfilled_at = time_step
 
-    # Checks whether the order is fulfilled at the given time step.
-    # This only works correctly if the given or the fulfill time step
-    # was already reached.
+
     def is_fulfilled(self, time_step = None):
+        """
+        Checks whether the order is fulfilled at the given time step.
+        This only works correctly if the given or the fulfill time step
+        was already reached.        
+        """
+
         if time_step is not None and self._is_fulfilled_at is not None:
             return self._is_fulfilled_at > time_step
         for request in self._requests:
@@ -200,26 +352,38 @@ class Order(VisualizerItem):
                 return False
         return True
 
-    # Resets the delivers amount for every request to 0.
     def restart(self):
+        """
+        Resets the delivered amount for every request to 0.
+        """
+
         for request in self._requests:
             request.delivered = 0
         self._delivered = []
 
-    # Resets the changed flag at every time step.
     def on_step_update(self, time_step):
+        """
+        Resets the changed flag at every time step.
+        """
+
         for request in self._requests:
             request.changed = False
 
-    # Resets the changed flag at every time step.    
     def on_step_undo(self, time_step):
+        """
+        Resets the changed flag at every time step.    
+        """
+
         for request in self._requests:
             request.changed = False
 
-    # Converts the order to a string that represents the order.
-    # This function is used to send the orders to a solver
-    # and to save orders to a file.
     def to_init_str(self):
+        """
+        Converts the order to a string that represents the order.
+        This function is used to send the orders to a solver
+        and to save orders to a file.
+        """
+
         if len(self._requests) == 0:
             return ''
 
@@ -233,9 +397,13 @@ class Order(VisualizerItem):
                 + str(request.requested) + '))).')
         return s
 
-    # This function creates and returns a list of strings
-    # that represents all already delivered products.
+
     def to_delivered_str(self):
+        """
+        This function creates and returns a list of strings
+        that represents all already delivered products.
+        """
+
         strings = []
         for deliver in self._delivered:
             strings.append('delivered '
@@ -247,31 +415,70 @@ class Order(VisualizerItem):
             strings.append('order ' + str(self._id) + ' is fullfilled')
         return strings
 
-    # Returns the id of the packing station of an order.
     def get_station_id(self):
+        """
+        Returns the id of the packing station of an order.
+        """
+
         return self._station_id
 
-    # Returns None if the order was not fulfilled yet.
-    # Else returns the time step at which the order was fulfilled.
     def get_fulfilled_at(self):
+        """
+        Returns None if the order was not fulfilled yet.
+        Else returns the time step at which the order was fulfilled.
+        """
+
         return self._is_fulfilled_at
 
-    #Returns the count of requests.
     def get_num_requests(self):
+        """
+        Returns the count of requests.
+        """
         return len(self._requests)
 
-    #Iterates through every request.
     def iterate_requests(self):
+        """
+        Iterates through every request.
+        """
         for request in self._requests:
             yield request
 
-# This class represents a Task. It consists out of one
-# or more checkpoints.
+
 class Task(VisualizerItem):
+    """
+    This class represents a task. It consists out of one
+    or more checkpoints. A task is completed when a robot
+    has visited all checkpoints in a certain order.
+
+    Attributes:
+    _kind_name: str
+        The name of this kind of object. This is always 'task'.
+    _task_group: str
+        The group of this task
+    _task_type: str
+        The type of this task
+    _robot: visualizerGraphicItem.Robot
+        The robot to fulfill the task
+    _changed: bool
+        Saves whether this request was edited 
+        at the last time step.
+    _checkpoints: visualizerGraphicItem.Checkpoint
+        A list of checkpoints
+    _open:
+        A list of tuples that contains the name and
+        the checkpoint.
+    _history:
+        A list of visited checkpoints
+    """
+
     def __init__(self, ID = 0):
+        """
+        Parameters:
+        product_id : int, optionale
+            The ID of the order
+        """
         super(self.__class__, self).__init__(ID)
         self._kind_name = 'task'
-        self._station_id = None
         self._task_group = None
         self._task_type = None
         self._robot = None
@@ -280,23 +487,42 @@ class Task(VisualizerItem):
         self._open = []
         self._history = []
 
-    # Sets the group of a task.
     def set_task_group(self, task_group):
+        """
+        Sets the group of a task.
+        """
         self._task_group = task_group
 
-    # Sets the type of a task.
     def set_task_type(self, task_type):
+        """
+        Sets the type of a task.
+        """
         self._task_type = task_type
 
-    # Assigns a robot to a task.
     def set_robot(self, robot):
+        """
+        Assigns a robot to a task.
+        Also adds this task to the robots tasks.
+        """
+
         if self._robot == robot:
             return
         self._robot = robot
         self._robot.add_task(self)
 
-    # Adds a new checkpoint to the task.
     def add_checkpoint(self, checkpoint_id, name, checkpoint_number):
+        """
+        Adds a new checkpoint to the task.
+
+        Parameters:
+        checkpoint_id: int
+            The id of the checkpoint
+        name: str
+            The name of the checkpoint
+        checkpoint_number: int
+            The chronological number of the checkpoint
+        """
+
         self._checkpoints.append(
             (self._model.get_item('checkpoint', 
             checkpoint_id, True, True), name))
@@ -312,9 +538,16 @@ class Task(VisualizerItem):
                 break
         self._open.insert(index, (name, checkpoint_number))
 
-    # The function is be called if the assigned robot 
-    # reached a checkpoint.
     def visit_checkpoint(self, checkpoint):
+        """
+        This function is be called if the assigned robot 
+        reached a checkpoint.
+
+        Parameters:
+        checkpoint: visualizerGraphicItem.Checkpoint
+            The checkpoint that was reached
+        """
+
         for checkpoint2 in self._checkpoints:
             if checkpoint2[0] == checkpoint:
                 self._changed = True
@@ -330,9 +563,16 @@ class Task(VisualizerItem):
                     self._history.append(checkpoint2[1])
                     return
 
-    # This function will be called if a time step was be undone 
-    # in which a checkpoint was reached.
     def unvisit_checkpoint(self, checkpoint):
+        """
+        This function will be called if a time step was be undone 
+        in which a checkpoint was reached.
+
+        Parameters:
+        checkpoint: visualizerGraphicItem.Checkpoint
+            The checkpoint that was reached
+        """
+
         for checkpoint2 in reversed(self._checkpoints):
             if checkpoint2[0] == checkpoint and len(self._history) > 0:
                 if self._history[len(self._history)-1] == checkpoint2[1]:
@@ -347,11 +587,22 @@ class Task(VisualizerItem):
                     self._changed = True
                     return
 
-    # This function parses input phrases for tasks. 
-    # See VisualizerItem.parse_init_value for detailed informations.
-    # Returns 1 if the phrase cannot be parsed, -1 if one parameter is
-    # invalid and 0 if the function succeeded.
     def parse_init_value(self, name, value):
+        """
+        This function parses input phrases for tasks. 
+        See VisualizerItem.parse_init_value for detailed informations.
+
+        Returns 1 if the phrase cannot be parsed, -1 if one parameter is
+        invalid and 0 if the function succeeded.
+
+        Parameters:
+        name: str
+            This is the name of the value.
+        value: clingo.Symbol
+            This is the actual value. It contains the [value]
+            part of the phrase.
+        """
+
         result = super(self.__class__, self).parse_init_value(name, value)
         if result <= 0: 
             return result
@@ -375,47 +626,74 @@ class Task(VisualizerItem):
                 print(err)
         return 1
 
-    # Resets the changed flag at every time step.
     def on_step_update(self, time_step):
+        """
+        Resets the changed flag at every time step.
+        """
+
         self._changed = False
 
-    # Resets the changed flag at every time step.
     def on_step_undo(self, time_step):
+        """
+        Resets the changed flag at every time step.
+        """
+
         self._changed = False
 
-    # Returns the task group.
     def get_task_group(self):
+        """
+        Returns the task group.
+        """
         return self._task_group
 
-    # Returns the task type.
     def get_task_type(self):
+        """
+        Returns the task type.
+        """
         return self._task_type
 
-    # Returns the assigned robot.
     def get_robot(self):
+        """
+        Returns the assigned robot.
+        """
         return self._robot
 
-    # Returns the id of the assigned robot.
     def get_robot_id(self):
+        """
+        Returns the id of the assigned robot.
+        """
+
         if self._robot is None:
             return None
         return self._robot.get_id()
 
-    # Returns whether this task has been changed in this time step.
-    # Returns true if a checkpoint ws reached.
     def get_changed(self):
+        """
+        Returns whether this task has been changed in this time step.
+        Returns true if a checkpoint ws reached.
+        """
+
         return self._changed
 
-    # Returns the list of checkpoints.
     def get_checkpoints(self):
+        """
+        Returns the list of checkpoints.
+        """
+
         return self._checkpoints
 
-    # Returns the history of reached checkpoints.
     def get_checkpoint_history(self):
+        """
+        Returns the history of reached checkpoints.
+        """
+
         return self._history
 
-    # Returns a list of unreached checkpoints.
     def get_open_checkpoints(self):
+        """
+        Returns a list of unreached checkpoints.
+        """
+
         ll = []
         for ele in self._open:
             ll.append(ele[0])
