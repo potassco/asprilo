@@ -1,3 +1,20 @@
+"""
+To add a new kind of graphic items create a child class
+of VisualizerGraphicItem in this file and add it in the 
+model.create_item function to the model. This is the only function 
+in the model that should be changed. The behaivor and values of the
+object should be defindes inside of its own class.
+
+To add new properties to a class modify the attributes of a class
+and modify the 'parse_init_value', the 'to_init_str', the 'restart', 
+the 'do_action' and the 'undo_action' methods to adjust the objects 
+behaivor. To adjust the appearance of an item modify the set_rect method.
+Note: The set_color function is called automatically by the modelView for
+every item if the colors are defined in the configuration.
+
+Look at the method definitions of other classes for examples.
+"""
+
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QGraphicsItem
 from PyQt5.QtWidgets import QGraphicsTextItem
@@ -21,18 +38,92 @@ VIZ_STATE_PUT_DOWN2 = 0x0080
 VIZ_STATE_CHARGED   = 0x0100
 VIZ_STATE_CHARGE    = 0x1000
 VIZ_STATE_ACTION    = 0xffff
-
+ 
 def calculate_color(first_color, second_color, multiplier):
-    red = (min(first_color.red(), second_color.red()), max(first_color.red(), second_color.red()))
-    green = (min(first_color.green(), second_color.green()), max(first_color.green(), second_color.green()))
-    blue = (min(first_color.blue(), second_color.blue()), max(first_color.blue(), second_color.blue()))
+    """
+    This function interpolates between two color values.
+    """
+
+    red = (min(first_color.red(), second_color.red()), 
+            max(first_color.red(), second_color.red()))
+    green = (min(first_color.green(), second_color.green()), 
+            max(first_color.green(), second_color.green()))
+    blue = (min(first_color.blue(), second_color.blue()), 
+            max(first_color.blue(), second_color.blue()))
     return QColor(
                 red[0] + (red[1] - red[0]) * multiplier,
                 green[0] + (green[1] - green[0]) * multiplier,
                 blue[0] + (blue[1] - blue[0]) * multiplier)
 
+
 class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
+    """
+    This is the templete class for visualizer graphic items.
+    There should never be an instance of this class.
+    A visualizer graphic item is a part of the visualizer model
+    that is drawn on the model view and can perform actions.
+
+    Attributes:
+    _kind_name: str
+        The name of this kind of item.
+    _ID: int
+        The id of this item.
+    _model:
+        The model this item belongs to
+    _position: tuple
+        A tuple that consists of two integers representing
+        the position of the item on the grid.
+    _start_position: tuple
+        The position of this item at timestep 0.
+    _dragged: tuple
+        This is the position of this item before a drag
+        action started.
+    _enable_drag: bool
+        This is true if drag and drop is enabled for this item.        
+        This will be set by the model. It will be set to false 
+        as soon as the first action atom occurs.
+    _graphics_item: QGraphicsItem
+        This is the main graphic item of this item
+        and is used for some default functions.
+    _text: QGraphicsTextItem
+        This is a text item that is drawn 
+        on the model view and represents primarily the id of the item.
+    _actions: list
+        This is a sorted list of the actions of this item. The index
+        of every action is the time step at which the action occurs.
+    _color: QColor
+        The current main color of the item.
+    _colors: list
+        A list of QColor values. Contains several colors for multi-colored
+        items and color interpolation.
+    _display_mode: int
+        This is set by the model view and determines whether
+        the item text should be rendered and whether the item 
+        should be rendered in the whole grid field.
+        It is primarily defined by the zoom factor and the grid size.
+    _draw_path: bool
+        This is true if the path of the item should be drawn on the
+        model view. Should only be used for items that can have a path 
+        like robots.
+    _state: int
+        Consists of one or more state flags, that describes which action
+        a item is currently doing.
+    _highlighted: bool
+        This is true if the item will be highlighted. Highlighted items 
+        are be drawn lager.
+    """
+
     def __init__(self, ID = '0', x = 0, y = 0):
+        """
+        Parameters:
+        ID : int, optional
+            The ID of the item
+        x: int, optional
+            The x coordinate on the grid
+        y: int, optional
+            The y coordinate on the grid
+        """
+
         QGraphicsItem.__init__(self)
         visualizerItem.VisualizerItem.__init__(self)
         self._kind_name = ''
@@ -42,7 +133,7 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         self._start_position = (x, y)
         self._dragged = None
         self._enable_drag = False
-        self._graphics_item = None
+        self._graphics_item = None  
         self._text = None
         self._actions = []
         self._color = None
@@ -54,20 +145,58 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         self._highlighted = False
 
     def set_starting_position(self, x, y):
+        """
+        Sets the starting position of an item.
+        """
+
         self._start_position = (x, y)
 
     def set_position(self, x, y):
+        """
+        Sets the current position of an item.
+        """
+
         self._position = (x, y)
 
     def set_color(self, color, color_id = 0):
+        """
+        Sets a specific color of an item.
+
+        Parameters:
+        color: QColor
+            The color
+        color_id:
+            The id of the color that will be set
+        """
         while color_id >= len(self._colors):
             self._colors.append(QColor(0,0,0))
         self._colors[color_id] = color
 
+
     def set_rect(self, rect):
+        """
+        Sets the rectangle that an item can use to draw things in.
+        This equals usually one field of the grid in the model view.
+        This function usually defines the appearance of an item
+        on the grid.
+        """
+
         return
 
     def set_action(self, action, time_step):
+        """
+        Sets the action for the specific time step.
+        Overrides existing actions at the time step but prints out
+        a warning since this should never happen.
+
+        Parameters:
+        action: clingo.Symbol
+            This is the action that will be performed.
+        time_step: int
+            This is the time step at which the action
+        shold be performed.
+        """
+
         if time_step < 0:
             print(('Warning: invalid time step in occurs(object('
                     + str(self._kind_name) + ','
@@ -85,12 +214,41 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         self._actions[time_step] = action
 
     def set_display_mode(self, display_mode):
+        """
+        Sets the current display mode.
+        """
+
         self._display_mode =  display_mode
 
     def set_draw_path(self, draw_path):
+        """
+        Sets whether the path of the object should be drawn.
+        """
+
         self._draw_path = draw_path
 
     def parse_init_value(self, name, value):
+        """
+        This function handels the input phrases for every item.
+        This is called for every phrase the model receives with the
+        following syntax: 
+        init(object([object type], [object ID]), value([value name], [value])).
+        While [object type] is the same as self._kind_name and [object ID]
+        is the ID of the object and is the same as self._id.
+        The model decides based on this value the object that receives
+        the phrase.
+
+        Parameters:
+        name: str
+            This is the name of the value.
+        value: clingo.Symbol
+            This is the actual value. It contains the [value]
+            part of the phrase.        
+
+        Returns 1 if the phrase cannot be parsed, -1 if one parameter is
+        invalid and 0 if the function succeeded.
+        """
+
         if value is None or name is None:
             return -1
         if name == 'at':
@@ -100,22 +258,54 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
             return 0
         return 1
 
+
     def enable_drag(self, enable):
+        """
+        Enables and disables the drag and drop feature for the
+        model editor.
+        """     
+
         self._enable_drag = enable
 
     def restart(self):
+        """
+        Resets the item to its original values.
+        Sets the items position to its starting position.
+        """
         self._position = self._start_position
 
     def do_action(self, time_step):
+        """
+        Action handler. Must be implemented for items
+        which can perform actions. This function will be called
+        every time the model does one time step forward.
+        """
+
         return
 
     def undo_action(self, time_step):
+        """
+        Reverse action handler. Must be implemented for items
+        which can perform actions. This function will be called 
+        every time the model does one time step backwards.
+        """
+
         return
 
     def clear_actions(self):
+        """
+        Deletes all actions for an object.
+        """
+
         self._actions = []
 
     def to_init_str(self):
+        """
+        Converts the item to a string that represents the items values.
+        This function is used to send the whole model to a solver
+        and to save an instance to a file.
+        """
+
         return ('init(object('
                 + self._kind_name + ','
                 + str(self._id) + '), value(at,('
@@ -123,6 +313,11 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
                 + str(self._position[1]) + '))).')
 
     def to_occurs_str(self):
+        """
+        This function returns a list of strings that represents all
+        actions of an item.        
+        """
+
         actions = []
         count = 0
         for action in self._actions:
@@ -138,26 +333,64 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         return actions
 
     def determine_color(self, number, count, pattern = None):
+        """
+        Determines the color of an item dependent on its number.
+
+        Parameters:
+        number: int
+            The number of this item in the models sequence. 
+            This not have to be the id of the item.
+        count: int
+            The maximal count of all items in the model of this kind.
+        pattern: int 
+            Not used.
+        """
+
         return
 
     def get_name(self):
+        """
+        Returns the name of the item.
+        """
+
         return self._kind_name
 
     def get_position(self):
+        """
+        Return the position of an item.
+        """
+
         return self._position
 
     def get_color(self, color_id):
+        """
+        Returns a specific color of an item.
+        """
+
         if color_id < len(self._colors):
             return self._colors[color_id]
         return None
 
     def get_color(self):
+        """
+        Returns the current main color of an item.
+        """
+
         return self._color
- 
+
     def get_rect(self):
+        """
+        Returns the current rectangle of an item.
+        """
+
         return None
 
     def get_action(self, time_step):
+        """
+        Returns the action at a specific time step.
+        Returns None if no action is defined for this time step.
+        """
+
         if time_step >= len(self._actions):
             return None  #break, if no action is defined
         if self._actions[time_step] == None:
@@ -165,12 +398,28 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         return self._actions[time_step]   
 
     def get_state(self):
+        """
+        Returns the current state of the item.
+        """
+
         return self._state
 
+
     def get_draw_path(self):
+        """
+        Returns whether the path of this item should be drawn.
+        """
+
         return self._draw_path
 
     def edit_position_to(self, x, y):
+        """
+        Sets a new starting position and new current position for an 
+        item. If an item of the same kind is already on the same position
+        they swap positions. This function is used to edit instances with
+        the drag and drop feature.
+        """
+
         if (x, y) == self._position:
             return
         item2 = self._model.filter_items(item_kind = self._kind_name,
@@ -178,17 +427,25 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
                                         return_first = True)[0]
         if item2 is not None:
             item2.set_position(self._position[0], self._position[1])
-            item2.set_starting_position(self._position[0], self._position[1])
+            item2.set_starting_position(
+                self._position[0], 
+                self._position[1])
         self.set_position(x,y)
         self.set_starting_position(x, y)
 
     def boundingRect(self):
+        """
+        This is a overridden QT function and used for drag and drop.
+        """
         return self._graphics_item.boundingRect()
 
     def paint(self, painter, option, widget):
         return self._graphics_item.paint(painter, option, widget)
 
     def mousePressEvent(self, event):
+        """
+        This is a overridden QT function and used for drag and drop.
+        """
         if self._enable_drag:
             rect = self.get_rect()
             self._dragged = (event.scenePos().x(),
@@ -196,6 +453,10 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         event.accept()
 
     def mouseReleaseEvent(self, event):
+        """
+        This is a overridden QT function and used for drag and drop.
+        """
+
         model_view = None
         if self._dragged is not None:
             self._dragged = None
@@ -214,16 +475,53 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         event.accept()
 
     def mouseMoveEvent(self, event):
+        """
+        This is a overridden QT function and used for drag and drop.
+        """
+
         if self._dragged is None:
             return
-        self.setPos(event.scenePos().x() - self._dragged[0], event.scenePos().y() - self._dragged[1])
+        self.setPos(event.scenePos().x() - self._dragged[0], 
+                    event.scenePos().y() - self._dragged[1])
         event.accept()
 
     def set_highlighted(self, highlighted):
+        """
+        Sets whether this item should be highlighted.
+        """
         self._highlighted = highlighted
 
 class PickingStation(VisualizerGraphicItem):
+    """
+    This class represents a picking station.
+
+    Attributes:
+    _kind_name: str
+        The name of this kind of item
+    _short_name: str
+        The short name of this item
+    _graphics_item: QGraphicsRectItem
+        This is the main graphic item of the station
+        and is used for some default functions.
+    _text: QGraphicsTextItem
+        This is a text item that is drawn 
+        on the model view and represents primarily the id of the station.
+    _items: list
+        A list of QGraphicsItem that are used to draw
+        this item.
+    """
+
     def __init__(self, ID = 0, x = 0, y = 0):
+        """
+        Parameters:
+        ID : int, optional
+            The ID of the picking station
+        x: int, optional
+            The x coordinate on the grid
+        y: int, optional
+            The y coordinate on the grid
+        """
+
         super(PickingStation, self).__init__(ID, x, y)
         self._kind_name = 'pickingStation'
         self._short_name = 'P'
@@ -235,26 +533,62 @@ class PickingStation(VisualizerGraphicItem):
         self._text = QGraphicsTextItem(self._graphics_item)
 
     def set_rect(self, rect):
+        """
+        Sets the rectangle that a picking station can use to draw 
+        things in. This equals one field of the grid in the model view.
+        This function defines the appearance of the picking station
+        on the grid.
+        """
+
         scale = config.get('display', 'id_font_scale')
         bold = config.get('display', 'id_font_bold')
         self._text.setFont(QFont('', rect.width()*0.08*scale))
         self._text.setPos(rect.x(), rect.y() + 0.6*rect.height())
-        self._text.setDefaultTextColor(QColor(config.get('display', 'id_font_color')))
+        self._text.setDefaultTextColor(
+            QColor(config.get('display', 'id_font_color')))
         if self._display_mode == 0:
             if bold:
-                self._text.setHtml('<b>' + self._short_name +'(' + str(self._id) + ')</b>')
+                self._text.setHtml(
+                    '<b>' + self._short_name +'(' + str(self._id) + ')</b>')
             else:
-                self._text.setHtml(self._short_name + '(' + str(self._id) + ')')
-            self._graphics_item.setRect(rect.x(), rect.y(), rect.width(), rect.height())
-            self._items[0].setRect(rect.x() + rect.width()/5, rect.y(), rect.width()/5, rect.height())
-            self._items[1].setRect(rect.x() + rect.width()/5 * 3, rect.y(), rect.width()/5, rect.height())
+                self._text.setHtml(
+                    self._short_name + '(' + str(self._id) + ')')
+
+            self._graphics_item.setRect(
+                rect.x(), rect.y(), 
+                rect.width(), rect.height())
+            self._items[0].setRect(
+                rect.x() + rect.width()/5, rect.y(), 
+                rect.width()/5, rect.height())
+            self._items[1].setRect(
+                rect.x() + rect.width()/5 * 3, rect.y(), 
+                rect.width()/5, rect.height())
+
         elif self._display_mode == 1:
             self._text.setPlainText('')
-            self._graphics_item.setRect(rect.x(), rect.y(), rect.width(), rect.height())
-            self._items[0].setRect(rect.x() + rect.width()/5, rect.y(), rect.width()/5, rect.height())
-            self._items[1].setRect(rect.x() + rect.width()/5 * 3, rect.y(), rect.width()/5, rect.height())            
+            self._graphics_item.setRect(
+                rect.x(), rect.y(), rect.width(), rect.height())
+            self._items[0].setRect(
+                rect.x() + rect.width()/5, rect.y(), 
+                rect.width()/5, rect.height())
+            self._items[1].setRect(
+                rect.x() + rect.width()/5 * 3, rect.y(), 
+                rect.width()/5, rect.height())            
 
     def determine_color(self, number, count, pattern = None):
+        """
+        Determines the color of the station dependent on its number.
+
+        Parameters:
+        number: int
+            The number of this station in the models sequence. 
+            This not have to be the id of the item.
+        count: int
+            The maximal count of stations in the model.
+        pattern: int 
+            Not used.
+        """
+
         color = self._colors[0]
         color2 = self._colors[1]
         color.setAlpha(150)
@@ -267,16 +601,72 @@ class PickingStation(VisualizerGraphicItem):
         self._items[1].setBrush(brush2)
 
     def get_rect(self):
+        """
+        Returns the current rectangle of the picking station.
+        """
+
         return self._graphics_item.rect()
 
 class ChargingStation(PickingStation):
+    """
+    This class represents a charging station.
+    It is the same as a picking station except of the name.
+
+    Attributes:
+    _kind_name: str
+        The name of this kind of item
+    _short_name: str
+        The short name of this item
+    """
+
     def __init__(self, ID = 0, x = 0, y = 0):
+        """
+        Parameters:
+        ID : int, optional
+            The ID of the picking station
+        x: int, optional
+            The x coordinate on the grid
+        y: int, optional
+            The y coordinate on the grid
+        """
+
         super(ChargingStation, self).__init__(ID, x, y)
         self._kind_name = 'chargingStation'
         self._short_name = 'C'
 
 class Shelf(VisualizerGraphicItem):
+    """
+    This class represents a shelf.
+
+    Attributes:
+    _kind_name: str
+        The name of this kind of item. This is always 'shelf'.
+    _carried: Robot
+        The robot that carries this shelf.
+    _products: list
+        This is a list of products. Every product is a triple.
+        (product id, product amount, removed product amount)
+    _graphics_item: QGraphicsEllipseItem
+        This is the main graphic item of the shelf
+        and is used for some default functions.
+    _graphics_carried: QGraphicsEllipseItem
+        This is a circle appearing on a carried shelf.
+    _text: QGraphicsTextItem
+        This is a text item that is drawn 
+        on the model view and represents primarily the id of the shelf.
+    """
+
     def __init__(self, ID = 0, x = 0, y = 0):
+        """
+        Parameters:
+        ID : int, optional
+            The ID of the shelf
+        x: int, optional
+            The x coordinate on the grid
+        y: int, optional
+            The y coordinate on the grid
+        """
+
         super(self.__class__, self).__init__(ID, x, y)
         self._kind_name = 'shelf'
         self._carried = None
@@ -288,6 +678,13 @@ class Shelf(VisualizerGraphicItem):
         self.update_tooltip()
 
     def set_rect(self, rect):
+        """
+        Sets the rectangle that a shelf can use to draw things in.
+        This equals one field of the grid in the model view.
+        This function defines the appearance of the shelf
+        on the grid.
+        """
+
         if self._carried is not None:
             rect = self._carried.get_rect()
 
@@ -295,7 +692,8 @@ class Shelf(VisualizerGraphicItem):
         bold = config.get('display', 'id_font_bold')
         self._text.setFont(QFont('', rect.width()*0.08*scale))
         self._text.setPos(rect.x(), rect.y() + 0.4*rect.height())
-        self._text.setDefaultTextColor(QColor(config.get('display', 'id_font_color')))
+        self._text.setDefaultTextColor(
+            QColor(config.get('display', 'id_font_color')))
 
         if self._display_mode == 0:
             if bold:
@@ -322,7 +720,17 @@ class Shelf(VisualizerGraphicItem):
                                         rect.width()*0.75,
                                         rect.height()*0.75)
 
+
     def set_carried(self, robot):
+        """
+        Sets the robot that carries this shelf at the current time step.
+        Sets also the shelf that is carried by the robot to this.
+        If the shelf is already carried by another robot the carried 
+        shelf of this robot will be set to None.
+        """
+
+        #Checks if the shelf is already carried by the robot 
+        #to prevent an infinite loop.
         if robot == self._carried:
             return
         temp = self._carried
@@ -336,6 +744,11 @@ class Shelf(VisualizerGraphicItem):
             self._graphics_carried.setParentItem(None)
 
     def restart(self):
+        """
+        Reset the products in the shelf.
+        Sets the shelf to its starting position.
+        """
+
         super(self.__class__, self).restart()
         products = []
         for product in self._products:
@@ -343,6 +756,12 @@ class Shelf(VisualizerGraphicItem):
         self._products = products
 
     def to_init_str(self):
+        """
+        Converts the shelf to a string that represents the shelfs values.
+        This function is used to send shelves to a solver
+        and to save shelves to a file.
+        """
+
         s = super(self.__class__, self).to_init_str()
         for product in self._products:
             s += ('init(object(product,' 
@@ -352,18 +771,34 @@ class Shelf(VisualizerGraphicItem):
         return s
 
     def update_tooltip(self):
+        """
+        Updates the tooltip for the shelf.
+        """
+
         tooltip = "shelf(" + str(self._id) + ")\nproducts:\n"
         for product in self._products:
             tooltip = tooltip + str(product) + "\n"
         self.setToolTip(tooltip)
 
     def find_product(self, product_id):
+        """
+        Returns a product with the given product id.
+        If no product with the given id is on the shelf it returns None.
+        """
+
         for product in self._products:
             if str(product_id) == str(product[0]):
                 return product
         return None
 
+
     def set_product_amount(self, product_id, amount):
+        """
+        Sets the carried amount of a product on this shelf.
+        If the shelf already contains products with the 
+        given id the amount of products will be overriden.
+        """
+
         product = self.find_product(product_id)
         if product is None:
             self._products.append((product_id, amount, 0))
@@ -373,10 +808,14 @@ class Shelf(VisualizerGraphicItem):
         self.update_tooltip()
 
     def add_product(self, product_id, amount):
+        """
+        Adds to the carried amount of a product on this shelf.
+        If amount is 0 and the shelf already contains products
+        with the given amount it will be set to 0.
+        """
+
         product = self.find_product(product_id)
         if product is None:
-            if amount == 0:
-                amount = 1
             self._products.append((product_id, amount, 0))
         else: 
             if amount == 0:
@@ -387,30 +826,53 @@ class Shelf(VisualizerGraphicItem):
         self.update_tooltip()
 
     def remove_product(self, product_id, amount):
+        """
+        Increases the removed amount counter of a product on the shelf.
+        If the shelf does not contain a product with the 
+        given id nothing happens.
+        """
+
         product = self.find_product(product_id)
         if product is not None:
             self._products.append((product_id, product[1], product[2] + amount))
             self._products.remove(product)
 
     def delete_product(self, product_id):
+        """
+        Deletes a product from a shelf.
+        If the shelf does not contain a product with the 
+        given id nothing happens.
+        """
+
         product = self.find_product(product_id)
         if product is not None:
             self._products.remove(product)
         self.update_tooltip()
 
     def determine_color(self, number, count, pattern = None):
+        """
+        Determines the color of the picking station.
+        """
         color = calculate_color(self._colors[0], self._colors[1], (float)(number)/count)
         brush = QBrush(color)
         self._graphics_item.setBrush(brush)
         self._graphics_carried.setBrush(QBrush(self._colors[2]))
 
     def get_product_amount(self, product_id):
+        """
+        Returns the current amount of a specific product on a shelf.
+        """
+
         product = self.find_product(product_id)
         if product is None:
             return 0
         return product[1] - product[2]
 
     def get_rect(self):
+        """
+        Returns the current rectangle of the shelf.
+        """
+
         if self._display_mode == 0:
             rect = self._graphics_item.rect()
             width = rect.width()*2
@@ -430,14 +892,32 @@ class Shelf(VisualizerGraphicItem):
             rect.setHeight(height)
             return rect
 
+
     def get_carried(self):
+        """
+        Returns the robot that carries the shelf at the current 
+        time step. This can be None.
+        """
+
         return self._carried
 
     def iterate_products(self):
+        """
+        Iterates through every product on the shelf.
+        """
+
         for product in self._products:
             yield product
 
     def edit_position_to(self, x, y):
+        """
+        Sets a new starting position and new current position for the 
+        shelf. If another shelf is already on the same position
+        they swap positions. This function is used to edit instances with
+        the drag and drop feature. Only shelf that are currently not carried 
+        can be moved.        
+        """
+
         if (x, y) == self._position:
             return
         if self._carried is not None:
@@ -454,25 +934,81 @@ class Shelf(VisualizerGraphicItem):
         self.set_starting_position(x, y)
 
     def mousePressEvent(self, event):
+        """
+        This is a overridden QT function and used for drag and drop.
+        """
+
         if self._carried is not None:
             self._carried.mousePressEvent(event)
         else:
             super(self.__class__, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+        """
+        This is a overridden QT function and used for drag and drop.
+        """
+
         if self._carried is not None:
             self._carried.mouseMoveEvent(event)
         else:
             super(self.__class__, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
+        """
+        This is a overridden QT function and used for drag and drop.
+        """
+
         if self._carried is not None:
             self._carried.mouseReleaseEvent(event)
         else:
             super(self.__class__, self).mouseReleaseEvent(event)
 
 class Robot(VisualizerGraphicItem):
+    """
+    This class represents a robot.
+
+    Attributes:
+    _kind_name: str
+        The name of this kind of item. This is always 'robot'.
+    _carried: Shelf
+        The shelf that is carried by the robot.
+    _initial_carries: Shelf
+        The shelf that is carried by the robot at time step 0.
+    _tasks: list
+        The list of tasks of the robot
+    _graphics_item: QGraphicsRectItem
+        This is the main graphic item of the robot
+        and is used for some default functions.
+    _energy_bar_full: QGraphicsRectItem
+        This graphic item represents a full energy bar.
+    _energy_bar_empty: QGraphicsRectItem
+        This graphic item represents a empty energy bar.
+    _text: QGraphicsTextItem
+        This is a text item that is drawn 
+        on the model view and represents primarily the id of the robot.
+    _initial_energy: int
+        The robots energy at time step 0.
+    _max_energy: int
+        The robots maximal energy
+    _current_energy: int
+        The current energy of the robot
+    _energy_costs: dictionary
+        A dictionary that contains energy costs for actions.
+        The cost should be an integer. The dictionary keys
+        are the name of the actions.
+    """
+
     def __init__(self, ID = 0, x = 0, y = 0):
+        """
+        Parameters:
+        ID : int, optional
+            The ID of the robot
+        x: int, optional
+            The x coordinate on the grid
+        y: int, optional
+            The y coordinate on the grid
+        """
+
         super(self.__class__, self).__init__(ID, x, y)
         self._kind_name = 'robot'
         self._carries = None
@@ -487,21 +1023,41 @@ class Robot(VisualizerGraphicItem):
         self._energy_bar_empty.setBrush(QBrush(QColor(200,0,0)))
         self._energy_bar_full.setBrush(QBrush(QColor(0,200,0)))
 
+        self._initial_energy = 0
         self._max_energy = 0
         self._current_energy = 0
         self._energy_costs = {}
 
     def set_position(self, x, y):
+        """
+        Sets the current position of the robot.
+        Sets also the current position of a carried shelf to the same position.
+        """
         super(self.__class__, self).set_position(x, y)
         if self._carries is not None:
            self._carries.set_position(x, y)
 
+
     def set_starting_position(self, x, y):
+        """
+        Sets the starting position of the robot.
+        Sets also the starting position of a carried shelf to the same position.
+        """
+
         super(self.__class__, self).set_starting_position(x, y)
         if self._initial_carries is not None:
            self._initial_carries.set_starting_position(x, y)
 
     def set_carries(self, shelf):
+        """
+        Sets the shelf that is carried by this robot the at current time step.
+        Sets also the robot that carries the given shelf.
+        If the robot already carries another shelf the other shelves 
+        carried value will be set to None.
+        """
+
+        #Checks whether the shelf is already carried by the robot 
+        #to prevent a infinite loop.
         if shelf == self._carries:
             return
         old = self._carries
@@ -510,9 +1066,19 @@ class Robot(VisualizerGraphicItem):
         if self._carries != None: self._carries.set_carried(self)
 
     def set_initial_carries(self, shelf):
+        """
+        Sets a shelf that is carried at the begin.
+        """
         self._initial_carries = shelf
 
     def set_rect(self, rect):
+        """    
+        Sets the rectangle that a robot can use to draw things in.
+        This equals one field of the grid in the model view.
+        This function defines the appearance of the robot
+        on the grid.
+        """
+
         scale = config.get('display', 'id_font_scale')
         bold = config.get('display', 'id_font_bold')
         self._text.setFont(QFont('', rect.width()*0.08*scale))
@@ -569,16 +1135,39 @@ class Robot(VisualizerGraphicItem):
             self._carries.set_rect(rect)
         self.update_tooltip()
 
+    def set_initial_energy(self, energy):
+        """
+        Sets the initial energy of the robot.
+        """
+
+        self._initial_energy = energy
+
     def set_current_energy(self, energy):
+        """
+        Sets the current energy of the robot.
+        """
+
         self._current_energy = energy
 
     def set_max_energy(self, energy):
+        """
+        Sets the maximal energy of the robot.
+        """
+
         self._max_energy = energy
 
     def add_energy(self, energy):
+        """
+        Adds energy to or removes energy from the robot.
+        """
+
         self._current_energy = self._current_energy + energy
 
     def add_task(self, task):
+        """
+        Adds a task to the robot.
+        """
+
         if task is None:
             return
         if task in self._tasks:
@@ -587,6 +1176,23 @@ class Robot(VisualizerGraphicItem):
         task.set_robot(self)
 
     def parse_init_value(self, name, value):
+        """
+        This function handels the input phrases for robots.
+        This is called for every phrase the model receives with the
+        following syntax: 
+        init(object(robot, [robot ID]), value([value name], [value])).
+
+        Parameters:
+        name: str
+            This is the name of the value.
+        value: clingo.Symbol
+            This is the actual value. It contains the [value]
+            part of the phrase.        
+
+        Returns 1 if the phrase cannot be parsed, -1 if one parameter is
+        invalid and 0 if the function succeeded.   
+        """
+
         result = super(self.__class__, self).parse_init_value(name, value)
         if result <= 0: return result
         if name == 'carries':
@@ -596,6 +1202,7 @@ class Robot(VisualizerGraphicItem):
             return 0
         elif name == 'energy':
             self.set_current_energy(value.number)
+            self.set_initial_energy(value.number)
             return 0
         elif name == 'max_energy':
             self.set_max_energy(value.number)
@@ -606,6 +1213,10 @@ class Robot(VisualizerGraphicItem):
         return 1
 
     def update_tooltip(self):
+        """
+        Updates the tooltip for the robot.
+        """
+
         tooltip = ("robot(" + str(self._id) + ")\nenergy: " + 
                    str(self._current_energy) + "/" + 
                    str(self._max_energy))
@@ -617,10 +1228,22 @@ class Robot(VisualizerGraphicItem):
         self.setToolTip(tooltip)
 
     def restart(self):
+        """
+        Resets the energy and the carried shelf of the robot.
+        Sets the robot to its starting position.
+        """
+
         super(self.__class__, self).restart()
         self.set_carries(self._initial_carries)
+        self.set_current_energy(self._initial_energy)
 
     def to_init_str(self):
+        """
+        Converts the robot to a string that represents the robots values.
+        This function is used to send robots to a solver
+        and to save robots to a file.
+        """
+
         s = super(self.__class__, self).to_init_str()
         if self._initial_carries is not None:
             s += ("init(object(robot,"
@@ -642,9 +1265,18 @@ class Robot(VisualizerGraphicItem):
         return s
 
     def do_action(self, time_step):
+        """
+        Performs the actions of the robot.
+        This function will be called every time the model does
+        one time step forward.
+        Returns 0 if no action was done.
+        Returns a negative integer if an error occurred.
+        Returns a positive integer if an action was done.
+        """
+
         self._state = self._state & ~VIZ_STATE_ACTION
 
-        #set the state for the next action
+        #sets the state for the next action
         if time_step + 1 < len(self._actions):
             if self._actions[time_step + 1] is not None:
                 action = self._actions[time_step + 1].arguments[0]
@@ -681,7 +1313,8 @@ class Robot(VisualizerGraphicItem):
                 print("Energy cost is not an integer.")
                 self._energy_costs[action.name] = None
 
-        #do action
+        #do actions
+        #move
         if action.name == 'move':
             if len(value.arguments) != 2: 
                 return -1
@@ -702,6 +1335,7 @@ class Robot(VisualizerGraphicItem):
                         break
             return 1
 
+        #pick up
         elif action.name == 'pickup':
             shelf = self._model.filter_items(item_kind = 'shelf',
                         position = self._position,
@@ -712,6 +1346,7 @@ class Robot(VisualizerGraphicItem):
             self._state = self._state | VIZ_STATE_PICKED_UP
             return 2
 
+        #put down
         elif action.name == 'putdown':
             if self._carries == None:
                 return -2
@@ -719,6 +1354,7 @@ class Robot(VisualizerGraphicItem):
             self._state = self._state | VIZ_STATE_PUT_DOWN
             return 3
 
+        #deliver with 3 arguments
         elif action.name == 'deliver' and len(value.arguments) > 2:
             try:
                 if self._carries is not None:
@@ -734,6 +1370,7 @@ class Robot(VisualizerGraphicItem):
                 return -3
             return 4
 
+        #deliver with 2 arguments
         elif action.name == 'deliver' and len(value.arguments) > 1:
             try:
                 if self._carries is not None:
@@ -749,6 +1386,7 @@ class Robot(VisualizerGraphicItem):
                 return -3
             return 5
 
+        #charge
         elif action.name == 'charge':
             try:
                 self.add_energy(value.number)
@@ -758,6 +1396,15 @@ class Robot(VisualizerGraphicItem):
         return 0
 
     def undo_action(self, time_step):
+        """
+        Performs the actions of the robot.
+        This function will be called every time the model does
+        one time step backwards.
+        Returns 0 if no action was done.
+        Returns a negative integer if an error occurred.
+        Returns a positive integer if an action was done.
+        """
+
         self._state = self._state & ~VIZ_STATE_ACTION
         if time_step >= len(self._actions):  
             return 0  #break, if no action is defined
@@ -780,6 +1427,8 @@ class Robot(VisualizerGraphicItem):
                 print("Energy cost is not an integer.")
                 self._energy_costs[action.name] = None
 
+        #undo actions
+        #move
         if action.name == 'move':
             if len(value.arguments) != 2: 
                 return -1
@@ -803,6 +1452,7 @@ class Robot(VisualizerGraphicItem):
                 self._carries.set_position(self._position[0], self._position[1])
             return 1
 
+        #put down
         elif action.name == 'putdown':
             shelf = self._model.filter_items(item_kind = 'shelf',
                         position = self._position,
@@ -813,6 +1463,7 @@ class Robot(VisualizerGraphicItem):
             self._state = self._state | VIZ_STATE_PUT_DOWN2
             return 3
 
+        #pick up
         elif action.name == 'pickup':
             if self._carries == None:
                 return -2
@@ -820,6 +1471,7 @@ class Robot(VisualizerGraphicItem):
             self._state = self._state | VIZ_STATE_PICK_UP
             return 2
 
+        #deliver with 3 arguments
         elif action.name == 'deliver' and len(value.arguments) > 2:
             try:
                 if self._carries is not None:
@@ -835,6 +1487,7 @@ class Robot(VisualizerGraphicItem):
                 return -3
             return 4
 
+        #deliver with 2 arguments
         elif action.name == 'deliver' and len(value.arguments) > 1:
             try:
                 if self._carries is not None:
@@ -850,6 +1503,7 @@ class Robot(VisualizerGraphicItem):
                 return -3
             return 5
 
+        #charge
         elif action.name == 'charge':
             try:
                 self.add_energy(-value.number)
@@ -858,13 +1512,22 @@ class Robot(VisualizerGraphicItem):
             return 6
         return 0
 
+    
     def determine_color(self, number, count, pattern = None):
+        """
+        Determines the color of the robot.
+        """
+
         color = calculate_color(self._colors[0], self._colors[1], (float)(number)/count)
         self._color = color
         brush = QBrush(color)
         self._graphics_item.setBrush(brush)
 
     def get_rect(self):
+        """
+        Returns the current rectangle of the robot.
+        """
+
         if self._display_mode == 0:
             rect = self._graphics_item.rect()
             width = rect.width()*2
@@ -885,15 +1548,31 @@ class Robot(VisualizerGraphicItem):
             return rect
 
     def get_carries(self):
+        """
+        Returns the shelf that is carried by this robot.
+        This value can be None.
+        """
+
         return self._carries
 
     def get_initial_carries(self):
+        """
+        Returns the shelf that is carried by this robot at
+        time step 0. This value can be None.
+        """
+
         return self._initial_carries
 
-    def can_move(self):
-        return True
-
     def edit_position_to(self, x, y):
+        """
+        Sets a new starting position and new current position for the 
+        robot. If another robot is already on the same position
+        they swap positions. This function is used to edit instances with
+        the drag and drop feature. If on the destination node is a
+        carried shelf or this robot carries a shelf and the destination
+        node is occupied by another shelf the shelfs switch places as well.
+        """
+
         if (x, y) == self._position:
             return
         item2 = self._model.filter_items(item_kind = self._kind_name,
@@ -919,12 +1598,41 @@ class Robot(VisualizerGraphicItem):
         self.set_starting_position(x, y)
 
     def get_current_energy(self):
+        """
+        Returns the current energy of the robot.
+        """
+
         return self._current_energy
 
     def get_max_energy(self):
+        """
+        Returns the maximal energy of the robot.
+        """
+
         return self._max_energy
 
 class Checkpoint(VisualizerGraphicItem):
+    """
+    This class represents a Checkpoint.
+
+    Attributes:
+    _kind_name: str
+        The name of this kind of item. This is always 'checkpoint'.
+    _ids: dictionary
+        A dictionary that contains all ids of this checkpoint.
+        One checkpoint can be the destination of different kinds
+        of waypoints like a goal and start node.
+    _graphics_item: QGraphicsRectItem
+        This is the main graphic item of the checkpoint
+        and is used for some default functions.
+    _text: QGraphicsTextItem
+        This is a text item that is drawn on the model view
+        and represents primarily the id of the checkpoint.
+    _shine: bool
+        This is true if the checkpoint should be highlighted. Checkpoints
+        are highlighted when they were visited.
+    """
+
     def __init__(self, ID = 0, x = 0, y = 0):
         super(self.__class__, self).__init__(ID, x, y)
         self._kind_name = 'checkpoint'
@@ -936,6 +1644,13 @@ class Checkpoint(VisualizerGraphicItem):
         self._shine = False
 
     def set_rect(self, rect):
+        """    
+        Sets the rectangle that a checkpoint can use to draw things in.
+        This equals one field of the grid in the model view.
+        This function defines the appearance of the checkpoint
+        on the grid.
+        """
+
         scale = config.get('display', 'id_font_scale')
         bold = config.get('display', 'id_font_bold')
         font = QFont('', rect.width()*0.08*scale)
@@ -968,17 +1683,33 @@ class Checkpoint(VisualizerGraphicItem):
             self._graphics_item.setRect(rect.x(), rect.y(), rect.width(), rect.height())        
 
     def do_action(self, time_step):
+        """
+        Rests the shine value at every time step.
+        """
+
         self._shine = False
         return
 
     def undo_action(self, time_step):
+        """
+        Rests the shine value at every time step.
+        """
+
         self._shine = False
         return
 
     def visit(self):
+        """
+        Sets the shine value to true.
+        """    
+
         self._shine = True
 
     def determine_color(self, number, count, pattern = None):
+        """
+        Determines the color of the checkpoint.
+        """
+
         color = None
         if len(self._ids) == 1:
             for key in self._ids:
@@ -994,6 +1725,23 @@ class Checkpoint(VisualizerGraphicItem):
         self._graphics_item.setBrush(QBrush(color))
 
     def parse_init_value(self, name, value):
+        """
+        This function handels the input phrases for checkpoints.
+        This is called for every phrase the model receives with the
+        following syntax: 
+        init(object(checkpoint, [checkpoint ID]), value([value name], [value])).
+
+        Parameters:
+        name: str
+            This is the name of the value.
+        value: clingo.Symbol
+            This is the actual value. It contains the [value]
+            part of the phrase.        
+
+        Returns 1 if the phrase cannot be parsed, -1 if one parameter is
+        invalid and 0 if the function succeeded.   
+        """
+
         result = super(self.__class__, self).parse_init_value(name, value)
         if result != 1:
             return result
@@ -1006,4 +1754,8 @@ class Checkpoint(VisualizerGraphicItem):
         return 1
 
     def get_rect(self):
+        """
+        Returns the current rectangle of the checkpoint.
+        """
+
         return self._graphics_item.rect()

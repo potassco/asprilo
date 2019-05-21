@@ -11,7 +11,7 @@ import socket
 import clingo
 import time
 
-VERSION = '0.2.0'
+VERSION = '0.2.1'
 #default one shot solver
 class Solver(object):
     def __init__(self):
@@ -30,11 +30,11 @@ class Solver(object):
         self._parser.add_argument('-t', '--timeout',
                             help='The maxmimal number of seconds the solver waits for a solution. 0 is no maximum.', 
                             type = int, default = 0)
-        self._args = self._parser.parse_args()
+        self._args = None
 
         #socket properties
         self._host = '127.0.0.1'
-        self._port = self._args.port
+        self._port = '5000'
         self._socket = None
         self._connection = None
         self._name = 'solver'
@@ -53,6 +53,8 @@ class Solver(object):
         self._to_send = {}
         #the last sended time step
         self._sended = -1
+        self._args = self._parser.parse_args()
+        self._port = self._args.port
 
     def __del__(self):
         self.close()

@@ -8,7 +8,7 @@ import select
 import socket
 import clingo
 
-VERSION = '0.2.0'
+VERSION = '0.2.1'
 
 class Simulator(object):
     def __init__(self):
@@ -26,11 +26,11 @@ class Simulator(object):
                             help='files to load',
                             nargs='+',
                             type=str, default = '')
-        self._args = self._parser.parse_args()
+        self._args = None
 
         #socket properties
         self._host = '127.0.0.1'
-        self._port = self._args.port
+        self._port = '5000'
         self._socket = None
         self._connection = None
         self._name = 'simulator'
@@ -44,15 +44,6 @@ class Simulator(object):
         self._to_send = {}
         #the last sended time step
         self._sended = -1
-
-        #load all instance files
-        self._control = clingo.Control()
-        for file_name in self._args.templates:
-            self._control.load(file_name)
-
-        #ground and solve
-        self._control.ground([('base', [])])
-        self._control.solve(on_model = self.on_model)
 
     def __del__(self):
         self.close()
@@ -226,7 +217,19 @@ class Simulator(object):
 
     #simulator main function
     def run(self):
-        print('Start ' + self._name) 
+        self._args = self._parser.parse_args()
+        self._port = self._args.port
+
+        #load all instance files
+        self._control = clingo.Control()
+        for file_name in self._args.templates:
+            self._control.load(file_name)
+
+        #ground and solve
+        self._control.ground([('base', [])])
+        self._control.solve(on_model = self.on_model)
+
+        print('Start ' + self._name)
         self.connect()
         #loop to receive data
         while(True):
