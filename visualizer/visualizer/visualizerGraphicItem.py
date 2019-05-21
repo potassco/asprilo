@@ -145,9 +145,9 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         self._highlighted = False
 
     def set_starting_position(self, x, y):
-    """
-    Sets the starting position of an item.
-    """
+        """
+        Sets the starting position of an item.
+        """
 
         self._start_position = (x, y)
 
