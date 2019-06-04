@@ -1290,7 +1290,7 @@ class Robot(VisualizerGraphicItem):
                    str(self._max_energy))
         if self._max_energy > 0:
             tooltip += ("(" + 
-                        str(float(self._current_energy)/self._max_energy) + 
+                        str(float(self._current_energy)/self._max_energy*100.0) + 
                         "%)")
         
         self.setToolTip(tooltip)
