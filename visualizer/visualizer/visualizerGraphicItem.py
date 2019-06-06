@@ -328,7 +328,7 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
                     + self._kind_name + ', '
                     + str(self._id) + '), '
                     + str(action) + ', '
-                    + str(count) + ')')
+                    + str(count) + ').\n')
             count = count + 1
         return actions
 
@@ -1181,11 +1181,17 @@ class Robot(VisualizerGraphicItem):
             deliver_list.append(action)
             return
 
-        elif not self._actions[time_step] == None:
+        elif self._actions[time_step] is not None:
 
             action_name2 = self._actions[time_step].arguments[0].name
 
             if action_name == 'deliver':
+                if not ll_config.get('features', 'domainc'):
+                    print(('Warning: for object(' + str(self._kind_name)
+                        + ', ' + str(self._id)
+                        + ') multiple actions are defined at time step '
+                        + str(time_step)))
+
                 if not time_step in self._parallel_delivers:
                     self._parallel_delivers[time_step] = []
                 self._parallel_delivers[time_step].append(action)
@@ -1196,6 +1202,12 @@ class Robot(VisualizerGraphicItem):
                 return
 
             elif action_name2 == 'deliver':
+                if not ll_config.get('features', 'domainc'):
+                    print(('Warning: for object(' + str(self._kind_name)
+                        + ', ' + str(self._id)
+                        + ') multiple actions are defined at time step '
+                        + str(time_step)))
+
                 if not time_step in self._parallel_delivers:
                     self._parallel_delivers[time_step] = []
                 self._parallel_delivers[time_step].append(
@@ -1205,9 +1217,9 @@ class Robot(VisualizerGraphicItem):
 
             else:
                 print(('Warning: for object(' + str(self._kind_name)
-                        + ', ' + str(self._id)
-                        + ') multiple actions are defined at time step '
-                        + str(time_step)))
+                    + ', ' + str(self._id)
+                    + ') multiple actions are defined at time step '
+                    + str(time_step)))
         self._actions[time_step] = action
 
     def set_current_energy(self, energy):
@@ -1359,14 +1371,14 @@ class Robot(VisualizerGraphicItem):
                         + self._kind_name + ', '
                         + str(self._id) + '), '
                         + str(action) + ', '
-                        + str(count) + ')')
+                        + str(count) + ').\n')
                 if count in self._parallel_delivers:
                     for action2 in self._parallel_delivers[count]:
-                        str_out += ('.occurs(object('
+                        str_out += ('occurs(object('
                             + self._kind_name + ', '
                             + str(self._id) + '), '
                             + str(action2) + ', '
-                            + str(count) + ')')
+                            + str(count) + ').\n')
                 actions.append(str_out)
             count = count + 1
         return actions

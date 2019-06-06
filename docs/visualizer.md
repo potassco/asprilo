@@ -60,7 +60,7 @@ The visualizer accepts the following arguments:
 - `-m/--mode`: Starts the visualizer in a specific mode. A mode is a preset of low-level
   settings. It turns on and off some features. By default the visualizer starts in asprilo mode. Possible modes
   are currently gtapf, complete and asprilo.
-
+- `-c/--domainc`: The Visualizer does not issue warnings for "multiple actions are defined at time step X for deliveries".
 ## Loading Instances/Plans
 The visualizer provides different ways to load an instance or a plan:
 

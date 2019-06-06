@@ -96,8 +96,8 @@ class Configuration(object):
     def set_value(self, section, option, value):
         try:
             self._config_parser.set(section, option, value)
-            value = self._values[(section.lower(), option.lower())]
-            value.current_value = value
+            value2 = self._values[(section.lower(), option.lower())]
+            value2.current_value = value
             return 0
         except:
             return -1
@@ -246,6 +246,7 @@ class LLConfiguration(Configuration):
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, True, str, 'products'),
                         ('features', 'tasks') : ConfigEntry(self._read_bool_from_config, True, str, 'tasks'),
                         ('features', 'debug') : ConfigEntry(self._read_bool_from_config, False, str, 'debug'),
+                        ('features', 'domainc') : ConfigEntry(self._read_bool_from_config, False, str, 'domainc'),
                         ('features', 'load_files') : ConfigEntry(self._read_str_from_config, '', str, 'load files'),
                         }
         elif args.mode == 'asprilo':
@@ -255,6 +256,7 @@ class LLConfiguration(Configuration):
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, True, str, 'products'),
                         ('features', 'tasks') : ConfigEntry(self._read_bool_from_config, False, str, 'tasks'),
                         ('features', 'debug') : ConfigEntry(self._read_bool_from_config, False, str, 'debug'),
+                        ('features', 'domainc') : ConfigEntry(self._read_bool_from_config, False, str, 'domainc'),
                         ('features', 'load_files') : ConfigEntry(self._read_str_from_config, '', str, 'load files'),
                         }
         elif args.mode == 'gtapf':
@@ -264,13 +266,14 @@ class LLConfiguration(Configuration):
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, False, str, 'products'),
                         ('features', 'tasks') : ConfigEntry(self._read_bool_from_config, True, str, 'tasks'),
                         ('features', 'debug') : ConfigEntry(self._read_bool_from_config, False, str, 'debug'),
+                        ('features', 'domainc') : ConfigEntry(self._read_bool_from_config, False, str, 'domainc'),
                         ('features', 'load_files') : ConfigEntry(self._read_str_from_config,
                                                             os.path.dirname(os.path.realpath(sys.argv[0])) +  '/encodings/converter.lp',
                                                             str, 'load files'),
                         }
-        elif args.debug:
-            self.set_value('features', 'debug', True)
         self.read_file()
+        self.set_value('features', 'debug', args.debug)
+        self.set_value('features', 'domainc', args.domainc)
 
 config = Configuration()
 ll_config = LLConfiguration()

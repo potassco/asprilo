@@ -47,6 +47,9 @@ class VisualizerWindow(QMainWindow):
                                     help='show the current version', 
                                     action='version',
                                     version=VERSION)
+        self._argument_parser.add_argument('-c', '--domainc',
+                                    help='turn off the warnings for multiple actions at the same time step for deliveries',
+                                    action='store_true')
         self._argument_parser.add_argument('--debug', 
                                     help='runs the visualizer in debug mode',
                                     action='store_true')

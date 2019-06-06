@@ -489,7 +489,7 @@ class Model(object):
                 for item in items_dic.values():
                     for action in item.to_occurs_str():
                         if action is not None:
-                            ofile.write(action + '.\n')
+                            ofile.write(action)
 
         except IOError:
             ofile.close()
