@@ -328,7 +328,7 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
                     + self._kind_name + ', '
                     + str(self._id) + '), '
                     + str(action) + ', '
-                    + str(count) + ')')
+                    + str(count) + ').\n')
             count = count + 1
         return actions
 
@@ -996,6 +996,11 @@ class Robot(VisualizerGraphicItem):
         A dictionary that contains energy costs for actions.
         The cost should be an integer. The dictionary keys
         are the name of the actions.
+    _parallel_delivers: dictionary
+        A dictionary that contains deliver actions that are 
+        processed simultaneously to other actions. The deliver actions
+        are stored in lists to allow multiple deliveries at the same time
+        step.
     """
 
     def __init__(self, ID = 0, x = 0, y = 0):
@@ -1027,6 +1032,8 @@ class Robot(VisualizerGraphicItem):
         self._max_energy = 0
         self._current_energy = 0
         self._energy_costs = {}
+
+        self._parallel_delivers = {}
 
     def set_position(self, x, y):
         """
@@ -1142,6 +1149,79 @@ class Robot(VisualizerGraphicItem):
 
         self._initial_energy = energy
 
+    def set_action(self, action, time_step):
+        """
+        Sets the action for the specific time step.
+        Overrides existing actions at the time step but prints out
+        a warning since this should never happen. Accepts deliver
+        actions simultaneously to other actions.
+
+        Parameters:
+        action: clingo.Symbol
+            This is the action that will be performed.
+        time_step: int
+            This is the time step at which the action
+        shold be performed.
+        """
+
+        if time_step < 0:
+            print(('Warning: invalid time step in occurs(object('
+                    + str(self._kind_name) + ','
+                    + str(self._ID) + '),' + str(action)
+                    + ',' + str(time_step) + ')'))
+            print('time step is less than 0')
+            return
+        for ii in range((time_step + 1) - len(self._actions)):
+            self._actions.append(None)
+
+        action_name = action.arguments[0].name
+
+        if action_name == 'deliver' and time_step in self._parallel_delivers:
+            deliver_list = self._parallel_delivers[time_step]
+            deliver_list.append(action)
+            return
+
+        elif self._actions[time_step] is not None:
+
+            action_name2 = self._actions[time_step].arguments[0].name
+
+            if action_name == 'deliver':
+                if not ll_config.get('features', 'domainc'):
+                    print(('Warning: for object(' + str(self._kind_name)
+                        + ', ' + str(self._id)
+                        + ') multiple actions are defined at time step '
+                        + str(time_step)))
+
+                if not time_step in self._parallel_delivers:
+                    self._parallel_delivers[time_step] = []
+                self._parallel_delivers[time_step].append(action)
+                if action_name2 == 'deliver':
+                    self._parallel_delivers[time_step].append(
+                        self._actions[time_step])
+                    self._actions[time_step] = None
+                return
+
+            elif action_name2 == 'deliver':
+                if not ll_config.get('features', 'domainc'):
+                    print(('Warning: for object(' + str(self._kind_name)
+                        + ', ' + str(self._id)
+                        + ') multiple actions are defined at time step '
+                        + str(time_step)))
+
+                if not time_step in self._parallel_delivers:
+                    self._parallel_delivers[time_step] = []
+                self._parallel_delivers[time_step].append(
+                    self._actions[time_step])
+                self._actions[time_step] = action
+                return
+
+            else:
+                print(('Warning: for object(' + str(self._kind_name)
+                    + ', ' + str(self._id)
+                    + ') multiple actions are defined at time step '
+                    + str(time_step)))
+        self._actions[time_step] = action
+
     def set_current_energy(self, energy):
         """
         Sets the current energy of the robot.
@@ -1222,7 +1302,7 @@ class Robot(VisualizerGraphicItem):
                    str(self._max_energy))
         if self._max_energy > 0:
             tooltip += ("(" + 
-                        str(float(self._current_energy)/self._max_energy) + 
+                        str(float(self._current_energy)/self._max_energy*100.0) + 
                         "%)")
         
         self.setToolTip(tooltip)
@@ -1236,6 +1316,14 @@ class Robot(VisualizerGraphicItem):
         super(self.__class__, self).restart()
         self.set_carries(self._initial_carries)
         self.set_current_energy(self._initial_energy)
+
+    def clear_actions(self):
+        """
+        Deletes all actions for an object.
+        """
+
+        self._actions = []
+        self._parallel_delivers = {}
 
     def to_init_str(self):
         """
@@ -1263,6 +1351,126 @@ class Robot(VisualizerGraphicItem):
                     + str(self._id) + "),value(energy_cost, ("
                     + key + ", " + str(self._energy_costs[key]) + "))).")
         return s
+
+    def to_occurs_str(self):
+        """
+        This function returns a list of strings that represents all
+        actions of a robot.        
+        """
+
+        actions = []
+        count = 0
+        for action in self._actions:
+            str_out = ''
+            if action is None and count not in self._parallel_delivers:
+                actions.append(None)
+            else:
+                str_out = ''
+                if action is not None:
+                    str_out = ('occurs(object('
+                        + self._kind_name + ', '
+                        + str(self._id) + '), '
+                        + str(action) + ', '
+                        + str(count) + ').\n')
+                if count in self._parallel_delivers:
+                    for action2 in self._parallel_delivers[count]:
+                        str_out += ('occurs(object('
+                            + self._kind_name + ', '
+                            + str(self._id) + '), '
+                            + str(action2) + ', '
+                            + str(count) + ').\n')
+                actions.append(str_out)
+            count = count + 1
+        return actions
+
+    def _do_deliver(self, action, value, time_step):
+        """
+        Performs the given deliver action.
+
+        Parameters:
+        action: clingo.Symbol
+            This symbol contains the name of the action.
+        value: clingo.Symbol
+            This symbol contains the values of the
+            deliver action.
+        """
+        #deliver with 3 arguments
+        if len(value.arguments) > 2:
+            try:
+                if self._carries is not None:
+                    self._carries.remove_product(value.arguments[1], value.arguments[2].number)
+                order = self._model.filter_items(item_kind = 'order', 
+                            ID = value.arguments[0], 
+                            return_first = True)[0]
+                if order is None:
+                    return -2
+                order.deliver(value.arguments[1], value.arguments[2].number, time_step)
+                self._state = self._state | VIZ_STATE_DELIVERED
+            except:
+                return -3
+            return 4
+
+        #deliver with 2 arguments
+        elif len(value.arguments) > 1:
+            try:
+                if self._carries is not None:
+                    self._carries.remove_product(value.arguments[1], 0)
+                order = self._model.filter_items(item_kind = 'order', 
+                            ID = value.arguments[0], 
+                            return_first = True)[0]
+                if order is None:
+                    return -2
+                order.deliver(value.arguments[1], 0, time_step)
+                self._state = self._state | VIZ_STATE_DELIVERED
+            except:
+                return -3
+            return 5
+        return 0
+
+    def _undo_deliver(self, action, value, time_step):
+        """
+        Performs the given deliver action backwards.
+
+        Parameters:
+        action: clingo.Symbol
+            This symbol contains the name of the action.
+        value: clingo.Symbol
+            This symbol contains the values of the
+            deliver action.
+        """
+
+        #deliver with 3 arguments
+        if len(value.arguments) > 2:
+            try:
+                if self._carries is not None:
+                    self._carries.remove_product(value.arguments[1], -value.arguments[2].number)
+                order = self._model.filter_items(item_kind = 'order', 
+                            ID = value.arguments[0], 
+                            return_first = True)[0]
+                if order is None:
+                    return -2
+                order.deliver(value.arguments[1], -value.arguments[2].number, time_step)
+                self._state = self._state | VIZ_STATE_DELIVERED
+            except:
+                return -3
+            return 4
+
+        #deliver with 2 arguments
+        elif len(value.arguments) > 1:
+            try:
+                if self._carries is not None:
+                    self._carries.remove_product(value.arguments[1], 0)
+                order = self._model.filter_items(item_kind = 'order', 
+                            ID = value.arguments[0], 
+                            return_first = True)[0]
+                if order is None:
+                    return -2
+                order.deliver(value.arguments[1], 0, time_step)
+                self._state = self._state | VIZ_STATE_DELIVERED
+            except:
+                return -3
+            return 5
+        return 0
 
     def do_action(self, time_step):
         """
@@ -1314,6 +1522,14 @@ class Robot(VisualizerGraphicItem):
                 self._energy_costs[action.name] = None
 
         #do actions
+        #do deliveries
+        if time_step in self._parallel_delivers:
+            for action2 in self._parallel_delivers[time_step]:
+                self._do_deliver(
+                    action2.arguments[0], 
+                    action2.arguments[1], 
+                    time_step)
+
         #move
         if action.name == 'move':
             if len(value.arguments) != 2: 
@@ -1354,37 +1570,10 @@ class Robot(VisualizerGraphicItem):
             self._state = self._state | VIZ_STATE_PUT_DOWN
             return 3
 
-        #deliver with 3 arguments
-        elif action.name == 'deliver' and len(value.arguments) > 2:
-            try:
-                if self._carries is not None:
-                    self._carries.remove_product(value.arguments[1], value.arguments[2].number)
-                order = self._model.filter_items(item_kind = 'order', 
-                            ID = value.arguments[0], 
-                            return_first = True)[0]
-                if order is None:
-                    return -2
-                order.deliver(value.arguments[1], value.arguments[2].number, time_step)
-                self._state = self._state | VIZ_STATE_DELIVERED
-            except:
-                return -3
+        #deliver
+        elif action.name == 'deliver':
+            self._do_deliver(action, value, time_step)
             return 4
-
-        #deliver with 2 arguments
-        elif action.name == 'deliver' and len(value.arguments) > 1:
-            try:
-                if self._carries is not None:
-                    self._carries.remove_product(value.arguments[1], 0)
-                order = self._model.filter_items(item_kind = 'order', 
-                            ID = value.arguments[0], 
-                            return_first = True)[0]
-                if order is None:
-                    return -2
-                order.deliver(value.arguments[1], 0, time_step)
-                self._state = self._state | VIZ_STATE_DELIVERED
-            except:
-                return -3
-            return 5
 
         #charge
         elif action.name == 'charge':
@@ -1428,6 +1617,14 @@ class Robot(VisualizerGraphicItem):
                 self._energy_costs[action.name] = None
 
         #undo actions
+        #undo deliveries
+        if time_step in self._parallel_delivers:
+            for action2 in self._parallel_delivers[time_step]:
+                self._undo_deliver(
+                    action2.arguments[0], 
+                    action2.arguments[1], 
+                    time_step)
+
         #move
         if action.name == 'move':
             if len(value.arguments) != 2: 
@@ -1471,37 +1668,11 @@ class Robot(VisualizerGraphicItem):
             self._state = self._state | VIZ_STATE_PICK_UP
             return 2
 
-        #deliver with 3 arguments
-        elif action.name == 'deliver' and len(value.arguments) > 2:
-            try:
-                if self._carries is not None:
-                    self._carries.remove_product(value.arguments[1], -value.arguments[2].number)
-                order = self._model.filter_items(item_kind = 'order',
-                            ID = value.arguments[0],
-                            return_first = True)[0]
-                if order is None:
-                    return -2
-                order.deliver(value.arguments[1], -value.arguments[2].number, time_step)
-                self._state = self._state | VIZ_STATE_DELIVER
-            except:
-                return -3
+        #deliver
+        elif action.name == 'deliver':
+            self._undo_deliver(action, value, time_step)
             return 4
-
-        #deliver with 2 arguments
-        elif action.name == 'deliver' and len(value.arguments) > 1:
-            try:
-                if self._carries is not None:
-                    self._carries.remove_product(value.arguments[1], 0)
-                order = self._model.filter_items(item_kind = 'order', 
-                            ID = value.arguments[0], 
-                            return_first = True)[0]
-                if order is None:
-                    return -2
-                order.deliver(value.arguments[1], 0, time_step)
-                self._state = self._state | VIZ_STATE_DELIVER
-            except:
-                return -3
-            return 5
+            
 
         #charge
         elif action.name == 'charge':
@@ -1736,7 +1907,7 @@ class Checkpoint(VisualizerGraphicItem):
             This is the name of the value.
         value: clingo.Symbol
             This is the actual value. It contains the [value]
-            part of the phrase.        
+            part of the phrase.
 
         Returns 1 if the phrase cannot be parsed, -1 if one parameter is
         invalid and 0 if the function succeeded.   
