@@ -14,10 +14,12 @@ This is the user manual of the instance and plan visualizer of [ASPRILO](index.m
 # Installation
 It is recommended to install the visualizer with anaconda. First download and install Anaconda from [www.anaconda.com/download](https://www.anaconda.com/download). Then add the potassco channel to your `Anaconda` enviroment:  
 `conda config --add channels potassco`  
+The latest version also requires the 'dev' channel from potassco:  
+`conda config --add channels potassco/label/dev`  
 Now you can download and install the visualizer with the conda command:  
 `conda install asprilo-visualizer`  
 You can also install the visualizer without adding channels to your configuration by using just the command:  
-`conda install asprilo-visualizer -c potassco`.
+`conda install asprilo-visualizer -c potassco -c potassco/label/dev`.  
 Anaconda should install all requirements by itself. Use `viz` to run the visualizer.  
 
 You can install the visualizer manually by downloading its source code from [https://github.com/potassco/asprilo](https://github.com/potassco/asprilo). But you must install all requirements by yourself. There is no support for this variant.
