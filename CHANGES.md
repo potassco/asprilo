@@ -18,6 +18,8 @@
     - Added energy overview to the robots table
     - Added energy display to the model view
     - Updated visualizer for noarch conda version
+    - Delivery actions can now be performed simultaneously to other actions
+    - Multiple delivery actions can now be performed at one time step by one agent
 -   Misc:
     - Todo
 
