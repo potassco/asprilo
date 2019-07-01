@@ -391,11 +391,11 @@ is an instance where
 
 Instead of running the instance generator with a single configuration of parameters from the command
 line, there is also support for batch generation based on a range of different configurations: batch
-files are defined in ![YAML](yaml.org) syntax, for example the batch
+files are defined in [YAML](yaml.org) syntax, for example the batch
 files
 
-- [`./generator/scripts/batch/abc/structured.yml`](../generator/scripts/batch/abc/structured.yml) and
-- [`./generator/scripts/batch/abc/random.yml`](../generator/scripts/batch/abc/random.yml)
+- [`./generator/scripts/batch/abc/structured.yml`]({{ site.asprilo_src_url }}/generator/scripts/batch/abc/structured.yml) and
+- [`./generator/scripts/batch/abc/random.yml`]({{ site.asprilo_src_url }}/generator/scripts/batch/abc/random.yml)
 
 describe a set of structured and random instances, respectively, suited for domain A-C. The generator can process them via the `--batch` command line option, e.g.
 
