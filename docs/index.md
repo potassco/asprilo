@@ -6,7 +6,6 @@ output:
         toc: true
         toc_depth: 3
         toc_float: true
-asprilourl: "https://asprilo.github.io"
 ---
 
 # What is *asprilo*?
@@ -48,6 +47,6 @@ Information about our conducted experiments with asprilo can be found [here](exp
 
 # Publications
 
-- Gebser, M., Obermeier, P., Otto, T., Schaub, T., Sabuncu, O., Nguyen, V., & Son, T. C. (2018). [Experimenting with robotic intra-logistics domains]({{ site.publicationurl }}//#DBLP:journals/corr/abs-1804-10247). *CoRR*, abs/1804.10247. [[Experiments]({{ page.asprilourl }}/experiments/#evaluation-2018-02)]
-- Gebser, M., Obermeier, P., Otto, T., Schaub, T., Sabuncu, O., Nguyen, V., & Son, T. C. (2018). [Experimenting with robotic intra-logistics domains]({{ site.publicationurl }}//#DBLP:journals/tplp/GebserOOS18). *TPLP*, 18(3-4), 502–519. [[Experiments]({{ page.asprilourl }}/experiments/#evaluation-2018-02)]
+- Gebser, M., Obermeier, P., Otto, T., Schaub, T., Sabuncu, O., Nguyen, V., & Son, T. C. (2018). [Experimenting with robotic intra-logistics domains]({{ site.publicationurl }}//#DBLP:journals/corr/abs-1804-10247). *CoRR*, abs/1804.10247. [[Experiments]({{ site.page.asprilo_web_url }}/experiments/#evaluation-2018-02)]
+- Gebser, M., Obermeier, P., Otto, T., Schaub, T., Sabuncu, O., Nguyen, V., & Son, T. C. (2018). [Experimenting with robotic intra-logistics domains]({{ site.publicationurl }}//#DBLP:journals/tplp/GebserOOS18). *TPLP*, 18(3-4), 502–519. [[Experiments]({{ site.page.asprilo_web_url }}/experiments/#evaluation-2018-02)]
 - Nguyen, V., Obermeier, P., Son, T. C., Schaub, T., & Yeoh, W. (2017). [Generalized Target Assignment and Path Finding Using Answer Set Programming]({{ site.publicationurl }}//#DBLP:conf/ijcai/NguyenOSS017). In *IJCAI* (pp. 1216–1223). ijcai.org.
