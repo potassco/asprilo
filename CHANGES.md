@@ -1,5 +1,65 @@
 # Changelog
 
+## Ongoing
+
+### Added
+
+### Changed
+
+### Fixed
+
+
+## 0.3.0
+
+### Added
+
+-   Docs:
+    - Add detailed documentation of experiments of ICLP'18 paper
+    - Add scientific publications to index page
+    - Exhaustively update visualizer page
+-   Generator:
+    - Add aspif output for debugging
+    - Add provenance (original cli invocation) to generated instances
+    - Add the number of order lines to instance file names
+-   Visualizer:
+    - Table with detailed robot information
+    - Highlighting for selected robots
+    - Add ability for robot path drawing
+    - Add energy management for robots
+    - Add energy overview to the robots table
+    - Add energy display to the model view
+    - Update visualizer for noarch conda version
+    - Delivery actions can now be performed simultaneously to other actions
+    - Multiple delivery actions can now be performed at one time step by one agent
+
+### Changed
+
+-   Generator:
+    - Update to python 3
+    - Make compatible with/require cingo>=5.4.0
+    - Simplify generator code
+    - Use conda as recommended installation method
+-   Visualizer:
+    - Update to python 3
+    - Make compatible with/require clingo>=5.4.0
+    - Windows can now be dragged and dropped
+    - Update solver and simulator script
+    - Performance improvements
+    - Use conda as recommended installation method
+-   Misc:
+    - Added conda recipes for both visualizer and generator to potassco's recipes repo at <https://github.com/potassco/conda/tree/master/asprilo>
+
+### Fixed
+
+-   Docs:
+    - Fix several formatting and linking issues, also wrt jekyll/gh-phages
+-   Checker:
+    - Fix issues #25, #26
+-   Generator:
+    - Fix various bugs
+-   Visualizer:
+    - Fix various bugs
+
 
 ## 0.2.0
 

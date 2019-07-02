@@ -1,4 +1,4 @@
-from ConfigParser import *
+from configparser import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -39,6 +39,8 @@ class Configuration(object):
                         ('color', 'color_shelf2') : ConfigEntry(self._read_hex_from_config, 0xff0000, hex, 'color carried shelf'),
                         ('color', 'color_pickingstation0') : ConfigEntry(self._read_hex_from_config, 0xffff00, hex, 'color picking station 1'),
                         ('color', 'color_pickingstation1') : ConfigEntry(self._read_hex_from_config, 0xffffff, hex, 'color picking station 2'),
+                        ('color', 'color_chargingstation0') : ConfigEntry(self._read_hex_from_config, 0x202020, hex, 'color charging station 1'),
+                        ('color', 'color_chargingstation1') : ConfigEntry(self._read_hex_from_config, 0xff2020, hex, 'color charging station 2'),
                         ('color', 'color_checkpoint0') : ConfigEntry(self._read_hex_from_config, 0x006400, hex, 'color checkpoint 1'),
                         ('color', 'color_checkpoint1') : ConfigEntry(self._read_hex_from_config, 0x006464, hex, 'color checkpoint 2'),
                         ('color', 'color_checkpoint2') : ConfigEntry(self._read_hex_from_config, 0x646464, hex, 'color checkpoint 3'),
@@ -55,10 +57,10 @@ class Configuration(object):
                         ('network', 'port_simulator') : ConfigEntry(self._read_str_from_config, '5001', str, 'simulator port'),
                         ('network', 'host_simulator') : ConfigEntry(self._read_str_from_config, '127.0.0.1', str, 'simulator host'),
                         ('network', 'command_line_solver') : ConfigEntry(self._read_str_from_config, 
-                                                                            '__dir__/solver_inc.py --port 5000', str,
+                                                                            'viz-solver --port 5000 -m default -e ./encoding.lp', str,
                                                                             'solver command line'),
                         ('network', 'command_line_simulator') : ConfigEntry(self._read_str_from_config,
-                                                                                '__dir__/simulator.py --port 5001', str,
+                                                                                'viz-simulator --port 5001 -t ./instance.lp', str,
                                                                                 'simulator command line'),
                         ('visualizer', 'step_time') : ConfigEntry(self._read_int_from_config, 1200, str, 'step time'),
                         ('visualizer', 'auto_solve') : ConfigEntry(self._read_bool_from_config, False, str, 'auto solving'),
@@ -76,8 +78,6 @@ class Configuration(object):
         self.read_file()
 
     def read_file(self):
-        if not os.path.isdir(os.path.dirname(sys.argv[0]) + '/config'):
-            os.makedirs(os.path.dirname(sys.argv[0]) + '/config')
         for key in self._values:
             if not self._config_parser.has_section(key[0]):
                 self._config_parser.add_section(key[0])
@@ -86,7 +86,7 @@ class Configuration(object):
                                     value.to_string(value.default_value))
         if self._file_name is not None:
             self._config_parser.read(self._file_name)
-            with open(self._file_name, 'wb') as configfile:
+            with open(self._file_name, 'w') as configfile:
                 self._config_parser.write(configfile)
         self.read_values()
 
@@ -96,8 +96,8 @@ class Configuration(object):
     def set_value(self, section, option, value):
         try:
             self._config_parser.set(section, option, value)
-            value = self._values[(section.lower(), option.lower())]
-            value.current_value = value
+            value2 = self._values[(section.lower(), option.lower())]
+            value2.current_value = value
             return 0
         except:
             return -1
@@ -211,9 +211,9 @@ class Configuration(object):
         for section in self._config_parser.sections():
             for option in sorted(self._config_parser.options(section)):
                 if (section, option) in self._values:
-                    self._config_parser.set(section, option, it.next().text())
+                    self._config_parser.set(section, option, next(it).text())
   
-        with open(self._file_name, 'wb') as configfile:
+        with open(self._file_name, 'w') as configfile:
             self._config_parser.write(configfile)
         self.read_values()
         self._widget.hide()
@@ -246,6 +246,7 @@ class LLConfiguration(Configuration):
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, True, str, 'products'),
                         ('features', 'tasks') : ConfigEntry(self._read_bool_from_config, True, str, 'tasks'),
                         ('features', 'debug') : ConfigEntry(self._read_bool_from_config, False, str, 'debug'),
+                        ('features', 'domainc') : ConfigEntry(self._read_bool_from_config, False, str, 'domainc'),
                         ('features', 'load_files') : ConfigEntry(self._read_str_from_config, '', str, 'load files'),
                         }
         elif args.mode == 'asprilo':
@@ -255,6 +256,7 @@ class LLConfiguration(Configuration):
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, True, str, 'products'),
                         ('features', 'tasks') : ConfigEntry(self._read_bool_from_config, False, str, 'tasks'),
                         ('features', 'debug') : ConfigEntry(self._read_bool_from_config, False, str, 'debug'),
+                        ('features', 'domainc') : ConfigEntry(self._read_bool_from_config, False, str, 'domainc'),
                         ('features', 'load_files') : ConfigEntry(self._read_str_from_config, '', str, 'load files'),
                         }
         elif args.mode == 'gtapf':
@@ -264,13 +266,14 @@ class LLConfiguration(Configuration):
                         ('features', 'products') : ConfigEntry(self._read_bool_from_config, False, str, 'products'),
                         ('features', 'tasks') : ConfigEntry(self._read_bool_from_config, True, str, 'tasks'),
                         ('features', 'debug') : ConfigEntry(self._read_bool_from_config, False, str, 'debug'),
+                        ('features', 'domainc') : ConfigEntry(self._read_bool_from_config, False, str, 'domainc'),
                         ('features', 'load_files') : ConfigEntry(self._read_str_from_config,
-                                                            os.path.dirname(sys.argv[0]) +  '/encodings/converter.lp',
+                                                            os.path.dirname(os.path.realpath(sys.argv[0])) +  '/encodings/converter.lp',
                                                             str, 'load files'),
                         }
-        elif args.debug:
-            self.set_value('features', 'debug', True)
         self.read_file()
+        self.set_value('features', 'debug', args.debug)
+        self.set_value('features', 'domainc', args.domainc)
 
 config = Configuration()
 ll_config = LLConfiguration()

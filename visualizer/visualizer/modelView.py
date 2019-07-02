@@ -1,8 +1,8 @@
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from configuration import *
-from model import *
+from .configuration import *
+from .model import *
     
 class MainScene(QGraphicsScene):
     def __init__(self):
@@ -30,6 +30,10 @@ class ModelView(QGraphicsView):
         self._display_mode = 0
         self._scaling = 1.0
         self._zoom = (1.0, 1.0)
+
+        self._grid_size_x = 1
+        self._grid_size_Y = 1
+        self._lines = []
 
         self._items_in_scene = []
 
@@ -152,6 +156,20 @@ class ModelView(QGraphicsView):
             action.triggered.connect(lambda: self._add_item('pickingStation', x, y))
             self._menu.addAction(action)           
 
+        station2 = self._model.filter_items('chargingStation', position = (x,y), return_first = True)[0]
+        if station is not None:
+            action = QAction('remove charging station', self)
+            action.setShortcut('Ctrl + B')
+            action.setStatusTip('Removes a charging station from the selected node')
+            action.triggered.connect(lambda: self._remove_item(station))
+            self._menu.addAction(action)
+        elif self._model.is_node(x,y):
+            action = QAction('add charging station', self)
+            action.setShortcut('Ctrl + B')
+            action.setStatusTip('Adds a charging Station to the selected node')
+            action.triggered.connect(lambda: self._add_item('chargingStation', x, y))
+            self._menu.addAction(action)
+
         self._menu.popup(QPoint(event.x(),event.y()))
 
     def mousePressEvent(self, event):
@@ -221,16 +239,16 @@ class ModelView(QGraphicsView):
 
     def start_timer(self):
         self.stop_timer()
+        self._timer = QTimer()
+        self._timer.timeout.connect(lambda: self.update_model(False))
         self.adjust_timer()
 
     def adjust_timer(self):
-        if self._timer is None:
-            self._timer = QTimer()
-            self._timer.timeout.connect(lambda: self.update_model(False))
         timeout = (config.get('visualizer', 'step_time') / 10) * self._timer_scale
         if timeout < 10:
             timeout = 10
-        self._timer.start(timeout)
+        if self._timer is not None:
+            self._timer.start(timeout)
 
     def switch_timer(self):
         if self._timer is None:
@@ -324,6 +342,10 @@ class ModelView(QGraphicsView):
         self._scene.setSceneRect(0, 0, self._line_hlength, self._line_vlength*1)
 
     def clear(self):
+        for line in self._lines:
+            self._scene.removeItem(line)
+        self._lines = []
+
         for item in self._items_in_scene:
             self._scene.removeItem(item)
         self._items_in_scene = []
@@ -335,7 +357,7 @@ class ModelView(QGraphicsView):
         self._line_vlength = (self._h_distance) * self._model.get_grid_size()[1] + self._border_size
 
         for item_dic in self._model.iterate_graphic_dictionaries():
-            for item in item_dic.itervalues():
+            for item in item_dic.values():
                 color_id = 0
                 hex_color = config.get('color', 'color_' + item.get_kind_name() + str(color_id))
                 while(hex_color is not None):
@@ -355,14 +377,14 @@ class ModelView(QGraphicsView):
             line = self._scene.addLine(0, i * self._h_distance*self._scaling,
                                         self._line_hlength*self._scaling - self._border_size,
                                         i *(self._h_distance*self._scaling), pen)
-            self._items_in_scene.append(line)
+            self._lines.append(line)
 
         #draw horizontal lines
         for i in range(0,self._model.get_grid_size()[0] + 1):
             line = self._scene.addLine(i * self._w_distance*self._scaling, 
                                         0, i * (self._w_distance*self._scaling), 
                                         self._line_vlength*self._scaling - self._border_size, pen)
-            self._items_in_scene.append(line)
+            self._lines.append(line)
 
         #draw disabled nodes
         for node in self._model.get_blocked_nodes():
@@ -390,7 +412,7 @@ class ModelView(QGraphicsView):
         for item_dic in self._model.iterate_graphic_dictionaries():
             count = len(item_dic)
             number = 1
-            for item in item_dic.itervalues():
+            for item in item_dic.values():
                 item.set_display_mode(self._display_mode)
                 x_pos = item.get_position()[0] - 1
                 y_pos = item.get_position()[1] - 1
@@ -409,6 +431,35 @@ class ModelView(QGraphicsView):
                                 self._w_distance*self._scaling - self._border_size*self._scaling,
                                 self._h_distance*self._scaling - self._border_size*self._scaling))
                 item.determine_color(number, count)
+
+                #draw path
+                if item.get_draw_path():
+                    x_pos = item.get_position()[0]
+                    y_pos = item.get_position()[1]
+                    pen = QPen(item.get_color())
+                    pen.setWidth(self._border_size)
+                    if number % 4 == 0:
+                        pen.setStyle(Qt.DashLine)
+                    elif number % 3 == 0:
+                        pen.setStyle(Qt.DashDotLine)
+                    elif number % 2 == 0:
+                        pen.setStyle(Qt.DashDotLine)                    
+                    cc = self._model.get_current_step()
+                    while(cc <= self._model.get_num_steps()):
+                        action = item.get_action(cc)
+                        cc = cc + 1
+                        if action is not None:
+                            if action.arguments[0].name == 'move':
+                                action_value = action.arguments[1]
+
+                                x_posf = (x_pos-0.5)*self._w_distance*self._scaling
+                                y_posf = (y_pos-0.5)*self._h_distance*self._scaling
+                                x2_posf = (x_pos+action_value.arguments[0].number-0.5)*self._w_distance*self._scaling
+                                y2_posf = (y_pos+action_value.arguments[1].number-0.5)*self._h_distance*self._scaling
+                                x_pos = x_pos + action_value.arguments[0].number
+                                y_pos = y_pos + action_value.arguments[1].number
+                                line = self._scene.addLine(x_posf, y_posf, x2_posf, y2_posf, pen)
+                                self._items_in_scene.append(line)
 
                 self._scene.addItem(item)
                 self._items_in_scene.append(item)

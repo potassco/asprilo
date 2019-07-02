@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Instance Generator Core."""
-from __future__ import absolute_import
+
 import os
 import logging
 import math
 import copy
 import glob
-from generator.utils.aux import clone_args
+from generator.utils.auxiliary import clone_args
 from generator.generator import BasicGenerator, InstanceGenerator
 
 import clingo
@@ -48,7 +48,7 @@ class SplitGenerator(InstanceGenerator):
         dest_dirs = gen_func()[1]
 
         # orders instances and merge
-        for winst in xrange(1, num_wh_inst+1):
+        for winst in range(1, num_wh_inst+1):
 
             # orders only
             self._args_dict.clear()
@@ -67,7 +67,7 @@ class SplitGenerator(InstanceGenerator):
             gen_func()
 
             # merge
-            for oinst in xrange(1, len(glob.glob(dest_dirs[winst-1] + '/orders/*.lp')) + 1):
+            for oinst in range(1, len(glob.glob(dest_dirs[winst-1] + '/orders/*.lp')) + 1):
                 self._args_dict.clear()
                 self._args_dict.update(copy.deepcopy(args_dict_bak))
                 path_to_order_file = glob.glob(dest_dirs[winst-1] +

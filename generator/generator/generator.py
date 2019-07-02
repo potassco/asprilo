@@ -3,11 +3,14 @@
 """Instance Generator Core."""
 
 import os
+import sys
 import signal
 import logging
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
 import clingo
-from observer import Observer
+from .observer import Observer
+from .aspif import AspifObserver
 
 LOG = logging.getLogger('custom')
 
@@ -34,6 +37,7 @@ class BasicGenerator(InstanceGenerator):
         super(BasicGenerator, self).__init__(conf_args)
         self._prg = None
         self._observer = Observer()
+        self._aspif_obs = AspifObserver()
         self._solve_opts = ["-t {0}".format(self._args.threads),
                             "--project",
                             # "--opt-mode=optN",
@@ -71,13 +75,13 @@ class BasicGenerator(InstanceGenerator):
         for atm in [atm for atm in atoms_list if atm.name == "init"]:
             self._inits.append(atm)
         self._update_object_counter(atoms_list)
-        LOG.info("Stats: %s", {k: int(v) for k, v in self._object_counters.items()})
+        LOG.info("Stats: %s", {k: int(v) for k, v in list(self._object_counters.items())})
         self._save()
 
     def _update_object_counter(self, atoms_list):
         '''Count objects in atom list.'''
         self._object_counters = {"x" : 0, "y" : 0, "node" : 0, "highway" :0, "robot" : 0, "shelf" :
-                                 0, "pickingStation" : 0, "product" : 0, "order" : 0, "units" : 0}
+                                 0, "pickingStation" : 0, "product" : 0, "unit" : 0, "order" : 0, "line" : 0}
         objects = []
         for atm in [atm for atm in atoms_list if atm.name == "init"]:
             args = atm.arguments
@@ -103,8 +107,10 @@ class BasicGenerator(InstanceGenerator):
                     value_type = args[1].arguments[0].name
                     value_value = args[1].arguments[1]
                     if value_type == "on" and len(value_value.arguments) == 2:
-                        self._object_counters["units"] = (self._object_counters["units"] +
-                                                          value_value.arguments[1].number)
+                        self._object_counters["unit"] = (self._object_counters["unit"] +
+                                                         value_value.arguments[1].number)
+                if object_name == "order" and args[1].arguments[0].name == 'line':
+                    self._object_counters["line"] += 1
 
     def generate(self):
         """Regular instance generation.
@@ -130,18 +136,17 @@ class BasicGenerator(InstanceGenerator):
 
         signal.signal(signal.SIGINT, sig_handler)
         signal.signal(signal.SIGALRM, sig_handler)
-        igen = BasicGenerator(self._args)
         try:
             signal.alarm(self._args.wait)
-            instances = igen._solve()
-            return instances, igen.dest_dirs
+            instances = self._solve()
+            return instances, self.dest_dirs
         except Exception as exc:
             if sig_handled[0]:
                 pass
             else:
                 LOG.error("%s: %s", type(exc).__name__, exc)
         finally:
-            igen.interrupt()
+            self.interrupt()
 
     def _solve(self):
         """Grounds and solves the relevant programs for instance generation."""
@@ -152,9 +157,11 @@ class BasicGenerator(InstanceGenerator):
         # Register ground program observer to analyze grounding size impact per program parts
         self._prg.register_observer(self._observer)
 
+        # Register ground program observer for aspif output of current ground program
+        self._prg.register_observer(self._aspif_obs)
+
         # Problem encoding
-        self._prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                    '../encodings/ig.lp'))
+        self._prg.load(os.path.join(self._args.enc_dir, 'ig.lp'))
 
         # Templates
         for template in self._args.template:
@@ -285,6 +292,9 @@ class BasicGenerator(InstanceGenerator):
         else:
             self._ground([("project_all", [])])
 
+        if self._args.aspif:
+            self._print_aspif("AFTER GROUNDING, BEFORE CONCLUDING SOLVE CALL", self._args.aspif)
+
         LOG.info("Solving...")
 
         # solve_future = self._prg.solve_async(self._on_model)
@@ -304,10 +314,12 @@ class BasicGenerator(InstanceGenerator):
         LOG.info("Solve result: %s", str(solve_result))
         LOG.info("Search finished: %s", str(not solve_result.interrupted))
         LOG.info("Search space exhausted: %s", str(solve_result.exhausted))
-        LOG.debug("Statistics: %s", self._prg.statistics)
+        import json
+        LOG.debug("Statistics: %s", json.dumps(self._prg.statistics, sort_keys=True, indent=4,
+                                               separators=(',', ': ')))
 
         if self._args.grounding_stats:
-            self._get_grounding_stats("AFTER CONCLUDING SOLVE CALL", self._args.grounding_stats)
+            self._print_grounding_stats("AFTER CONCLUDING SOLVE CALL", self._args.grounding_stats)
 
         return self._instances
 
@@ -332,8 +344,9 @@ class BasicGenerator(InstanceGenerator):
                                     "s" + str(self._object_counters["shelf"]),
                                     "ps" + str(self._object_counters["pickingStation"]),
                                     "pr" + str(self._object_counters["product"]),
-                                    "u" + str(self._object_counters["units"]),
+                                    "u" + str(self._object_counters["unit"]),
                                     "o" + str(self._object_counters["order"]),
+                                    "l" + str(self._object_counters["line"]),
                                     "N" + str(instance_count).zfill(3)]))
             if self._args.instance_dir:
                 dir_suffix = local_name
@@ -348,7 +361,12 @@ class BasicGenerator(InstanceGenerator):
             file_name = (dest_dir + "/" + local_name + ".lp")
 
         # Instance preamble
-        instance = ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n"
+        instance = ("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n"
+                    "%\n"
+                    "% = Command-line Arguments =================================\n"
+                    "% {}\n"
+                    "%\n"
+                    "% = Instance Statistics ====================================\n"
                     "% Grid Size X:                      {}\n"
                     "% Grid Size Y:                      {}\n"
                     "% Number of Nodes:                  {}\n"
@@ -359,8 +377,11 @@ class BasicGenerator(InstanceGenerator):
                     "% Number of Products:               {}\n"
                     "% Number of Product Units in Total: {}\n"
                     "% Number of Orders:                 {}\n"
+                    "% Number of Orders Lines:           {}\n"
+                    "%\n"
                     "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n")
-        instance = instance.format(str(self._object_counters["x"]),
+        instance = instance.format(" ".join(sys.argv[1:]),
+                                   str(self._object_counters["x"]),
                                    str(self._object_counters["y"]),
                                    str(self._object_counters["node"]),
                                    str(self._object_counters["highway"]),
@@ -368,8 +389,9 @@ class BasicGenerator(InstanceGenerator):
                                    str(self._object_counters["shelf"]),
                                    str(self._object_counters["pickingStation"]),
                                    str(self._object_counters["product"]),
-                                   str(self._object_counters["units"]),
-                                   str(self._object_counters["order"]))
+                                   str(self._object_counters["unit"]),
+                                   str(self._object_counters["order"]),
+                                   str(self._object_counters["line"]))
 
         # Instance facts
         instance += ("#program base.\n\n"
@@ -397,17 +419,15 @@ class BasicGenerator(InstanceGenerator):
             description = 'parts: ' + str(parts)
             if context:
                 description += '| context: ' + str(context)
-            self._get_grounding_stats(description, self._args.grounding_stats)
+            self._print_grounding_stats(description, self._args.grounding_stats)
 
-
-    def _get_grounding_stats(self, description=None, show='stats'):
-        """Returns grounding size statistics for current ASP program."""
+    def _print_grounding_stats(self, description=None, show='stats'):
+        """Prints the grounding size statistics for current ASP program."""
         self._prg.ground([("project_all", [])])
         self._prg.solve()
         ctx = self._observer.finalize()
         prg = clingo.Control()
-        prg.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                              '../encodings/grnd_stats.lp'))
+        prg.load(os.path.join(self._args.enc_dir, 'grnd_stats.lp'))
         if show == 'stats':
             prg.add('base', [], '#show stats/2. #show stats_total/1.')
         elif show == 'atoms':
@@ -422,3 +442,29 @@ class BasicGenerator(InstanceGenerator):
                      description,
                      ", ".join([str(sym) for sym in model.symbols(shown=True)]))
         prg.solve(on_model=__on_model)
+
+    def _print_aspif(self, description=None, output='print', dump_dir='./_aspif'):
+        """Prints the aspif program of the current clingo.Control object stored in self._prg."""
+        self._prg.solve()
+        ctx = self._aspif_obs.finalize()
+        aspif = 'asp 1 0 0\n'
+        for stype, statements in list(ctx.get().items()):
+            for stm in statements:
+                aspif += str(stype) + ' ' + ' '.join([str(sym) for sym in stm]) + '\n'
+        aspif += '0'
+        if output == 'print':
+            LOG.info(("ASPIF output of current program %s:\n"
+                      "%s\n"),
+                     description,
+                     aspif)
+        elif output == 'dump':
+            try:
+                os.makedirs(dump_dir)
+            except OSError:
+                if not os.path.isdir(dump_dir):
+                    raise
+            now = datetime.now().strftime("%H:%M:%S.%f")
+            with open('{}/dump_{}'.format(dump_dir, now), 'w') as wfile:
+                wfile.write(aspif)
+        else:
+            raise ValueError("Unsupported aspif output option \'{}\'".format(output))

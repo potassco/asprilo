@@ -1,6 +1,6 @@
 ---
-layout: default
-title: checker
+layout: page
+title: Checker
 output:
     html_document:
         toc: true

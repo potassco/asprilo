@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Instance Visualizer solver Script."""
+
+import sys
+import os
+
+# Add visualizer module path to sys.path
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+
+import visualizer.simulator
+
+#main
+def main():
+    visualizer.solver.main()
+
+if __name__ == '__main__':
+    main()

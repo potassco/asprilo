@@ -4,6 +4,7 @@ import select
 import time
 import os
 import clingo
+import argparse
 from PyQt5.QtCore import *
 
 class VisualizerSocket(object):
@@ -52,7 +53,7 @@ class VisualizerSocket(object):
         if port is not None:
             self._port = port
         self.close()
-        print 'Try connection with '+ self._socket_name
+        print('Try connection with '+ self._socket_name)
         self._s = socket.socket()
         connected = False
         tryCount = 0
@@ -63,13 +64,13 @@ class VisualizerSocket(object):
                 connected = True
             except(socket.error):
                 if tryCount >= 5: 
-                    print 'Failed to connect with ' + self._socket_name
+                    print('Failed to connect with ' + self._socket_name)
                     self.close()
                     return -1 
-                print 'Failed to connect with ' + self._socket_name + ' \nRetrying in 2 sek'
+                print('Failed to connect with ' + self._socket_name + ' \nRetrying in 2 sek')
                 time.sleep(2)
             tryCount += 1
-        print 'Connect with '+ self._socket_name
+        print('Connect with '+ self._socket_name)
         return 0
 
     def send(self, msg):
@@ -77,13 +78,14 @@ class VisualizerSocket(object):
             return
         if msg == '':
             return
-        self._s.send(msg)
+        self._s.send(msg.encode('utf-8'))
+        pass
 
     def done_step(self, step):
         if self._s is None:
             return
         self._waiting = True
-        self._s.send('%$done(' + str(step) + ').\n')
+        self._s.send(('%$done(' + str(step) + ').\n').encode('utf-8'))
 
     def model_expanded(self, msg):
         pass
@@ -94,7 +96,7 @@ class VisualizerSocket(object):
         try:
             ready = select.select([self._s], [], [], 0.1)
             while (not breakLoop) and ready[0]:
-                new_data = self._s.recv(2048)
+                new_data = self._s.recv(2048).decode()
                 if not new_data.find('\n') == -1 or new_data == '':
                     breakLoop = True
                 data += new_data
@@ -102,7 +104,7 @@ class VisualizerSocket(object):
                 self.close()
                 return None
         except socket.error as err:
-            print err
+            print(err)
         return data
 
     def receive(self):
@@ -115,7 +117,7 @@ class VisualizerSocket(object):
         if self._timer is not None:
             self._timer.stop()
         if self._s is not None: 
-            print 'Close connection to ' + self._socket_name
+            print('Close connection to ' + self._socket_name)
             try:
                 self._s.shutdown(socket.SHUT_RDWR)
             except socket.error:
@@ -174,13 +176,13 @@ class SolverSocket(VisualizerSocket):
 
     def solve(self):
         if self._s == None or self._model == None: return -1
-        self._s.send('%$RESET.')
+        self._s.send('%$RESET.'.encode('utf-8'))
         self._model.set_editable(False)
         self._model.restart()
         for atom in self._model.to_init_str():        #send instance
             atom = atom.replace('\n', '')
-            self._s.send(str(atom))
-        self._s.send('\n')
+            self._s.send(str(atom).encode('utf-8'))
+        self._s.send('\n'.encode('utf-8'))
         self.run_connection()
 
     def run(self):

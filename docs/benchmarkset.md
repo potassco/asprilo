@@ -1,3 +1,13 @@
+---
+layout: page
+title: Benchmark Set
+output:
+    html_document:
+        toc: true
+        toc_depth: 3
+        toc_float: true
+---
+
 # About
 
 This is the description of the pre-generated benchmark instance sets for asprilo.
@@ -50,13 +60,13 @@ The instances are partitioned into two parts:
 -   `./abc`:
     - A structured instance set suited for domain A,B and C
     - Created by the [instance generator](generator.md) with batch file
-      [`./generator/scripts/batch/abc/structured.yml`](../generator/scripts/batch/abc/structured.yml)
+      [`./generator/scripts/batch/abc/structured.yml`]({{ site.asprilo_src_url }}/generator/scripts/batch/abc/structured.yml)
 
 -   `./moo`:
     - A structured instance set primarily designed for domain M but by definition also compatible
       with domain A, B, C
     - Created by the [instance generator](generator.md) with batch file
-      [`./generator/scripts/batch/moo/structured.yml`](../generator/scripts/batch/moo/structured.yml)
+      [`./generator/scripts/batch/moo/structured.yml`]({{ site.asprilo_src_url }}/generator/scripts/batch/moo/structured.yml)
 
 
 Further, we group instances into directories with naming convention `RxCxL` where
