@@ -13,7 +13,7 @@ import time
 from clingo.control import Control
 from clingo.symbol import Function, parse_term
 
-VERSION = '0.2.1'
+VERSION = '0.2.2'
 #default one shot solver
 class Solver(object):
     def __init__(self):
@@ -24,14 +24,26 @@ class Solver(object):
                             help='show the current version', action='version',
                             version=VERSION)
         self._parser.add_argument('-e', '--encoding',
-                            help='the name of the encoding the solver shall use to solve instances', 
+                            help='the name of the encoding the solver shall use to solve instances',
                             type = str, default = './encoding.lp')
         self._parser.add_argument('-m', '--mode',
-                            help='the mode that the solver should use to solve instances', 
+                            help='the mode that the solver should use to solve instances',
                             type = str, choices=['default', 'incremental', 'interactive', 'online'], default = 'default')
         self._parser.add_argument('-t', '--timeout',
-                            help='The maxmimal number of seconds the solver waits for a solution. 0 is no maximum.', 
+                            help='The maximal number of seconds the solver waits for a solution. 0 means no limit.',
                             type = int, default = 0)
+        self._parser.add_argument('-s', '--steps',
+                            help='The maximal number of steps the incremental solver searchs for a solution. 0 means no limit.',
+                            type = int, default = 0)
+        self._parser.add_argument('-a', '--atoms',
+                            help='Prints all output atoms to the default output channel.',
+                            action='store_true')
+        self._parser.add_argument('-o', '--occurs',
+                            help='Prints all output occurs atoms to the default output channel.',
+                            action='store_true')
+        self._parser.add_argument('-i', '--input',
+                            help='Prints all input atoms to the default output channel.',
+                            action='store_true')
         self._args = None
 
         #socket properties
@@ -107,7 +119,7 @@ class Solver(object):
 
     #checks whether data can be read from the socket
     def is_ready_to_read(self, time_out = 0.1):
-        if self._connection is None: 
+        if self._connection is None:
             return False
         ready = select.select([self._connection], [], [], time_out)
         if ready[0]:
@@ -157,6 +169,8 @@ class Solver(object):
         for atom in data:
             if len(atom) > 0:
                 if not (len(atom) == 1 and atom[0] == '\n'):    #the split function returns the string "\n" as last string which should not be processed
+                    if self._args.input:
+                        print(atom)
                     if atom[0] == '%' and atom[1] == '$':       #strings that begin with '%$' are control symbols and are handles by the on_control_symbol function
                         atom = atom[2 :].lower()
                         self.on_control_symbol(parse_term(atom))
@@ -236,18 +250,24 @@ class Solver(object):
         #append all occurs atoms to the self._to_send dictonary
         #Note: all atoms are added to the key 0 to send all atoms immeditly after solving
         #this is different in the interactive variant
-        for atom in model.symbols(atoms=True):
-            if (atom.name == 'occurs' 
-                and len(atom.arguments) == 3 
-                and atom.arguments[0].name == 'object' 
+        symbols = model.symbols(shown=True)
+        if len(symbols) == 0:
+            symbols = model.symbols(atoms=True)
+        for atom in symbols:
+            if self._args.atoms:
+                print(atom)
+            if (atom.name == 'occurs'
+                and len(atom.arguments) == 3
+                and atom.arguments[0].name == 'object'
                 and atom.arguments[1].name == 'action'):
-
+                if self._args.occurs:
+                    print(atom)
                 self._to_send[0].append(atom)
         return True
 
     #solver main function
     def run(self):
-        print('Start ' + self._name) 
+        print('Start ' + self._name)
         self.connect()
         #loop to receive data
         while(True):
@@ -263,18 +283,22 @@ class SolverInc(Solver):
     def solve(self):
         #loads the given encoding
         self._control.load(self._args.encoding)
+        self._control.add("check", ["t"], "#external query(t).")
         result = None
         step = 0
 
         #solve incremental
         self._solve_start = time.clock()
         while True:
+            if step > self._args.steps and self._args.steps > 0:
+                print("maximum number of steps exceeded")
+                return result
             print('ground: ' + str(step))
             if step == 0:
-                self._control.ground([('base', []), ('init', []), 
+                self._control.ground([('base', []), ('init', []),
                                       ('step', [step]),('check', [step])])
             else:
-                self._control.ground([('step', [step]),('check', [step])])                
+                self._control.ground([('step', [step]),('check', [step])])
             self._control.assign_external(Function('query', [step]), True)
 
             print('solve: ' + str(step))
@@ -342,11 +366,18 @@ class SolverInt(SolverInc):
         #append all occurs atoms to the self._to_send dictonary
         #Note: all atoms are added to the step in which their occur
         #so the self._send_step function sends only the atoms for the next step
-        for atom in model.symbols(atoms=True):
-            if (atom.name == 'occurs' 
-                and len(atom.arguments) == 3 
-                and atom.arguments[0].name == 'object' 
+        symbols = model.symbols(shown=True)
+        if len(symbols) == 0:
+            symbols = model.symbols(atoms=True)
+        for atom in symbols:
+            if self._args.atoms:
+                print(atom)
+            if (atom.name == 'occurs'
+                and len(atom.arguments) == 3
+                and atom.arguments[0].name == 'object'
                 and atom.arguments[1].name == 'action'):
+                if self._args.occurs:
+                    print(atom)
                 step = atom.arguments[2].number
                 #add step to dictonary
                 if step not in self._to_send:

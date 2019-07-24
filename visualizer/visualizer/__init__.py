@@ -8,3 +8,5 @@ from .visualizerItem import *
 from .visualizerGraphicItem import *
 from .solver import *
 from .simulator import *
+from .control import *
+from .__main__ import *
