@@ -347,7 +347,7 @@ class ModelView(QGraphicsView):
         self._lines = []
 
         for item in self._items_in_scene:
-            self._scene.removeItem(item)
+            self._scene.removeItem(item) #FIXME: Slow iteration
         self._items_in_scene = []
 
     def update(self):
@@ -372,7 +372,7 @@ class ModelView(QGraphicsView):
 
         self.clear()
 
-        #draw vertival lines
+        #draw vertical lines
         for i in range(0,self._model.get_grid_size()[1] + 1):
             line = self._scene.addLine(0, i * self._h_distance*self._scaling,
                                         self._line_hlength*self._scaling - self._border_size,
@@ -427,7 +427,7 @@ class ModelView(QGraphicsView):
                         y_pos = float(y_pos + float(action_y * float(self._timer_count * 0.1)))
                 x_pos = x_pos*self._w_distance*self._scaling + self._border_size/2
                 y_pos = y_pos*self._h_distance*self._scaling + self._border_size/2
-                item.set_rect(QRect(x_pos, y_pos,
+                item.set_rect(QRect(x_pos, y_pos,  # FIXME: slow
                                 self._w_distance*self._scaling - self._border_size*self._scaling,
                                 self._h_distance*self._scaling - self._border_size*self._scaling))
                 item.determine_color(number, count)

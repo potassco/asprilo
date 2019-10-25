@@ -11,7 +11,7 @@ class AspParser(object):
         self._model_view = None
         self._solver = None
         self._programs = {}
-        self._str_model = ''
+#        self._str_model = ''
         self._parser_widget = None
         self.reset_programs()
 
@@ -52,7 +52,7 @@ class AspParser(object):
     def on_model(self, m):
         for x in m.symbols(atoms=True):
             self.on_atom(x)
-            self._str_model += str(x) + '\n'
+#            self._str_model += str(x) + '\n'
         self.done_instance()
 
     def on_atom(self, atom):
@@ -176,7 +176,7 @@ class AspParser(object):
             self._parser_widget.update()
 
     def reset_grounder(self):
-        self._str_model = ''
+#        self._str_model = ''
         self._control = clingo.Control()
         if self._parser_widget is not None:
             self._parser_widget.update()
@@ -272,5 +272,5 @@ class AspParser(object):
     def get_program_count(self):
         return len(self._programs)
 
-    def get_str_model(self):
-        return self._str_model
+    # def get_str_model(self):
+    #     return self._str_model

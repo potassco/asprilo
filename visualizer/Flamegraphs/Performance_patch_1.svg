@@ -1,0 +1,308 @@
+<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg version="1.1" width="1200" height="294" onload="init(evt)" viewBox="0 0 1200 294" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><!--Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples.--><!--NOTES: --><defs><linearGradient id="background" y1="0" y2="1" x1="0" x2="0"><stop stop-color="#eeeeee" offset="5%"/><stop stop-color="#eeeeb0" offset="95%"/></linearGradient></defs><style type="text/css">
+text { font-family:"Verdana"; font-size:12px; fill:rgb(0,0,0); }
+#title { text-anchor:middle; font-size:17px; }
+#search { opacity:0.1; cursor:pointer; }
+#search:hover, #search.show { opacity:1; }
+#subtitle { text-anchor:middle; font-color:rgb(160,160,160); }
+#unzoom { cursor:pointer; }
+#frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+.hide { display:none; }
+.parent { opacity:0.5; }
+</style><script type="text/ecmascript"><![CDATA[var nametype = 'Function:';
+var fontsize = 12;
+var fontwidth = 0.59;
+var xpad = 10;
+var inverted = true;
+var searchcolor = 'rgb(230,0,230)';]]><![CDATA["use strict";
+var details, searchbtn, unzoombtn, matchedtxt, svg, searching;
+function init(evt) {
+    details = document.getElementById("details").firstChild;
+    searchbtn = document.getElementById("search");
+    unzoombtn = document.getElementById("unzoom");
+    matchedtxt = document.getElementById("matched");
+    svg = document.getElementsByTagName("svg")[0];
+    searching = 0;
+}
+
+window.addEventListener("click", function(e) {
+	var target = find_group(e.target);
+	if (target) {
+        if (target.nodeName == "a") {
+            if (e.ctrlKey === false) return;
+            e.preventDefault();
+        }
+        if (target.classList.contains("parent")) unzoom();
+        zoom(target);
+    }
+    else if (e.target.id == "unzoom") unzoom();
+    else if (e.target.id == "search") search_prompt();
+}, false)
+
+// mouse-over for info
+// show
+window.addEventListener("mouseover", function(e) {
+	var target = find_group(e.target);
+	if (target) details.nodeValue = nametype + " " + g_to_text(target);
+}, false)
+// clear
+window.addEventListener("mouseout", function(e) {
+	var target = find_group(e.target);
+	if (target) details.nodeValue = ' ';
+}, false)
+// ctrl-F for search
+window.addEventListener("keydown",function (e) {
+    if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+        e.preventDefault();
+        search_prompt();
+    }
+}, false)
+// functions
+function find_child(node, selector) {
+	var children = node.querySelectorAll(selector);
+	if (children.length) return children[0];
+	return;
+}
+function find_group(node) {
+	var parent = node.parentElement;
+	if (!parent) return;
+	if (parent.id == "frames") return node;
+	return find_group(parent);
+}
+function orig_save(e, attr, val) {
+    if (e.attributes["_orig_" + attr] != undefined) return;
+    if (e.attributes[attr] == undefined) return;
+    if (val == undefined) val = e.attributes[attr].value;
+    e.setAttribute("_orig_" + attr, val);
+}
+function orig_load(e, attr) {
+    if (e.attributes["_orig_"+attr] == undefined) return;
+    e.attributes[attr].value = e.attributes["_orig_" + attr].value;
+    e.removeAttribute("_orig_" + attr);
+}
+function g_to_text(e) {
+    var text = find_child(e, "title").firstChild.nodeValue;
+    return (text)
+}
+function g_to_func(e) {
+    var func = g_to_text(e);
+    // if there's any manipulation we want to do to the function
+    // name before it's searched, do it here before returning.
+    return (func);
+}
+function update_text(e) {
+    var r = find_child(e, "rect");
+    var t = find_child(e, "text");
+    var w = parseFloat(r.attributes.width.value) -3;
+    var txt = find_child(e, "title").textContent.replace(/\\([^(]*\\)\$/,"");
+    t.attributes.x.value = parseFloat(r.attributes.x.value) + 3;
+    // Smaller than this size won't fit anything
+    if (w < 2 * fontsize * fontwidth) {
+        t.textContent = "";
+        return;
+    }
+    t.textContent = txt;
+    // Fit in full text width
+    if (/^ *\$/.test(txt) || t.getSubStringLength(0, txt.length) < w)
+        return;
+    for (var x = txt.length - 2; x > 0; x--) {
+        if (t.getSubStringLength(0, x + 2) <= w) {
+            t.textContent = txt.substring(0, x) + "..";
+            return;
+        }
+    }
+    t.textContent = "";
+}
+// zoom
+function zoom_reset(e) {
+    if (e.attributes != undefined) {
+        orig_load(e, "x");
+        orig_load(e, "width");
+    }
+    if (e.childNodes == undefined) return;
+    for(var i = 0, c = e.childNodes; i < c.length; i++) {
+        zoom_reset(c[i]);
+    }
+}
+function zoom_child(e, x, ratio) {
+    if (e.attributes != undefined) {
+        if (e.attributes.x != undefined) {
+            orig_save(e, "x");
+            e.attributes.x.value = (parseFloat(e.attributes.x.value) - x - xpad) * ratio + xpad;
+            if(e.tagName == "text")
+                e.attributes.x.value = find_child(e.parentNode, "rect[x]").attributes.x.value + 3;
+        }
+        if (e.attributes.width != undefined) {
+            orig_save(e, "width");
+            e.attributes.width.value = parseFloat(e.attributes.width.value) * ratio;
+        }
+    }
+    if (e.childNodes == undefined) return;
+    for(var i = 0, c = e.childNodes; i < c.length; i++) {
+        zoom_child(c[i], x - xpad, ratio);
+    }
+}
+function zoom_parent(e) {
+    if (e.attributes) {
+        if (e.attributes.x != undefined) {
+            orig_save(e, "x");
+            e.attributes.x.value = xpad;
+        }
+        if (e.attributes.width != undefined) {
+            orig_save(e, "width");
+            e.attributes.width.value = parseInt(svg.width.baseVal.value) - (xpad*2);
+        }
+    }
+    if (e.childNodes == undefined) return;
+    for(var i = 0, c = e.childNodes; i < c.length; i++) {
+        zoom_parent(c[i]);
+    }
+}
+function zoom(node) {
+    var attr = find_child(node, "rect").attributes;
+    var width = parseFloat(attr.width.value);
+    var xmin = parseFloat(attr.x.value);
+    var xmax = parseFloat(xmin + width);
+    var ymin = parseFloat(attr.y.value);
+    var ratio = (svg.width.baseVal.value - 2 * xpad) / width;
+    // XXX: Workaround for JavaScript float issues (fix me)
+    var fudge = 0.0001;
+    unzoombtn.classList.remove("hide");
+    var el = document.getElementById("frames").children;
+    for (var i = 0; i < el.length; i++) {
+        var e = el[i];
+        var a = find_child(e, "rect").attributes;
+        var ex = parseFloat(a.x.value);
+        var ew = parseFloat(a.width.value);
+        // Is it an ancestor
+        if (!inverted) {
+            var upstack = parseFloat(a.y.value) > ymin;
+        } else {
+            var upstack = parseFloat(a.y.value) < ymin;
+        }
+        if (upstack) {
+            // Direct ancestor
+            if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+                e.classList.add("parent");
+                zoom_parent(e);
+                update_text(e);
+            }
+            // not in current path
+            else
+                e.classList.add("hide");
+        }
+        // Children maybe
+        else {
+            // no common path
+            if (ex < xmin || ex + fudge >= xmax) {
+                e.classList.add("hide");
+            }
+            else {
+                zoom_child(e, xmin, ratio);
+                update_text(e);
+            }
+        }
+    }
+}
+function unzoom() {
+    unzoombtn.classList.add("hide");
+    var el = document.getElementById("frames").children;
+    for(var i = 0; i < el.length; i++) {
+        el[i].classList.remove("parent");
+        el[i].classList.remove("hide");
+        zoom_reset(el[i]);
+        update_text(el[i]);
+    }
+}
+// search
+function reset_search() {
+    var el = document.querySelectorAll("#frames rect");
+    for (var i = 0; i < el.length; i++) {
+        orig_load(el[i], "fill")
+    }
+}
+function search_prompt() {
+    if (!searching) {
+        var term = prompt("Enter a search term (regexp " +
+            "allowed, eg: ^ext4_)", "");
+        if (term != null) {
+            search(term)
+        }
+    } else {
+        reset_search();
+        searching = 0;
+        searchbtn.classList.remove("show");
+        searchbtn.firstChild.nodeValue = "Search"
+        matchedtxt.classList.add("hide");
+        matchedtxt.firstChild.nodeValue = ""
+    }
+}
+function search(term) {
+    var re = new RegExp(term);
+    var el = document.getElementById("frames").children;
+    var matches = new Object();
+    var maxwidth = 0;
+    for (var i = 0; i < el.length; i++) {
+        var e = el[i];
+        var func = g_to_func(e);
+        var rect = find_child(e, "rect");
+        if (func == null || rect == null)
+            continue;
+        // Save max width. Only works as we have a root frame
+        var w = parseFloat(rect.attributes.width.value);
+        if (w > maxwidth)
+            maxwidth = w;
+        if (func.match(re)) {
+            // highlight
+            var x = parseFloat(rect.attributes.x.value);
+            orig_save(rect, "fill");
+            rect.attributes.fill.value = searchcolor;
+            // remember matches
+            if (matches[x] == undefined) {
+                matches[x] = w;
+            } else {
+                if (w > matches[x]) {
+                    // overwrite with parent
+                    matches[x] = w;
+                }
+            }
+            searching = 1;
+        }
+    }
+    if (!searching)
+        return;
+    searchbtn.classList.add("show");
+    searchbtn.firstChild.nodeValue = "Reset Search";
+    // calculate percent matched, excluding vertical overlap
+    var count = 0;
+    var lastx = -1;
+    var lastw = 0;
+    var keys = Array();
+    for (k in matches) {
+        if (matches.hasOwnProperty(k))
+            keys.push(k);
+    }
+    // sort the matched frames by their x location
+    // ascending, then width descending
+    keys.sort(function(a, b){
+        return a - b;
+    });
+    // Step through frames saving only the biggest bottom-up frames
+    // thanks to the sort order. This relies on the tree property
+    // where children are always smaller than their parents.
+    var fudge = 0.0001;	// JavaScript floating point
+    for (var k in keys) {
+        var x = parseFloat(keys[k]);
+        var w = matches[keys[k]];
+        if (x >= lastx + lastw - fudge) {
+            count += w;
+            lastx = x;
+            lastw = w;
+        }
+    }
+    // display matched percent
+    matchedtxt.classList.remove("hide");
+    var pct = 100 * count / maxwidth;
+    if (pct != 100) pct = pct.toFixed(1);
+    matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+}
+]]></script><rect x="0" y="0" width="1200" height="294" fill="url(#background)"/><text id="title" x="600.00" y="24.00">py-spy</text><text id="details" x="10.00" y="277.00"> </text><text id="unzoom" class="hide" x="10.00" y="24.00">Reset Zoom</text><text id="search" x="1090.00" y="24.00">Search</text><text id="matched" x="1090.00" y="277.00"> </text><g id="frames"><g><title>__init__ (visualizer/visualizerGraphicItem.py:670) (55 samples, 0.12%)</title><rect x="13" y="244" width="1" height="15" fill="rgb(225,41,1)"/><text x="16.00" y="254.50"></text></g><g><title>create_item (visualizer/model.py:290) (96 samples, 0.21%)</title><rect x="13" y="228" width="2" height="15" fill="rgb(234,177,28)"/><text x="16.00" y="238.50"></text></g><g><title>__init__ (visualizer/visualizerGraphicItem.py:1017) (70 samples, 0.16%)</title><rect x="15" y="244" width="2" height="15" fill="rgb(212,108,14)"/><text x="18.00" y="254.50"></text></g><g><title>__init__ (visualizer/visualizerGraphicItem.py:1028) (113 samples, 0.25%)</title><rect x="20" y="244" width="3" height="15" fill="rgb(224,16,8)"/><text x="23.00" y="254.50"></text></g><g><title>create_item (visualizer/model.py:296) (328 samples, 0.73%)</title><rect x="15" y="228" width="9" height="15" fill="rgb(225,202,46)"/><text x="18.00" y="238.50"></text></g><g><title>_on_init_atom (visualizer/parser.py:101) (543 samples, 1.21%)</title><rect x="11" y="196" width="14" height="15" fill="rgb(245,26,0)"/><text x="14.00" y="206.50"></text></g><g><title>get_item (visualizer/model.py:548) (492 samples, 1.09%)</title><rect x="12" y="212" width="13" height="15" fill="rgb(219,159,27)"/><text x="15.00" y="222.50"></text></g><g><title>create_item (visualizer/model.py:305) (59 samples, 0.13%)</title><rect x="24" y="228" width="1" height="15" fill="rgb(222,226,48)"/><text x="27.00" y="238.50"></text></g><g><title>add_item (visualizer/model.py:69) (54 samples, 0.12%)</title><rect x="24" y="244" width="1" height="15" fill="rgb(241,198,37)"/><text x="27.00" y="254.50"></text></g><g><title>parse_init_value (visualizer/visualizerGraphicItem.py:1276) (39 samples, 0.09%)</title><rect x="25" y="212" width="1" height="15" fill="rgb(218,175,12)"/><text x="28.00" y="222.50"></text></g><g><title>_on_init_atom (visualizer/parser.py:104) (44 samples, 0.10%)</title><rect x="25" y="196" width="1" height="15" fill="rgb(214,13,2)"/><text x="28.00" y="206.50"></text></g><g><title>add_node (visualizer/model.py:153) (4,938 samples, 10.96%)</title><rect x="27" y="212" width="129" height="15" fill="rgb(215,131,15)"/><text x="30.00" y="222.50">add_node (visual..</text></g><g><title>_on_init_atom (visualizer/parser.py:110) (4,976 samples, 11.04%)</title><rect x="27" y="196" width="130" height="15" fill="rgb(229,169,41)"/><text x="30.00" y="206.50">_on_init_atom (v..</text></g><g><title>_on_init_atom (visualizer/parser.py:96) (54 samples, 0.12%)</title><rect x="158" y="196" width="1" height="15" fill="rgb(207,209,42)"/><text x="161.00" y="206.50"></text></g><g><title>on_model (visualizer/parser.py:54) (5,793 samples, 12.86%)</title><rect x="10" y="164" width="151" height="15" fill="rgb(240,127,17)"/><text x="13.00" y="174.50">on_model (visualize..</text></g><g><title>on_atom (visualizer/parser.py:69) (5,750 samples, 12.76%)</title><rect x="11" y="180" width="150" height="15" fill="rgb(227,9,46)"/><text x="14.00" y="190.50">on_atom (visualizer..</text></g><g><title>_on_init_atom (visualizer/parser.py:99) (46 samples, 0.10%)</title><rect x="160" y="196" width="1" height="15" fill="rgb(246,179,9)"/><text x="163.00" y="206.50"></text></g><g><title>update (visualizer/gui.py:1467) (271 samples, 0.60%)</title><rect x="162" y="212" width="7" height="15" fill="rgb(252,35,32)"/><text x="165.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1470) (374 samples, 0.83%)</title><rect x="170" y="212" width="10" height="15" fill="rgb(248,68,35)"/><text x="173.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1473) (10,655 samples, 23.65%)</title><rect x="181" y="212" width="279" height="15" fill="rgb(217,11,23)"/><text x="184.00" y="222.50">update (visualizer/gui.py:1473)</text></g><g><title>update (visualizer/gui.py:1474) (540 samples, 1.20%)</title><rect x="460" y="212" width="14" height="15" fill="rgb(242,122,39)"/><text x="463.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1476) (65 samples, 0.14%)</title><rect x="475" y="212" width="2" height="15" fill="rgb(221,174,50)"/><text x="478.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1478) (230 samples, 0.51%)</title><rect x="477" y="212" width="6" height="15" fill="rgb(234,23,43)"/><text x="480.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1658) (106 samples, 0.24%)</title><rect x="486" y="212" width="2" height="15" fill="rgb(248,204,20)"/><text x="489.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1659) (104 samples, 0.23%)</title><rect x="488" y="212" width="3" height="15" fill="rgb(230,18,13)"/><text x="491.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1660) (103 samples, 0.23%)</title><rect x="491" y="212" width="3" height="15" fill="rgb(234,184,45)"/><text x="494.00" y="222.50"></text></g><g><title>set_item_text (visualizer/gui.py:1705) (53 samples, 0.12%)</title><rect x="495" y="228" width="2" height="15" fill="rgb(244,189,3)"/><text x="498.00" y="238.50"></text></g><g><title>update (visualizer/gui.py:1661) (135 samples, 0.30%)</title><rect x="494" y="212" width="3" height="15" fill="rgb(246,17,48)"/><text x="497.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1662) (118 samples, 0.26%)</title><rect x="497" y="212" width="3" height="15" fill="rgb(208,71,0)"/><text x="500.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1666) (81 samples, 0.18%)</title><rect x="500" y="212" width="3" height="15" fill="rgb(239,155,27)"/><text x="503.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1670) (99 samples, 0.22%)</title><rect x="503" y="212" width="2" height="15" fill="rgb(240,203,46)"/><text x="506.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1674) (118 samples, 0.26%)</title><rect x="505" y="212" width="3" height="15" fill="rgb(251,102,45)"/><text x="508.00" y="222.50"></text></g><g><title>update (visualizer/gui.py:1675) (120 samples, 0.27%)</title><rect x="508" y="212" width="3" height="15" fill="rgb(222,217,17)"/><text x="511.00" y="222.50"></text></g><g><title>set_item_text (visualizer/gui.py:1705) (74 samples, 0.16%)</title><rect x="513" y="228" width="2" height="15" fill="rgb(247,186,19)"/><text x="516.00" y="238.50"></text></g><g><title>update (visualizer/gui.py:1676) (160 samples, 0.36%)</title><rect x="511" y="212" width="5" height="15" fill="rgb(228,95,54)"/><text x="514.00" y="222.50"></text></g><g><title>update (visualizer/modelView.py:364) (89 samples, 0.20%)</title><rect x="517" y="212" width="3" height="15" fill="rgb(227,3,48)"/><text x="520.00" y="222.50"></text></g><g><title>get (visualizer/configuration.py:156) (45 samples, 0.10%)</title><rect x="520" y="228" width="1" height="15" fill="rgb(249,63,41)"/><text x="523.00" y="238.50"></text></g><g><title>update (visualizer/modelView.py:366) (80 samples, 0.18%)</title><rect x="520" y="212" width="2" height="15" fill="rgb(230,209,12)"/><text x="523.00" y="222.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:1091) (709 samples, 1.57%)</title><rect x="528" y="228" width="19" height="15" fill="rgb(249,11,52)"/><text x="531.00" y="238.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:1092) (43 samples, 0.10%)</title><rect x="547" y="228" width="1" height="15" fill="rgb(228,90,33)"/><text x="550.00" y="238.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:1093) (76 samples, 0.17%)</title><rect x="548" y="228" width="2" height="15" fill="rgb(221,67,51)"/><text x="551.00" y="238.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:1100) (435 samples, 0.97%)</title><rect x="550" y="228" width="11" height="15" fill="rgb(230,226,53)"/><text x="553.00" y="238.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:1143) (41 samples, 0.09%)</title><rect x="563" y="228" width="1" height="15" fill="rgb(214,145,49)"/><text x="566.00" y="238.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:545) (245 samples, 0.54%)</title><rect x="564" y="228" width="7" height="15" fill="rgb(221,9,29)"/><text x="567.00" y="238.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:555) (154 samples, 0.34%)</title><rect x="572" y="228" width="4" height="15" fill="rgb(240,105,11)"/><text x="575.00" y="238.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:693) (232 samples, 0.51%)</title><rect x="577" y="228" width="6" height="15" fill="rgb(240,126,7)"/><text x="580.00" y="238.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:702) (166 samples, 0.37%)</title><rect x="584" y="228" width="5" height="15" fill="rgb(251,50,50)"/><text x="587.00" y="238.50"></text></g><g><title>update (visualizer/modelView.py:432) (2,392 samples, 5.31%)</title><rect x="526" y="212" width="63" height="15" fill="rgb(250,159,7)"/><text x="529.00" y="222.50">update..</text></g><g><title>determine_color (visualizer/visualizerGraphicItem.py:1692) (85 samples, 0.19%)</title><rect x="589" y="228" width="2" height="15" fill="rgb(248,78,51)"/><text x="592.00" y="238.50"></text></g><g><title>update (visualizer/modelView.py:433) (194 samples, 0.43%)</title><rect x="589" y="212" width="5" height="15" fill="rgb(237,226,51)"/><text x="592.00" y="222.50"></text></g><g><title>update (visualizer/modelView.py:464) (135 samples, 0.30%)</title><rect x="594" y="212" width="4" height="15" fill="rgb(239,193,31)"/><text x="597.00" y="222.50"></text></g><g><title>done_instance (visualizer/parser.py:137) (16,683 samples, 37.03%)</title><rect x="161" y="180" width="437" height="15" fill="rgb(223,194,24)"/><text x="164.00" y="190.50">done_instance (visualizer/parser.py:137)</text></g><g><title>update_windows (visualizer/model.py:467) (16,683 samples, 37.03%)</title><rect x="161" y="196" width="437" height="15" fill="rgb(213,49,54)"/><text x="164.00" y="206.50">update_windows (visualizer/model.py:467)</text></g><g><title>_init_gui (visualizer/control.py:169) (22,595 samples, 50.15%)</title><rect x="10" y="116" width="591" height="15" fill="rgb(221,157,44)"/><text x="13.00" y="126.50">_init_gui (visualizer/control.py:169)</text></g><g><title>parse_file (visualizer/parser.py:237) (22,595 samples, 50.15%)</title><rect x="10" y="132" width="591" height="15" fill="rgb(207,153,32)"/><text x="13.00" y="142.50">parse_file (visualizer/parser.py:237)</text></g><g><title>parse (visualizer/parser.py:210) (22,595 samples, 50.15%)</title><rect x="10" y="148" width="591" height="15" fill="rgb(251,149,3)"/><text x="13.00" y="158.50">parse (visualizer/parser.py:210)</text></g><g><title>on_model (visualizer/parser.py:56) (16,800 samples, 37.29%)</title><rect x="161" y="164" width="440" height="15" fill="rgb(211,129,50)"/><text x="164.00" y="174.50">on_model (visualizer/parser.py:56)</text></g><g><title>done_instance (visualizer/parser.py:149) (117 samples, 0.26%)</title><rect x="598" y="180" width="3" height="15" fill="rgb(240,95,11)"/><text x="601.00" y="190.50"></text></g><g><title>update (visualizer/gui.py:1417) (117 samples, 0.26%)</title><rect x="598" y="196" width="3" height="15" fill="rgb(219,175,29)"/><text x="601.00" y="206.50"></text></g><g><title>update (visualizer/modelView.py:364) (67 samples, 0.15%)</title><rect x="602" y="164" width="2" height="15" fill="rgb(226,186,41)"/><text x="605.00" y="174.50"></text></g><g><title>update (visualizer/modelView.py:366) (40 samples, 0.09%)</title><rect x="604" y="164" width="1" height="15" fill="rgb(239,135,6)"/><text x="607.00" y="174.50"></text></g><g><title>clear (visualizer/modelView.py:350) (18,199 samples, 40.39%)</title><rect x="605" y="180" width="476" height="15" fill="rgb(248,26,15)"/><text x="608.00" y="190.50">clear (visualizer/modelView.py:350)</text></g><g><title>update (visualizer/modelView.py:373) (18,213 samples, 40.42%)</title><rect x="605" y="164" width="477" height="15" fill="rgb(224,51,20)"/><text x="608.00" y="174.50">update (visualizer/modelView.py:373)</text></g><g><title>update (visualizer/modelView.py:397) (60 samples, 0.13%)</title><rect x="1082" y="164" width="2" height="15" fill="rgb(217,37,41)"/><text x="1085.00" y="174.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:1091) (234 samples, 0.52%)</title><rect x="1089" y="180" width="6" height="15" fill="rgb(242,52,15)"/><text x="1092.00" y="190.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:1093) (45 samples, 0.10%)</title><rect x="1096" y="180" width="1" height="15" fill="rgb(209,194,32)"/><text x="1099.00" y="190.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:1113) (267 samples, 0.59%)</title><rect x="1097" y="180" width="7" height="15" fill="rgb(250,116,36)"/><text x="1100.00" y="190.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:545) (99 samples, 0.22%)</title><rect x="1106" y="180" width="3" height="15" fill="rgb(226,202,30)"/><text x="1109.00" y="190.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:568) (87 samples, 0.19%)</title><rect x="1110" y="180" width="2" height="15" fill="rgb(246,203,42)"/><text x="1113.00" y="190.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:693) (83 samples, 0.18%)</title><rect x="1112" y="180" width="3" height="15" fill="rgb(249,199,36)"/><text x="1115.00" y="190.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:713) (115 samples, 0.26%)</title><rect x="1115" y="180" width="3" height="15" fill="rgb(252,158,14)"/><text x="1118.00" y="190.50"></text></g><g><title>update (visualizer/modelView.py:432) (1,213 samples, 2.69%)</title><rect x="1087" y="164" width="32" height="15" fill="rgb(249,67,2)"/><text x="1090.00" y="174.50">up..</text></g><g><title>determine_color (visualizer/visualizerGraphicItem.py:1692) (72 samples, 0.16%)</title><rect x="1119" y="180" width="2" height="15" fill="rgb(251,180,0)"/><text x="1122.00" y="190.50"></text></g><g><title>update (visualizer/modelView.py:433) (180 samples, 0.40%)</title><rect x="1119" y="164" width="5" height="15" fill="rgb(219,108,28)"/><text x="1122.00" y="174.50"></text></g><g><title>update (visualizer/modelView.py:464) (91 samples, 0.20%)</title><rect x="1124" y="164" width="2" height="15" fill="rgb(249,46,51)"/><text x="1127.00" y="174.50"></text></g><g><title>run (visualizer/control.py:479) (42,660 samples, 94.69%)</title><rect x="10" y="84" width="1117" height="15" fill="rgb(226,9,26)"/><text x="13.00" y="94.50">run (visualizer/control.py:479)</text></g><g><title>__init__ (visualizer/control.py:71) (42,660 samples, 94.69%)</title><rect x="10" y="100" width="1117" height="15" fill="rgb(249,215,26)"/><text x="13.00" y="110.50">__init__ (visualizer/control.py:71)</text></g><g><title>_init_gui (visualizer/control.py:174) (20,065 samples, 44.54%)</title><rect x="601" y="116" width="526" height="15" fill="rgb(209,144,29)"/><text x="604.00" y="126.50">_init_gui (visualizer/control.py:174)</text></g><g><title>resize_to_fit (visualizer/modelView.py:341) (20,065 samples, 44.54%)</title><rect x="601" y="132" width="526" height="15" fill="rgb(211,133,11)"/><text x="604.00" y="142.50">resize_to_fit (visualizer/modelView.py:341)</text></g><g><title>_scale (visualizer/modelView.py:313) (20,065 samples, 44.54%)</title><rect x="601" y="148" width="526" height="15" fill="rgb(224,141,54)"/><text x="604.00" y="158.50">_scale (visualizer/modelView.py:313)</text></g><g><title>boundingRect (visualizer/visualizerGraphicItem.py:440) (57 samples, 0.13%)</title><rect x="1143" y="100" width="2" height="15" fill="rgb(217,208,3)"/><text x="1146.00" y="110.50"></text></g><g><title>update (visualizer/modelView.py:364) (55 samples, 0.12%)</title><rect x="1152" y="148" width="2" height="15" fill="rgb(215,56,0)"/><text x="1155.00" y="158.50"></text></g><g><title>update (visualizer/modelView.py:366) (40 samples, 0.09%)</title><rect x="1154" y="148" width="1" height="15" fill="rgb(222,88,20)"/><text x="1157.00" y="158.50"></text></g><g><title>clear (visualizer/modelView.py:350) (789 samples, 1.75%)</title><rect x="1155" y="164" width="20" height="15" fill="rgb(239,145,35)"/><text x="1158.00" y="174.50"></text></g><g><title>update (visualizer/modelView.py:373) (799 samples, 1.77%)</title><rect x="1155" y="148" width="21" height="15" fill="rgb(222,60,45)"/><text x="1158.00" y="158.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:545) (44 samples, 0.10%)</title><rect x="1178" y="164" width="1" height="15" fill="rgb(214,168,27)"/><text x="1181.00" y="174.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:568) (84 samples, 0.19%)</title><rect x="1180" y="164" width="2" height="15" fill="rgb(220,134,7)"/><text x="1183.00" y="174.50"></text></g><g><title>set_rect (visualizer/visualizerGraphicItem.py:713) (58 samples, 0.13%)</title><rect x="1184" y="164" width="1" height="15" fill="rgb(240,55,39)"/><text x="1187.00" y="174.50"></text></g><g><title>update (visualizer/modelView.py:432) (299 samples, 0.66%)</title><rect x="1178" y="148" width="8" height="15" fill="rgb(230,68,7)"/><text x="1181.00" y="158.50"></text></g><g><title>update (visualizer/modelView.py:433) (55 samples, 0.12%)</title><rect x="1186" y="148" width="1" height="15" fill="rgb(214,179,13)"/><text x="1189.00" y="158.50"></text></g><g><title>update (visualizer/modelView.py:464) (40 samples, 0.09%)</title><rect x="1187" y="148" width="1" height="15" fill="rgb(209,216,12)"/><text x="1190.00" y="158.50"></text></g><g><title>event (visualizer/modelView.py:191) (1,668 samples, 3.70%)</title><rect x="1145" y="100" width="43" height="15" fill="rgb(221,162,24)"/><text x="1148.00" y="110.50">even..</text></g><g><title>resizeEvent (visualizer/modelView.py:333) (1,398 samples, 3.10%)</title><rect x="1152" y="116" width="36" height="15" fill="rgb(249,52,21)"/><text x="1155.00" y="126.50">res..</text></g><g><title>_scale (visualizer/modelView.py:313) (1,398 samples, 3.10%)</title><rect x="1152" y="132" width="36" height="15" fill="rgb(233,106,21)"/><text x="1155.00" y="142.50">_sc..</text></g><g><title>all (45,054 samples, 100%)</title><rect x="10" y="36" width="1180" height="15" fill="rgb(224,38,27)"/><text x="13.00" y="46.50"></text></g><g><title>&lt;module&gt; (viz:19) (45,054 samples, 100.00%)</title><rect x="10" y="52" width="1180" height="15" fill="rgb(253,37,42)"/><text x="13.00" y="62.50">&lt;module&gt; (viz:19)</text></g><g><title>main (viz:16) (45,054 samples, 100.00%)</title><rect x="10" y="68" width="1180" height="15" fill="rgb(253,21,4)"/><text x="13.00" y="78.50">main (viz:16)</text></g><g><title>run (visualizer/control.py:480) (2,394 samples, 5.31%)</title><rect x="1127" y="84" width="63" height="15" fill="rgb(218,12,22)"/><text x="1130.00" y="94.50">run (v..</text></g><g><title>paint (visualizer/visualizerGraphicItem.py:443) (42 samples, 0.09%)</title><rect x="1188" y="100" width="2" height="15" fill="rgb(249,17,25)"/><text x="1191.00" y="110.50"></text></g></g></svg>

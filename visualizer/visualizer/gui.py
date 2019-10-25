@@ -1417,7 +1417,8 @@ class ParserWidget(VizWidget):
             program.text_field.setText(self._parser.get_program(program.program_name))
             count += 1
 
-        self._atom_text.setText(self._parser.get_str_model())
+#        self._atom_text.setText(self._parser.get_str_model())
+        self._atom_text.setText("PLACEHOLDER; ORIGINAL FEATURE REMOVED")
         self._edited = False
 
         index = self._program_tab.indexOf(current)
@@ -1469,7 +1470,7 @@ class EnablePathWidget(QScrollArea):
             checkbox.show()
             self._checkboxes[robot.get_id()] = checkbox
             
-            color_text = QTextEdit(self._area)
+            color_text = QTextEdit(self._area) #FIXME: Insanely slow, maybe bad QT practice?
             color_text.setHtml('<font color = ' + robot.get_color().name() + '>' + robot.get_color().name() + '</font>')
             color_text.move(125, y_pos)
             color_text.setReadOnly(True)

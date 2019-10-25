@@ -2,6 +2,7 @@ from .visualizerItem import *
 from .visualizerGraphicItem import *
 from .modelView import ModelView
 
+
 class Model(object):
     def __init__(self):
         self._windows = []
@@ -13,12 +14,12 @@ class Model(object):
         self._editable = True
 
         self._grid_size = (1, 1)
-        self._nodes = []                #pairs of x and y
-        self._blocked_nodes = [(1,1)]   #pairs of x and y
-        self._highways = []             #pairs of x and y
+        self._nodes = []  # pairs of x and y
+        self._blocked_nodes = [(1, 1)]  # pairs of x and y
+        self._highways = []  # pairs of x and y
         self._node_ids = {}
 
-        self._inits = []                #list of unhandled inits
+        self._inits = []  # list of unhandled inits
 
         self._num_steps = 0
         self._current_step = 0
@@ -36,11 +37,11 @@ class Model(object):
         self._editable = True
 
         self._grid_size = (1, 1)
-        self._nodes = []                #pairs of x and y
-        self._blocked_nodes = [(1,1)]   #pairs of x and y
-        self._highways = []             #pairs of x and y
+        self._nodes = []  # pairs of x and y
+        self._blocked_nodes = [(1, 1)]  # pairs of x and y
+        self._highways = []  # pairs of x and y
 
-        self._inits = []                #list of unhandled inits
+        self._inits = []  # list of unhandled inits
         self._num_steps = 0
         self._current_step = 0
         self._displayed_steps = -1
@@ -63,7 +64,7 @@ class Model(object):
             item.enable_drag(self._editable)
         dictionarie[str(item.get_id())] = item
 
-    def add_item(self, item, add_immediately = False):
+    def add_item(self, item, add_immediately=False):
         if add_immediately:
             return self._add_item2(item)
         if item is None:
@@ -73,7 +74,7 @@ class Model(object):
             return
         self._new_items[key] = item
 
-    def accept_new_items(self, item_kinds = None):
+    def accept_new_items(self, item_kinds=None):
         add_items = []
         if item_kinds == None:
             for item in self._new_items.values():
@@ -92,7 +93,7 @@ class Model(object):
             if len(add_items) > 0:
                 socket.model_expanded('\n')
 
-    def discard_new_items(self, item_kinds = None):
+    def discard_new_items(self, item_kinds=None):
         if item_kinds == None:
             self._new_items.clear()
             return
@@ -110,7 +111,7 @@ class Model(object):
         key = (item.get_kind_name(), str(item.get_id()))
         item2 = self._new_items.pop(key, None)
         if item2 is not None:
-            item2.set_model(None) 
+            item2.set_model(None)
             return
 
         dictionarie = self._map_item_to_dictionarie(item, True)
@@ -140,16 +141,23 @@ class Model(object):
         if socket in self._sockets:
             self._sockets.remove(socket)
 
-    def add_node(self, x, y, node_id = None):
-        if (x,y) in self._nodes:
-            return
+    def add_node(self, x, y, node_id=None):
+        # if (x, y) in self._nodes:
+        #     return
 
         self._nodes.append((x, y))
-        self._node_ids[(x,y)] = node_id
-        if (x,y) in self._blocked_nodes:
-            self._blocked_nodes.remove((x,y))
-        if x > self._grid_size[0] or y > self._grid_size[1]:
-            self.set_grid_size(max(x, self._grid_size[0]), max(y, self._grid_size[1]))
+        self._node_ids[(x, y)] = node_id
+        # if (x, y) in self._blocked_nodes:
+        #     self._blocked_nodes.remove((x, y))
+        try:
+            self._blocked_nodes.remove((x, y)) #FIXME: slow, may require new model
+        except ValueError:
+            pass
+        
+        self.expand_grid(x, y)
+        # if x > self._grid_size[0] or y > self._grid_size[1]:
+        #     self.set_grid_size(
+        #         max(x, self._grid_size[0]), max(y, self._grid_size[1]))
 
     def add_highway(self, x, y):
         self._highways.append((x, y))
@@ -161,26 +169,44 @@ class Model(object):
         return (x, y) in self._highways
 
     def remove_node(self, x, y):
-        if (x,y) not in self._nodes:
+        if (x, y) not in self._nodes:
             return
 
         self._nodes.remove((x, y))
-        if (x,y) not in self._blocked_nodes:
-            self._blocked_nodes.append((x,y))
+        if (x, y) not in self._blocked_nodes:
+            self._blocked_nodes.append((x, y))
 
     def remove_highway(self, x, y):
-        if (x,y) not in self._highways:
+        if (x, y) not in self._highways:
             return
-        self._highways.remove((x,y))
+        self._highways.remove((x, y))
 
-    def set_grid_size(self, X, Y, enable_nodes = False):
+    def expand_grid(self, X, Y):
+        """
+        Tries to fill in blocked nodes while avoiding costly iterations.
+        """
+        if X > self._grid_size[0]:
+            for node in ((x, y) for x in range(self._grid_size[0] + 1, X + 1)
+                        for y in range(1, self._grid_size[1] + 1)
+                        if (x, y) is not (X, Y)):
+                self._blocked_nodes.append(node)
+            self._grid_size = (X, self._grid_size[1])
+        
+        if Y > self._grid_size[1]:
+            for node in ((x, y) for x in range(1, self._grid_size[0] + 1)
+                        for y in range(self._grid_size[1] + 1, Y + 1)
+                        if (x, y) is not (X, Y)):
+                self._blocked_nodes.append(node)
+            self._grid_size = (self._grid_size[0], Y)
+
+    def set_grid_size(self, X, Y, enable_nodes=False):
         if X < 1:
             X = 1
         if Y < 1:
             Y = 1
 
         to_remove = []
-        for node in self._nodes:        #remove old nodes
+        for node in self._nodes:  # remove old nodes
             if node[0] > X:
                 to_remove.append(node)
             elif node[1] > Y:
@@ -192,18 +218,17 @@ class Model(object):
         if enable_nodes:
             for x in range(self._grid_size[0] + 1, X + 1):
                 for y in range(1, Y + 1):
-                    self._nodes.append((x,y))
+                    self._nodes.append((x, y))
 
             for x in range(1, self._grid_size[0] + 1):
                 for y in range(self._grid_size[1] + 1, Y + 1):
-                    self._nodes.append((x,y))
-
+                    self._nodes.append((x, y))
 
         else:
             self._blocked_nodes = []
             for x in range(1, X+1):
                 for y in range(1, Y+1):
-                    self._blocked_nodes.append((x,y))
+                    self._blocked_nodes.append((x, y))
             for node in self._nodes:
                 self._blocked_nodes.remove(node)
         self._grid_size = (X, Y)
@@ -217,7 +242,7 @@ class Model(object):
     def set_num_steps(self, num_steps):
         self._num_steps = num_steps
 
-    def create_item(self, item_kind, ID = None, add_immediately = False):
+    def create_item(self, item_kind, ID=None, add_immediately=False):
         item = None
         if ID is None:
             dic = None
@@ -255,7 +280,7 @@ class Model(object):
             while not break_loop:
                 break_loop = True
                 for key in dic:
-                    if str(key) == str(ID): 
+                    if str(key) == str(ID):
                         ID += 1
                         break_loop = False
                         break
@@ -280,7 +305,7 @@ class Model(object):
             self.add_item(item, add_immediately)
         return item
 
-    def update(self, update_windows = True):
+    def update(self, update_windows=True):
         if self._current_step > self._num_steps or self._num_steps == 0:
             return self._current_step
         for socket in self._sockets:
@@ -312,7 +337,8 @@ class Model(object):
 
             self._notifier = QTimer()
             self._notifier.setSingleShot(True)
-            self._notifier.timeout.connect(lambda: self.notify_sockets(iterator, value, step))
+            self._notifier.timeout.connect(
+                lambda: self.notify_sockets(iterator, value, step))
             self._notifier.start(100)
             return
         else:
@@ -329,7 +355,8 @@ class Model(object):
 
             self._notifier = QTimer()
             self._notifier.setSingleShot(True)
-            self._notifier.timeout.connect(lambda: self.notify_sockets2(iterator, value, step))
+            self._notifier.timeout.connect(
+                lambda: self.notify_sockets2(iterator, value, step))
             self._notifier.start(100)
             return
         value.done_step(step)
@@ -371,11 +398,11 @@ class Model(object):
             pass
         self.update_windows()
 
-    def filter_items(self, item_kind = None, 
-                        ID = None, position = None, 
-                        return_first = False,
-                        return_non_buffered = True,
-                        return_buffered = False):
+    def filter_items(self, item_kind=None,
+                     ID=None, position=None,
+                     return_first=False,
+                     return_non_buffered=True,
+                     return_buffered=False):
         result = []
         if ID is not None:
             ID = str(ID)
@@ -393,7 +420,7 @@ class Model(object):
                 if position is None:
                     if item_kind in self._items:
                         search_in.append(self._items[item_kind])
-        
+
             for items_dic in search_in:
                 if ID is not None:
                     if ID in items_dic:
@@ -416,11 +443,11 @@ class Model(object):
                             result.append(item)
                             if return_first:
                                 return result
-            
+
         if return_buffered and position is None:
             for key in self._new_items:
                 if ((key[0] == item_kind or item_kind is None)
-                    and (key[1] == ID or ID is None)):
+                        and (key[1] == ID or ID is None)):
                     result.append(self._new_items[key])
 
         if return_first:
@@ -443,14 +470,14 @@ class Model(object):
         s = []
         for node in self._nodes:
             s.append('init(object(node, '
-                    + str(node[0] + (node[1]-1) * self._grid_size[0])
-                    +  '), value(at, ('
-                    + str(node[0]) + ', ' + str(node[1]) + '))).')
+                     + str(node[0] + (node[1]-1) * self._grid_size[0])
+                     + '), value(at, ('
+                     + str(node[0]) + ', ' + str(node[1]) + '))).')
         for node in self._highways:
             s.append('init(object(highway, '
-                    + str(node[0] + (node[1]-1) * self._grid_size[0])
-                    +  '), value(at, ('
-                    + str(node[0]) + ', ' + str(node[1]) + '))).')
+                     + str(node[0] + (node[1]-1) * self._grid_size[0])
+                     + '), value(at, ('
+                     + str(node[0]) + ', ' + str(node[1]) + '))).')
         for items_dic in self._graphic_items.values():
             for item in items_dic.values():
                 s.append(item.to_init_str())
@@ -464,18 +491,20 @@ class Model(object):
     def save_to_file(self, file_name):
         ofile = open(file_name, 'w')
         try:
-            #head
-            ofile.write('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+            # head
+            ofile.write(
+                '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
             ofile.write('\n%Grid size X: ' + str(self._grid_size[0]))
             ofile.write('\n%Grid size Y: ' + str(self._grid_size[1]))
-            ofile.write('\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
-            #body
+            ofile.write(
+                '\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n')
+            # body
             ofile.write('#program base.\n\n')
 
             ofile.write('%init\n')
             for ss in self.to_init_str():
-                 ofile.write(str(ss.replace(".", ".\n")))
-    
+                ofile.write(str(ss.replace(".", ".\n")))
+
         except IOError:
             ofile.close()
             return
@@ -496,7 +525,7 @@ class Model(object):
             return
         ofile.close()
 
-    def get_item(self, item_kind, ID, create = False, add_immediately = False):
+    def get_item(self, item_kind, ID, create=False, add_immediately=False):
         items_dic = None
         if ID is not None:
             ID = str(ID)
@@ -555,16 +584,16 @@ class Model(object):
             for item in items_dic.values():
                 yield item
 
-    def _map_kind_to_dictionarie(self, item_kind, 
-                                    dictionaries, 
-                                    create_dictionarie = False):
+    def _map_kind_to_dictionarie(self, item_kind,
+                                 dictionaries,
+                                 create_dictionarie=False):
         if item_kind not in dictionaries:
             if not create_dictionarie:
                 return None
             dictionaries[item_kind] = {}
         return dictionaries[item_kind]
 
-    def _map_item_to_dictionarie(self, item, create_dictionarie = False):
+    def _map_item_to_dictionarie(self, item, create_dictionarie=False):
         if item is None:
             return None
         dictionarie = None
@@ -572,8 +601,8 @@ class Model(object):
             dictionarie = self._graphic_items
         elif isinstance(item, VisualizerItem):
             dictionarie = self._items
-        else: 
+        else:
             return None
-        return self._map_kind_to_dictionarie(item.get_kind_name(), 
-                                                dictionarie, 
-                                                create_dictionarie)
+        return self._map_kind_to_dictionarie(item.get_kind_name(),
+                                             dictionarie,
+                                             create_dictionarie)
