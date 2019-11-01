@@ -342,6 +342,10 @@ class ModelView(QGraphicsView):
         self._scene.setSceneRect(0, 0, self._line_hlength, self._line_vlength*1)
 
     def clear(self):
+        
+        # FIXME: very slow, iterates through every single item and removes it.
+        # _scene.clear() seems better, but also deletes removed items causing an error in line 443.
+        
         for line in self._lines:
             self._scene.removeItem(line)
         self._lines = []
@@ -349,6 +353,14 @@ class ModelView(QGraphicsView):
         for item in self._items_in_scene:
             self._scene.removeItem(item) #FIXME: Slow iteration
         self._items_in_scene = []
+        
+        # even slower
+        # for item in self._scene.items():
+        #     self._scene.removeItem(item)
+        # self._lines = []
+        # self._items_in_scene = []
+
+        # self._scene.clear() #Does not work, removed elements still needed?!
 
     def update(self):
         if self._model == None: 
