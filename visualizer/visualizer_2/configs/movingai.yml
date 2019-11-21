@@ -1,0 +1,18 @@
+"atom":
+  - "object":
+      - "agent": <filepath here>
+      - "node"
+      - "tree"
+      - "water"
+      - "swamp"
+  - "value":
+      - "coord"
+  - "action":
+      - "move"
+
+"background_color":
+  - "black"
+
+"categories":
+  - "init": <RE>
+  - "occurs": <RE>

@@ -1,0 +1,23 @@
+"atom":
+  - "object":
+      - "robot": <filepath here>
+      - "node"
+      - "highway"
+      - "shelf"
+      - "picking_station"
+      - "order"
+      - "product"
+  - "value":
+      - "coord"
+  - "action":
+      - "move"
+      - "pickup"
+      - "putdown"
+      - "deliver"
+
+"background_color":
+  - "black"
+
+"categories":
+  - "init": <RE>
+  - "occurs": <RE>
