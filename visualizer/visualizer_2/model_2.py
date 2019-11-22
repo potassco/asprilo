@@ -14,12 +14,12 @@ class Model(object):
         """
         self._items = itemdict
     
-    def set_states(self, statelist):
+    def set_states(self, statedict):
         """
         Expected:
         - List of generators of tuples ((<type>, Index), Action)
         """
-        self._states = statelist
+        self._states = statedict
 
     def get_items(self):
         return self._items

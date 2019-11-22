@@ -11,6 +11,12 @@ def validate_atom(atom, config):
     """
     return
 
+def parse_init_atom(atom, config):
+    return obj_id, atom_
+
+def parse_occurs_atom(atom, config):
+    return atom_
+
 def parse_clingo_model(cl_model, config):
     """
     Parse a gringo model as returned by clingo and return an equivalent
@@ -18,14 +24,29 @@ def parse_clingo_model(cl_model, config):
     """
     model = Model()
     itemdict = {}
-    statelist = []
+    statedict = {}
 
+    for symbol in cl_model.symbols(atoms=True):
+        
+        validate_atom(symbol, config)
+        
+        if symbol.name == "occurs":
+            # Parse atom, append to states
+            atom = symbol.arguments
 
+            return
 
-
+        elif symbol.name == "init":
+            # Parse atom, append to items/states
+            return
+            
 
 
     model.set_items(itemdict)
-    model.set_states(statelist)
+
+    for state in statedict:
+        state = (x for x in state)
+    model.set_states(statedict)
+
     return model
     

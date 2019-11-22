@@ -59,7 +59,8 @@ class ModelScene(QGraphicsScene):
         self.next_step
 
     def next_step(self):
-        if self._current_step >= self._model.get_states()[-1]:
+        # Maybe in try/catch?
+        if self._current_step >= self._model.get_states()[max(self._model.get_states().keys())]:
             # Give back Error
             return
 
