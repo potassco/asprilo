@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+
+"""
+An application for converting scenario files from movingai's .scen format file
+to clingo's .lp format. Uses stdin and stdout by default.
+"""
+
+import argparse
+import logging
+import sys
+import yaml
+from PyQt5.QtWidgets import *
+import solveUtils, parseUtils
+from modelView_2 import ModelScene, ModelView
+from gui_2 import MainWindow
+
+
+def get_args():
+    """
+    Defines and parses command line arguments.
+    """
+
+    parser = argparse.ArgumentParser(
+        description="""
+                    Visualizes a clingo model.
+                    """)
+
+    parser.add_argument(
+        "-i", "--input", metavar="IN", type=argparse.FileType("r"),
+        default=sys.stdin, help="read from file")
+
+    parser.add_argument("-c", "--config", metavar="CFG",
+                        type=argparse.FileType("r"), help="use YAML configuration file")
+
+    v_group = parser.add_mutually_exclusive_group()
+
+    return parser.parse_args()
+
+
+def main(args):
+    """
+    Converts specified files from .scen to .lp.
+
+    Arguments:
+    args - an argparse.Namespace object
+    param_dict - dictionary containing scenario parameters and their statements
+    """
+    app = QApplication(sys.argv)
+
+    print("Parsing config...")
+    config = parseUtils.parse_config(args.config)
+
+    print("Getting Model...")
+    with args.input as source:
+        vizmodel = solveUtils.solve_from_file(args.input, config["atom"])
+
+    print("Constructing Scene...")
+    scene = ModelScene(vizmodel)
+    
+    print("Constructing View...")
+    sceneView = ModelView(scene)
+    print("Creating Window...")
+    win = MainWindow(sceneView)
+    print("Setting central View...")
+#    sceneView.show()
+    win.show()
+    app.exec()
+    
+
+
+if __name__ == "__main__":
+    main(get_args())
