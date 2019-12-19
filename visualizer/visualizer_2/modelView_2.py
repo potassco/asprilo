@@ -41,6 +41,7 @@ class ModelScene(QGraphicsScene):
         return self._current_step
 
     def import_items(self):
+        self.createItemGroup(self._model.get_statics())
         for item in list(self._model.get_items().values()):
             self.addItem(item)
 

@@ -1,19 +1,30 @@
 "atom":
   "object":
-    "robot": ~
-    "node": ~
-    "highway": ~
-    "shelf": ~
-    "pickingStation": ~
-    "order": ~
-    "product": ~
+
+    "static": #Objects that will never get actions or change visually (including moving)
+      "node": "sprites/node.svg"
+      "highway": "sprites/highway.svg"
+      "pickingStation": "sprites/pickingStation.svg"
+
+    "movable": #Objects which will get actions / change for any reasons
+      "robot": "sprites/robot.svg"
+      "shelf": "sprites/shelf.svg"
+      "pickingStation": "sprites/pickingStation.svg"
+
+    "abstract": #Objects which are not visually depicted
+      "order": "sprites/order.svg"
+      "product": "sprites/product.svg"
+
+
   "value":
     - "coord":
-  "action":
-    - "move"
-    - "pickup"
-    - "putdown"
-    - "deliver"
+
+  "action": #Somehow alias equivalent function
+    "init":
+    "move":
+    "pickup":
+    "putdown":
+    "deliver":
 
 "background_color": "black"
 

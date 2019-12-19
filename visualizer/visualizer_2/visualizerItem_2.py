@@ -42,7 +42,7 @@ class VisualizerItem(QGraphicsItem):
 
     def paint(self, painter, option, widget):
         if self._obj_id[0] in ["node", "highway", "robot", "shelf", "pickingStation"]:
-            print("Painting atom:" + self._obj_id[0])
+            #print("Painting atom:" + self._obj_id[0])
             painter.fillRect(self.boundingRect(), self._brush)
             return
 
@@ -57,7 +57,7 @@ class VisualizerItem(QGraphicsItem):
             # Give Warning f"Unhandled action {action[0]} at timestep t"
             return
         
-        self.update()
+       # self.update()
 
     def occur_reverse(self, action):
         if action[0] == "move":
@@ -67,4 +67,4 @@ class VisualizerItem(QGraphicsItem):
             # Give Warning f"Unhandled action {action[0]} (reverse) at timestep t"
             return
         
-        self.update()
+       # self.update()

@@ -32,8 +32,6 @@ def get_args():
     parser.add_argument("-c", "--config", metavar="CFG",
                         type=argparse.FileType("r"), help="use YAML configuration file")
 
-    v_group = parser.add_mutually_exclusive_group()
-
     return parser.parse_args()
 
 
@@ -52,7 +50,7 @@ def main(args):
 
     print("Getting Model...")
     with args.input as source:
-        vizmodel = solveUtils.solve_from_file(args.input, config["atom"])
+        vizmodel = solveUtils.solve_from_file(source, config["atom"])
 
     print("Constructing Scene...")
     scene = ModelScene(vizmodel)
