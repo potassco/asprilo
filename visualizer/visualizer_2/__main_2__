@@ -10,8 +10,8 @@ import logging
 import sys
 import yaml
 from PyQt5.QtWidgets import *
-import solveUtils, parseUtils
-from modelView_2 import ModelScene, ModelView
+import solveutils, parseutils
+from modelview_2 import ModelScene, ModelView
 from gui_2 import MainWindow
 
 
@@ -46,17 +46,18 @@ def main(args):
     app = QApplication(sys.argv)
 
     print("Parsing config...")
-    config = parseUtils.parse_config(args.config)
+    config = parseutils.parse_config(args.config)
 
     print("Getting Model...")
     with args.input as source:
-        vizmodel = solveUtils.solve_from_file(source, config["atom"])
+        vizmodel = solveutils.solve_from_file(source, config["atom"])
 
     print("Constructing Scene...")
     scene = ModelScene(vizmodel)
     
     print("Constructing View...")
     sceneView = ModelView(scene)
+    sceneView.setViewport(QOpenGLWidget())
     print("Creating Window...")
     win = MainWindow(sceneView)
     print("Setting central View...")

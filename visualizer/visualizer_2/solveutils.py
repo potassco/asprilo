@@ -1,5 +1,5 @@
 import clingo
-import parseUtils as pu
+import parseutils as pu
 
 def solve_from_file(file, atomcfg):
 

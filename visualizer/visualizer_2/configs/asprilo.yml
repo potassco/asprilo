@@ -4,9 +4,8 @@
     "static": #Objects that will never get actions or change visually (including moving)
       "node": "sprites/node.svg"
       "highway": "sprites/highway.svg"
-      "pickingStation": "sprites/pickingStation.svg"
 
-    "movable": #Objects which will get actions / change for any reasons
+    "dynamic": #Objects which will get actions / change for any reasons
       "robot": "sprites/robot.svg"
       "shelf": "sprites/shelf.svg"
       "pickingStation": "sprites/pickingStation.svg"
@@ -20,11 +19,11 @@
     - "coord":
 
   "action": #Somehow alias equivalent function
-    "init":
+    "teleport": 
     "move":
-    "pickup":
-    "putdown":
-    "deliver":
+    "pick_up":
+    "put_down":
+    "deliver": 
 
 "background_color": "black"
 

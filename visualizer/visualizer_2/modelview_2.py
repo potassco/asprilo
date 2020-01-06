@@ -2,7 +2,7 @@
 Remove unnecessary class definitions later.
 """
 
-import parseUtils as prs
+import parseutils as prs
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
 from PyQt5.QtGui import *
@@ -22,8 +22,8 @@ class ModelScene(QGraphicsScene):
 
         self._model = model
         self._current_step = -1
-        self.import_items()
-        self.init_scene()
+        self._import_items()
+        self._init_scene()
 
     # Maybe just use model as attribute?
     def set_model(self, model):
@@ -34,18 +34,35 @@ class ModelScene(QGraphicsScene):
         self.clear()
         self._model = model
         self.import_items()
+        #self.group_statics()
         self.init_scene()
+        
 
 
     def get_step(self):
         return self._current_step
 
-    def import_items(self):
-        self.createItemGroup(self._model.get_statics())
-        for item in list(self._model.get_items().values()):
+    def _import_items(self):
+        for item in list(self._model.get_statics().values()):
+            self.addItem(item)
+        for item in list(self._model.get_dynamics().values()):
             self.addItem(item)
 
-    def init_scene(self):
+    def _init_scene(self):
+        """
+        Sets the timestep to 0 and adjusts the model state accordingly.
+        """
+        print("Setting Scene to t = 0")
+        ref = self._model.get_all_objects()
+        for init in self._model.get_initial_state():
+            ref[init[0]].occur(init[1])
+        self._current_step = 0
+
+    def _group_statics(self):
+        print("Grouping static objects...")
+        self.createItemGroup(self._model.get_statics().values())
+
+    def reset_scene(self):
         """
         Sets the timestep to 0 and adjusts the model state accordingly.
         """
@@ -53,8 +70,9 @@ class ModelScene(QGraphicsScene):
         if self._current_step == 0:
             return
         for init in self._model.get_initial_state():
-            self._model.get_items()[init[0]].occur(init[1])
+            self._model.get_nonstatics()[init[0]].occur(init[1])
         self._current_step = 0
+
 
     def next_step(self):
         print("Next step: " + str(self._current_step + 1))
@@ -65,7 +83,7 @@ class ModelScene(QGraphicsScene):
 
         self._current_step += 1
         for occ in self._model.get_occurrences()[self._current_step]:
-            self._model.get_items()[occ[0]].occur(occ[1])
+            self._model.get_nonstatics()[occ[0]].occur(occ[1])
 
     def previous_step(self):
         print("Previous Step:" + str(self._current_step - 1))
@@ -74,7 +92,7 @@ class ModelScene(QGraphicsScene):
             return
 
         for occ in self._model.get_occurrences()[self._current_step]:
-            self._model.get_items()[occ[0]].occur_reverse(occ[1])
+            self._model.get_nonstatics()[occ[0]].occur_reverse(occ[1])
         self._current_step -= 1
 
 
