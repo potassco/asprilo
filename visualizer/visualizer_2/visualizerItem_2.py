@@ -1,16 +1,17 @@
 
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QGraphicsItem
+from PyQt5.QtSvg import QGraphicsSvgItem
 from PyQt5.QtGui import QBrush
 
 
-class VisualizerItem(QGraphicsItem):
+class VisualizerItem(QGraphicsSvgItem):
 
-    def __init__(self, obj_id, sprite):
+    def __init__(self, obj_id, renderer):
         super().__init__()
         self._obj_id = obj_id
+        self.setSharedRenderer(renderer)
         self.setToolTip(str(self._obj_id))
-        self._init_brush()
+    #    self._init_brush()
 #        self._sprite = sprite
         self.update()
 
@@ -38,33 +39,33 @@ class VisualizerItem(QGraphicsItem):
 
 
     def boundingRect(self):
-        return QRectF(-25,-25,50.0,50.0)
+        return QRectF(0,0,4,5.5)
 
     def paint(self, painter, option, widget):
-        if self._obj_id[0] in ["node", "highway", "robot", "shelf", "pickingStation"]:
             #print("Painting atom:" + self._obj_id[0])
-            painter.fillRect(self.boundingRect(), self._brush)
+            #painter.fillRect(self.boundingRect(), self._brush)
+            self.renderer().render(painter, self.boundingRect())
             return
 
-    def occur(self, action):
-        if action[0] == "init":
-            self.setPos(action[1][0]*50, action[1][1]*50)
+    # def occur(self, action):
+    #     if action[0] == "init":
+    #         self.setPos(action[1][0]*50, action[1][1]*50)
 
-        elif action[0] == "move":
-            self.moveBy(action[1][0]*50, action[1][1]*50)
+    #     elif action[0] == "move":
+    #         self.moveBy(action[1][0]*50, action[1][1]*50)
 
-        else:
-            # Give Warning f"Unhandled action {action[0]} at timestep t"
-            return
+    #     else:
+    #         # Give Warning f"Unhandled action {action[0]} at timestep t"
+    #         return
         
-       # self.update()
+    #    # self.update()
 
-    def occur_reverse(self, action):
-        if action[0] == "move":
-            self.moveBy(- action[1][0]*50, - action[1][1]*50)
+    # def occur_reverse(self, action):
+    #     if action[0] == "move":
+    #         self.moveBy(- action[1][0]*50, - action[1][1]*50)
 
-        else:
-            # Give Warning f"Unhandled action {action[0]} (reverse) at timestep t"
-            return
+    #     else:
+    #         # Give Warning f"Unhandled action {action[0]} (reverse) at timestep t"
+    #         return
         
-       # self.update()
+    #    # self.update()

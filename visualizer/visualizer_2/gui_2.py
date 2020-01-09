@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         self.step_forward = QAction("Step forward", self)
 
         self.reset_scale.triggered.connect(self._centralView.resizeToFit)
-        self.reset_scene.triggered.connect(self._scene.reset_scene)
+        self.reset_scene.triggered.connect(self._scene.init_scene)
         self.step_back.triggered.connect(self._scene.previous_step)
         self.step_forward.triggered.connect(self._scene.next_step)
         self._createToolBar()

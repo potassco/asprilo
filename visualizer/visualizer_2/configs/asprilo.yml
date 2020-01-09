@@ -1,32 +1,24 @@
 "atom":
   "object":
 
-    "static": #Objects that will never get actions or change visually (including moving)
-      "node": "sprites/node.svg"
-      "highway": "sprites/highway.svg"
-
-    "dynamic": #Objects which will get actions / change for any reasons
-      "robot": "sprites/robot.svg"
-      "shelf": "sprites/shelf.svg"
-      "pickingStation": "sprites/pickingStation.svg"
-
+    "item": #Visually depicted objects
+      "node": "sprites/asprilo/node.svg"
+      "highway": "sprites/asprilo/highway.svg"
+      "robot": "sprites/asprilo/robot.svg"
+      "shelf": "sprites/asprilo/shelf.svg"
+      "pickingStation": "sprites/asprilo/pickingStation.svg"
+    
     "abstract": #Objects which are not visually depicted
-      "order": "sprites/order.svg"
-      "product": "sprites/product.svg"
-
+      "order": ~ #Maybe use empty space for further specification?
+      "product": ~
 
   "value":
     - "coord":
 
   "action": #Somehow alias equivalent function
-    "teleport": 
-    "move":
-    "pick_up":
-    "put_down":
-    "deliver": 
+    "move": "move"
+    "pickup": "pick_up"
+    "putdown": "put_down"
+    "deliver": "satisfy"
 
 "background_color": "black"
-
-"categories":
-  "init": "<RE>"
-  "occurs": "<RE>"

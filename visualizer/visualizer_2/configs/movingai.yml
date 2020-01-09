@@ -1,18 +1,16 @@
 "atom":
-  - "object":
-      - "agent": <filepath here>
-      - "node"
-      - "tree"
-      - "water"
-      - "swamp"
-  - "value":
+  "object":
+    "item":
+      "agent": "sprites/movingai/robot.svg" #Image by Freepik
+      "node": "sprites/movingai/grass.svg"
+      "tree": "sprites/movingai/tree.svg" #Image by Freepik
+      "water": "sprites/movingai/water.svg"
+      "swamp": "sprites/movingai/swamp.svg"
+  "value":
       - "coord"
-  - "action":
-      - "move"
+  "action":
+      "move": "move"
 
 "background_color":
   - "black"
 
-"categories":
-  - "init": <RE>
-  - "occurs": <RE>

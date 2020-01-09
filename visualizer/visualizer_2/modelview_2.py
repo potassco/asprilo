@@ -4,7 +4,7 @@ Remove unnecessary class definitions later.
 
 import parseutils as prs
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QOpenGLWidget
 from PyQt5.QtGui import *
 from model_2 import *
 
@@ -23,9 +23,8 @@ class ModelScene(QGraphicsScene):
         self._model = model
         self._current_step = -1
         self._import_items()
-        self._init_scene()
+        self.init_scene()
 
-    # Maybe just use model as attribute?
     def set_model(self, model):
         """
         Removes all elements from the scene (deletes all items!).
@@ -34,45 +33,43 @@ class ModelScene(QGraphicsScene):
         self.clear()
         self._model = model
         self.import_items()
-        #self.group_statics()
         self.init_scene()
-        
-
 
     def get_step(self):
         return self._current_step
 
     def _import_items(self):
-        for item in list(self._model.get_statics().values()):
+        for item in list(self._model.get_items().values()):
             self.addItem(item)
-        for item in list(self._model.get_dynamics().values()):
-            self.addItem(item)
+            #print(item.renderer())
 
-    def _init_scene(self):
+    def init_scene(self):
         """
         Sets the timestep to 0 and adjusts the model state accordingly.
         """
         print("Setting Scene to t = 0")
-        ref = self._model.get_all_objects()
+        objects = self._model.get_objects()
+
+        # Check actions and call used functions
         for init in self._model.get_initial_state():
-            ref[init[0]].occur(init[1])
+            init[1][0](objects[init[0]], *init[1][1])
+        
         self._current_step = 0
 
-    def _group_statics(self):
-        print("Grouping static objects...")
-        self.createItemGroup(self._model.get_statics().values())
+    # def _group_statics(self):
+    #     print("Grouping static objects...")
+    #     self.createItemGroup(self._model.get_statics().values())
 
-    def reset_scene(self):
-        """
-        Sets the timestep to 0 and adjusts the model state accordingly.
-        """
-        print("Setting Scene to t = 0")
-        if self._current_step == 0:
-            return
-        for init in self._model.get_initial_state():
-            self._model.get_nonstatics()[init[0]].occur(init[1])
-        self._current_step = 0
-
+    # def reset_scene(self):
+    #     """
+    #     Sets the timestep to 0 and adjusts the model state accordingly.
+    #     """
+    #     print("Setting Scene to t = 0")
+    #     if self._current_step == 0:
+    #         return
+    #     for init in self._model.get_initial_state():
+    #         self._model.get_items()[init[0]].occur(init[1])
+    #     self._current_step = 0
 
     def next_step(self):
         print("Next step: " + str(self._current_step + 1))
@@ -83,7 +80,7 @@ class ModelScene(QGraphicsScene):
 
         self._current_step += 1
         for occ in self._model.get_occurrences()[self._current_step]:
-            self._model.get_nonstatics()[occ[0]].occur(occ[1])
+            occ[1][0](self._model.get_items()[occ[0]], *occ[1][1])
 
     def previous_step(self):
         print("Previous Step:" + str(self._current_step - 1))
@@ -92,7 +89,7 @@ class ModelScene(QGraphicsScene):
             return
 
         for occ in self._model.get_occurrences()[self._current_step]:
-            self._model.get_nonstatics()[occ[0]].occur_reverse(occ[1])
+            occ[1][0].rev(self._model.get_items()[occ[0]], *occ[1][1])
         self._current_step -= 1
 
 
@@ -104,6 +101,7 @@ class ModelView(QGraphicsView):
     def __init__(self, scene):
         super(self.__class__, self).__init__(scene)
         self._scene = scene
+        self.setViewport(QOpenGLWidget())
     
     def resizeToFit(self):
         print("Resizing Window...")

@@ -1,112 +1,134 @@
 import sys
 import clingo
 from visualizerItem_2 import *
+from PyQt5.QtSvg import QSvgRenderer
 import yaml
 import logging
 import typing
+import actions
 from typing import Dict
 from model_2 import *
 
+def parse_action(action: str, actioncfg: Dict[str, str]):
 
-def parse_spritepath(path):
-    return  # Reference to sprite file
+    ignore = ("pick_up", "put_down", "demand", "satisfy") # WIP functions
+    if actioncfg[action] in ignore:
+        return actions.dummy
+    
+    if actioncfg[action] == "move":
+        return actions.move
+    
+    if actioncfg[action] == "pick_up":
+        return actions.pick_up
+    
+    if actioncfg[action] == "put_down":
+        return actions.put_down
+    
+    if actioncfg[action] == "demand":
+        return actions.demand
+
+    if actioncfg[action] == "satisfy":
+        return actions.satisfy
 
 
-def parse_value(symbols, itemcfg):
-    return
+def parse_item(name: str, number: int, initargs, itemcfg: Dict[str, str], spriteconfig, svgdict):
 
+    item = VisualizerItem((name, number), svgdict.setdefault(
+        name, QSvgRenderer(spriteconfig[name])))
 
-def parse_object(name: str, number: int, itemcfg: Dict[str, str], spriteconfig):
-    objtype = itemcfg[name]
-    obj_id = (name, number)
+    action = (actions.init, tuple(x.number for x in initargs[1].arguments))
 
-    if objtype == "static" or objtype == "dynamic":
-        item = VisualizerItem(obj_id, spriteconfig[name])
-
-    elif objtype == "abstract":
-        item = VisualizerAbstract(obj_id)
-
-    return objtype, obj_id, item
+    return item, action
 
 # TODO: Rewrite, Add configurability (maybe recursively)
 # Split for dynamics, abstracts and statics
 
 
-def parse_init_atom(symbols, itemcfg, spriteconfig):
+def parse_abstract(name: str, number: int, initargs, itemcfg: Dict[str, str]):
+    abstract = VisualizerAbstract((name, number))
+
+    # TODO: Implement classification for orders/products
+    action = (actions.dummy, tuple(initargs))
+
+    return abstract, action
+
+
+def parse_init_atom(symbols, itemcfg, spriteconfig, svgdict):
     if len(symbols) != 2:
         #TODO: Error
         return
 
-    for symbol in symbols:
+    name = symbols[0].arguments[0].name
+    number = symbols[0].arguments[1].number
+    initargs = symbols[1].arguments
+    objtype = itemcfg[name]
+    obj_id = (name, number)
 
-        if symbol.name == "object":
-            objtype, obj_id, item = parse_object(
-                symbol.arguments[0].name, symbol.arguments[1].number, itemcfg, spriteconfig)
+    if objtype == "item":
+        obj, action = parse_item(
+            name, number, initargs, itemcfg, spriteconfig, svgdict)
 
-        elif symbol.name == "value":
-            coord = tuple(x.number for x in symbol.arguments[1].arguments)
+    elif objtype == "abstract":
+        obj, action = parse_abstract(name, number, initargs, itemcfg)
 
-        else:
-            #TODO: Error
-            pass
+    else:
+        pass  # TODO: Error
 
-    occur = (obj_id, ("init", coord))
-
-    return objtype, obj_id, item, occur
+    return objtype, obj_id, obj, (obj_id, action)
 
 
 # TODO: Rewrite, Add configurability
-def parse_occurs_atom(symbols, cfg):
+def parse_occurs_atom(symbols, actioncfg):
     if len(symbols) != 3:
         #TODO: Error
         return
 
     index = symbols[2].number
     obj_id = (symbols[0].arguments[0].name, symbols[0].arguments[1].number)
-    action = (symbols[1].arguments[0].name, tuple(
-        x.number for x in symbols[1].arguments[1].arguments))
+    occargs = symbols[1].arguments
+    action = (parse_action(symbols[1].arguments[0].name, actioncfg), tuple(
+        x.number for x in occargs[1].arguments))
 
     return index, (obj_id, action)
 
 
-def parse_clingo_model(cl_handle, atomcfg, compress_lists=True):
+def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
     """
     Parse a gringo model as returned by clingo and return an equivalent
     visualizer model.
     """
 
-    objects = {"dynamic": {}, "static": {}, "abstract": {}}
+    objects = {"item": {}, "abstract": {}}
     init = []
     occurs = {}
 
-    # Dictionary of the form obj_id: objtype
-    itemcfg = dict(
-        ((obj, att[0]) for att in atomcfg["object"].items() for obj in att[1]))
+    # Dictionary of the form objname: objtype
+    itemcfg = {obj: att[0] for att in atomcfg["object"].items()
+               for obj in att[1]}
 
-    # Dictionary of the form obj_id: sprite
-    spritecfg = dict((obj, parse_spritepath(
-        att[obj])) for att in atomcfg["object"].values() for obj in att)
+    # Dictionary of the form objname: spritepath
+    spritecfg = atomcfg["object"]["item"]
+
+    # Dictionary of the form objname: QSvgRenderer
+    svgdict = {}
 
     for cl_model in cl_handle:
         for symbol in cl_model.symbols(atoms=True):
 
             if symbol.name == "occurs":
                 # Parse atom, append to states
-                index, occur = parse_occurs_atom(symbol.arguments, itemcfg)
+                index, occur = parse_occurs_atom(
+                    symbol.arguments, atomcfg["action"])
                 occurs.setdefault(index, []).append(occur)
 
             elif symbol.name == "init":
-                # Skip some atoms for now
-                # TODO: Remove workaround, implement case properly
-                if itemcfg[symbol.arguments[0].arguments[0].name] == "abstract":
-                    pass
 
-                else:
-                    # Parse atom, append to items/states
-                    objtype, obj_id, item, occur = parse_init_atom(
-                        symbol.arguments, itemcfg, spritecfg)
-                    objects[objtype][obj_id] = item
-                    init.append(occur)
+                # Parse atom, append to items/states
+                objtype, obj_id, obj, occur = parse_init_atom(
+                    symbol.arguments, itemcfg, spritecfg, svgdict)
+                objects[objtype][obj_id] = obj
+                init.append(occur)
+
             else:
                 # TODO: Throw error "unknown atom type(occurs)"
                 pass
@@ -118,8 +140,7 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=True):
             occurs[occ] = (action for action in occurs[occ])
 
     model = Model()
-    model.set_items(objects["dynamic"])
-    model.set_statics(objects["static"])
+    model.set_items(objects["item"])
     model.set_abstracts(objects["abstract"])
     model.set_initial_state(init)
     model.set_occurrences(occurs)
