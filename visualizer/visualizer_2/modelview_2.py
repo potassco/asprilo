@@ -4,6 +4,7 @@ Remove unnecessary class definitions later.
 
 import parseutils as prs
 from PyQt5.QtCore import *
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QOpenGLWidget
 from PyQt5.QtGui import *
 from model_2 import *
@@ -37,6 +38,9 @@ class ModelScene(QGraphicsScene):
 
     def get_step(self):
         return self._current_step
+
+    def get_sprites(self):
+        return self._model.get_sprites()
 
     def _import_items(self):
         for item in list(self._model.get_items().values()):
@@ -105,7 +109,7 @@ class ModelView(QGraphicsView):
     
     def resizeToFit(self):
         print("Resizing Window...")
-        self.fitInView(self._scene.sceneRect())
+        self.fitInView(self._scene.sceneRect(), Qt.KeepAspectRatio)
 
     def get_scene(self):
         return self._scene

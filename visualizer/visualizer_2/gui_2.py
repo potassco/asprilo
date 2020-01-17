@@ -19,11 +19,13 @@ class MainWindow(QMainWindow):
         self.reset_scene = QAction("Reset", self)
         self.step_back = QAction("Step back", self)
         self.step_forward = QAction("Step forward", self)
+        self.redraw_sprites = QAction("Update Sprites", self)
 
         self.reset_scale.triggered.connect(self._centralView.resizeToFit)
         self.reset_scene.triggered.connect(self._scene.init_scene)
         self.step_back.triggered.connect(self._scene.previous_step)
         self.step_forward.triggered.connect(self._scene.next_step)
+        self.redraw_sprites.triggered.connect(self._scene.get_sprites().update_sprites)
         self._createToolBar()
         self._createMenu()
         self._createStatusBar()

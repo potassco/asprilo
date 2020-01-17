@@ -1,6 +1,7 @@
 import sys
 import clingo
-from visualizerItem_2 import *
+import visualizeritem_2
+from spritecontainer import SpriteContainer
 from PyQt5.QtSvg import QSvgRenderer
 import yaml
 import logging
@@ -31,10 +32,9 @@ def parse_action(action: str, actioncfg: Dict[str, str]):
         return actions.satisfy
 
 
-def parse_item(name: str, number: int, initargs, itemcfg: Dict[str, str], spriteconfig, svgdict):
+def parse_item(name: str, number: int, initargs, itemcfg: Dict[str, str], sprites):
 
-    item = VisualizerItem((name, number), svgdict.setdefault(
-        name, QSvgRenderer(spriteconfig[name])))
+    item = VisualizerItem((name, number), sprites.get_pixmap(name))
 
     action = (actions.init, tuple(x.number for x in initargs[1].arguments))
 
@@ -53,7 +53,7 @@ def parse_abstract(name: str, number: int, initargs, itemcfg: Dict[str, str]):
     return abstract, action
 
 
-def parse_init_atom(symbols, itemcfg, spriteconfig, svgdict):
+def parse_init_atom(symbols, itemcfg, sprites):
     if len(symbols) != 2:
         #TODO: Error
         return
@@ -66,7 +66,7 @@ def parse_init_atom(symbols, itemcfg, spriteconfig, svgdict):
 
     if objtype == "item":
         obj, action = parse_item(
-            name, number, initargs, itemcfg, spriteconfig, svgdict)
+            name, number, initargs, itemcfg, sprites)
 
     elif objtype == "abstract":
         obj, action = parse_abstract(name, number, initargs, itemcfg)
@@ -97,7 +97,8 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
     Parse a gringo model as returned by clingo and return an equivalent
     visualizer model.
     """
-
+    print("Converting to VizualizerModel...")
+    
     objects = {"item": {}, "abstract": {}}
     init = []
     occurs = {}
@@ -106,11 +107,8 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
     itemcfg = {obj: att[0] for att in atomcfg["object"].items()
                for obj in att[1]}
 
-    # Dictionary of the form objname: spritepath
-    spritecfg = atomcfg["object"]["item"]
+    sprites = SpriteContainer(atomcfg["object"]["item"])
 
-    # Dictionary of the form objname: QSvgRenderer
-    svgdict = {}
 
     for cl_model in cl_handle:
         for symbol in cl_model.symbols(atoms=True):
@@ -125,7 +123,7 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
 
                 # Parse atom, append to items/states
                 objtype, obj_id, obj, occur = parse_init_atom(
-                    symbol.arguments, itemcfg, spritecfg, svgdict)
+                    symbol.arguments, itemcfg, sprites)
                 objects[objtype][obj_id] = obj
                 init.append(occur)
 
@@ -144,6 +142,7 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
     model.set_abstracts(objects["abstract"])
     model.set_initial_state(init)
     model.set_occurrences(occurs)
+    model.set_sprites(sprites)
 
     return model
 

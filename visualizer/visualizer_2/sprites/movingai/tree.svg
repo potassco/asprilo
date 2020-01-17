@@ -13,14 +13,15 @@
    id="Layer_1"
    x="0px"
    y="0px"
-   viewBox="0 0 512.001 512.001"
-   style="enable-background:new 0 0 512.001 512.001;"
+   viewBox="0 0 50.000002 50.000002"
    xml:space="preserve"
    sodipodi:docname="tree.svg"
-   inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"
+   width="50"
+   height="50"><metadata
    id="metadata53"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
-         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><defs
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
    id="defs51" /><sodipodi:namedview
    pagecolor="#ffffff"
    bordercolor="#666666"
@@ -35,8 +36,8 @@
    id="namedview49"
    showgrid="false"
    inkscape:zoom="0.46093662"
-   inkscape:cx="256.00049"
-   inkscape:cy="256.00049"
+   inkscape:cx="-522.84845"
+   inkscape:cy="342.78032"
    inkscape:window-x="0"
    inkscape:window-y="0"
    inkscape:window-maximized="1"
@@ -48,7 +49,7 @@
 
 <g
    id="g868"
-   transform="matrix(0.21808253,0,0,0.19531211,-5.829128,412.00098)"><path
+   transform="matrix(0.10904127,0,0,0.09765606,-2.914564,-1.36789e-6)"><path
      id="path2"
      d="m 485.271,240.532 c 0,-35.798 -21.77,-66.511 -52.792,-79.623 5.478,-10.59 8.592,-22.602 8.592,-35.348 0,-42.561 -34.502,-77.063 -77.063,-77.063 -12.126,0 -23.593,2.809 -33.799,7.798 C 321.141,23.827 291.362,0 256,0 c -35.362,0 -65.14,23.827 -74.209,56.296 -10.206,-4.99 -21.673,-7.798 -33.799,-7.798 -42.561,0 -77.063,34.502 -77.063,77.063 0,12.746 3.113,24.758 8.592,35.348 -31.022,13.113 -52.792,43.825 -52.792,79.623 0,46.393 36.576,84.196 82.459,86.265 6.397,23.17 31.1,40.443 60.622,40.443 16.732,0 31.91,-5.557 43.095,-14.581 11.186,9.024 26.364,14.581 43.095,14.581 16.731,0 31.91,-5.557 43.095,-14.581 11.186,9.024 26.364,14.581 43.095,14.581 29.522,0 54.225,-17.273 60.622,-40.444 45.883,-2.069 82.459,-39.871 82.459,-86.264 z"
      style="fill:#129b12"
@@ -82,48 +83,63 @@
      style="fill:#28a528"
      inkscape:connector-curvature="0" /></g>
 <g
-   id="g18">
+   id="g18"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g20">
+   id="g20"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g22">
+   id="g22"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g24">
+   id="g24"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g26">
+   id="g26"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g28">
+   id="g28"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g30">
+   id="g30"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g32">
+   id="g32"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g34">
+   id="g34"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g36">
+   id="g36"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g38">
+   id="g38"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g40">
+   id="g40"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g42">
+   id="g42"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g44">
+   id="g44"
+   transform="translate(0,-462.00098)">
 </g>
 <g
-   id="g46">
+   id="g46"
+   transform="translate(0,-462.00098)">
 </g>
 </svg>

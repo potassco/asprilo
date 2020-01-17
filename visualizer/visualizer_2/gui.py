@@ -70,6 +70,7 @@ class VizSplitter(QSplitter):
         if self._childrean_count <= 1 and event.removed() is True:
             self.close()
 
+
 class VizModelWidget(VizWidget):
     def __init__(self):
         super(VizModelWidget, self).__init__()
@@ -154,7 +155,7 @@ class WidgetManager(object):
                         pos += size
                         index += 1
 
-        #create new widget
+        # create new widget
         splitter = VizSplitter()
         splitter.insertWidget(0, widget)
         splitter.resize(widget.size())

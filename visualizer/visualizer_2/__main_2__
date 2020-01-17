@@ -50,11 +50,11 @@ def main(args):
 
     print("Getting Model...")
     with args.input as source:
-        vizmodel = solveutils.solve_from_file(source, config["atom"])
+        model = solveutils.solve_from_file(source, config["atom"])
 
     print("Constructing Scene...")
-    scene = ModelScene(vizmodel)
-    
+    scene = ModelScene(model)
+
     print("Constructing View...")
     sceneView = ModelView(scene)
     sceneView.setViewport(QOpenGLWidget())
@@ -64,7 +64,6 @@ def main(args):
 #    sceneView.show()
     win.show()
     app.exec()
-    
 
 
 if __name__ == "__main__":
