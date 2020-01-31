@@ -1,11 +1,20 @@
 "atom":
   "object":
+  
     "item":
       "agent": "sprites/movingai/robot.svg" #Image by Freepik
       "node": "sprites/movingai/grass.svg"
       "tree": "sprites/movingai/tree.svg" #Image by Freepik
       "water": "sprites/movingai/water.svg"
       "swamp": "sprites/movingai/swamp.svg"
+
+  "layer":
+    - "node"
+    - "water"
+    - "swamp"
+    - "tree"
+    - "agent"
+
   "value":
       - "coord"
   "action":
@@ -14,3 +23,4 @@
 "background_color":
   - "black"
 
+ 

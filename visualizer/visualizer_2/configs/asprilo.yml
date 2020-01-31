@@ -12,8 +12,12 @@
       "order": ~ #Maybe use empty space for further specification?
       "product": ~
 
-  "value":
-    - "coord":
+  "layer":
+    - "node"
+    - "highway"
+    - "shelf"
+    - "pickingStation"
+    - "robot"
 
   "action": #Somehow alias equivalent function
     "move": "move"

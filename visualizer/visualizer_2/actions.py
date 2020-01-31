@@ -1,17 +1,15 @@
 # Placeholder, should not be called in actual use
-sprmod = 10
-
 def dummy(*args):
     return
 
 def init(obj, x, y):
-    obj.setPos(x*sprmod,y*sprmod)
+    obj.setPos(x,y)
 
 def move(obj, x, y):
-    obj.moveBy(x*sprmod,y*sprmod)
+    obj.moveBy(x,y)
 
 def _moverev(obj, x, y):
-    obj.moveBy(obj, -x, -y)
+    obj.moveBy(-x, -y)
 
 def pick_up(obj1, obj2):
     obj2.setParent(obj1)

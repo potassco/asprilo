@@ -32,16 +32,13 @@ def parse_action(action: str, actioncfg: Dict[str, str]):
         return actions.satisfy
 
 
-def parse_item(name: str, number: int, initargs, itemcfg: Dict[str, str], sprites):
+def parse_item(name: str, number: int, initargs, itemcfg: Dict[str, str], sprites, zvalues):
 
-    item = VisualizerItem((name, number), sprites.get_pixmap(name))
+    item = VisualizerItem((name, number), sprites, zvalues[name])
 
     action = (actions.init, tuple(x.number for x in initargs[1].arguments))
 
     return item, action
-
-# TODO: Rewrite, Add configurability (maybe recursively)
-# Split for dynamics, abstracts and statics
 
 
 def parse_abstract(name: str, number: int, initargs, itemcfg: Dict[str, str]):
@@ -53,7 +50,7 @@ def parse_abstract(name: str, number: int, initargs, itemcfg: Dict[str, str]):
     return abstract, action
 
 
-def parse_init_atom(symbols, itemcfg, sprites):
+def parse_init_atom(symbols, itemcfg, sprites, zvalues):
     if len(symbols) != 2:
         #TODO: Error
         return
@@ -66,7 +63,7 @@ def parse_init_atom(symbols, itemcfg, sprites):
 
     if objtype == "item":
         obj, action = parse_item(
-            name, number, initargs, itemcfg, sprites)
+            name, number, initargs, itemcfg, sprites, zvalues)
 
     elif objtype == "abstract":
         obj, action = parse_abstract(name, number, initargs, itemcfg)
@@ -97,7 +94,7 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
     Parse a gringo model as returned by clingo and return an equivalent
     visualizer model.
     """
-    print("Converting to VizualizerModel...")
+    print("Converting to VisualizerModel...")
     
     objects = {"item": {}, "abstract": {}}
     init = []
@@ -108,7 +105,7 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
                for obj in att[1]}
 
     sprites = SpriteContainer(atomcfg["object"]["item"])
-
+    zvalues = {name: atomcfg["layer"].index(name) for name in atomcfg["layer"]}
 
     for cl_model in cl_handle:
         for symbol in cl_model.symbols(atoms=True):
@@ -123,7 +120,7 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
 
                 # Parse atom, append to items/states
                 objtype, obj_id, obj, occur = parse_init_atom(
-                    symbol.arguments, itemcfg, sprites)
+                    symbol.arguments, itemcfg, sprites, zvalues)
                 objects[objtype][obj_id] = obj
                 init.append(occur)
 

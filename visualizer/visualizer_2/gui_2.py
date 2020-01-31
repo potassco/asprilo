@@ -19,13 +19,15 @@ class MainWindow(QMainWindow):
         self.reset_scene = QAction("Reset", self)
         self.step_back = QAction("Step back", self)
         self.step_forward = QAction("Step forward", self)
-        self.redraw_sprites = QAction("Update Sprites", self)
+        self.large_sprites = QAction("Scale up", self)
+        self.small_sprites = QAction("Scale down", self)
 
         self.reset_scale.triggered.connect(self._centralView.resizeToFit)
         self.reset_scene.triggered.connect(self._scene.init_scene)
         self.step_back.triggered.connect(self._scene.previous_step)
         self.step_forward.triggered.connect(self._scene.next_step)
-        self.redraw_sprites.triggered.connect(self._scene.get_sprites().update_sprites)
+        self.large_sprites.triggered.connect(self._centralView.scale_up)
+        self.small_sprites.triggered.connect(self._centralView.scale_down)
         self._createToolBar()
         self._createMenu()
         self._createStatusBar()
@@ -41,6 +43,8 @@ class MainWindow(QMainWindow):
         tools.addAction(self.reset_scene)
         tools.addAction(self.step_back)
         tools.addAction(self.step_forward)
+        tools.addAction(self.large_sprites)
+        tools.addAction(self.small_sprites)
 
     def _createStatusBar(self):
         status = QStatusBar()
@@ -51,6 +55,5 @@ class MainWindow(QMainWindow):
         self._centralView = view
         self._scene = self._centralView.get_scene()
         self._centralView.setToolTip("ModelView")
-        self._centralView.resizeToFit()
         self.setCentralWidget(view)
 

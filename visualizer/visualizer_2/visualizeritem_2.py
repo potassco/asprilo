@@ -1,16 +1,21 @@
 
-from PyQt5.QtCore import QRectF
-from PyQt5.QtWidgets import QGraphicsPixmapItem
+from PyQt5.QtCore import QRectF, QRect
+from PyQt5.QtWidgets import QGraphicsItem
 
-class VisualizerItem(QGraphicsPixmapItem):
+class VisualizerItem(QGraphicsItem):
 
-    def __init__(self, obj_id, pixmap):
+    def __init__(self, obj_id, spritecontainer, zvalue):
         super().__init__()
         self._name, self._id = obj_id[0], obj_id[1]
-        self.setPixmap(pixmap)
+        #self.setPixmap(pixmap)
+        self._spritecontainer = spritecontainer
+        self._key = spritecontainer.get_keys()[self._name]
+        self.setZValue(zvalue)
         self.setToolTip(f"{self._name} {self._id}")
-        self.setShapeMode(self.BoundingRectShape)
         self.update()
+
+    def boundingRect(cls):
+        return QRectF(0,0,1,1)
 
 #    def get_sprite(self):
 #        self.paint()
@@ -31,11 +36,9 @@ class VisualizerItem(QGraphicsPixmapItem):
     #     else:
     #         self._brush = QBrush(Qt.green)
 
-    # def paint(self, painter, option, widget):
-    #         #print("Painting atom:" + self._obj_id[0])
-    #         #painter.fillRect(self.boundingRect(), self._brush)
-    #         self.renderer().render(painter, self.boundingRect())
-    #         return
+    def paint(self, painter, option, widget):
+            painter.drawPixmap(QRect(0,0,1,1), self._spritecontainer.find(self._key))
+
 
     # def occur(self, action):
     #     if action[0] == "init":
