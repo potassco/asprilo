@@ -24,6 +24,7 @@ class SpriteContainer(QPixmapCache):
     def _init_renderer(self, spriteconfig):
         self._renderer = {x[0]: QSvgRenderer(
             x[1]) for x in spriteconfig.items()}
+        self._renderer["mark"] = QSvgRenderer("sprites/mark.svg")
 
     def _render_sprites(self):
         rect = QRectF(0, 0, self._scale, self._scale)

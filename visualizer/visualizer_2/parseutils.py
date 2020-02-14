@@ -10,21 +10,35 @@ import actions
 from typing import Dict
 from model_2 import *
 
-def parse_action(action: str, actioncfg: Dict[str, str]):
 
-    ignore = ("pick_up", "put_down", "demand", "satisfy") # WIP functions
+def parse_action(action: str, args: list, actioncfg: Dict[str, str], pickuplist):
+
+    ignore = ("dummy", "demand", "satisfy")  # WIP functions
     if actioncfg[action] in ignore:
-        return actions.dummy
-    
+        return actions.dummy, ()
+
     if actioncfg[action] == "move":
-        return actions.move
-    
+        arglist = [x.number for x in args]
+        return actions.move, tuple(arglist)
+
     if actioncfg[action] == "pick_up":
-        return actions.pick_up
-    
+        arglist = [(x.name, x.number) for x in args]
+        return actions.pick_up, tuple(arglist)
+
+    if actioncfg[action] == "pick_up_all":
+        # arglist = [x.number for x in args]
+        # arglist.append(pickuplist)
+        return actions.pick_up_all, [pickuplist]
+
     if actioncfg[action] == "put_down":
-        return actions.put_down
-    
+        arglist = [(x.name, x.number) for x in args]
+        return actions.put_down, tuple(arglist)
+
+    if actioncfg[action] == "put_down_all":
+        # arglist = [x.number for x in args]
+        # arglist.append(pickuplist)
+        return actions.put_down_all, [pickuplist]
+
     if actioncfg[action] == "demand":
         return actions.demand
 
@@ -34,20 +48,19 @@ def parse_action(action: str, actioncfg: Dict[str, str]):
 
 def parse_item(name: str, number: int, initargs, itemcfg: Dict[str, str], sprites, zvalues):
 
-    item = VisualizerItem((name, number), sprites, zvalues[name])
+    coord = tuple(x.number for x in initargs[1].arguments)
+    item = VisualizerItem((name, number), coord, sprites, zvalues[name])
 
-    action = (actions.init, tuple(x.number for x in initargs[1].arguments))
-
-    return item, action
+    return item
 
 
 def parse_abstract(name: str, number: int, initargs, itemcfg: Dict[str, str]):
     abstract = VisualizerAbstract((name, number))
 
     # TODO: Implement classification for orders/products
-    action = (actions.dummy, tuple(initargs))
+    #action = (actions.dummy, tuple(initargs))
 
-    return abstract, action
+    return abstract
 
 
 def parse_init_atom(symbols, itemcfg, sprites, zvalues):
@@ -62,20 +75,20 @@ def parse_init_atom(symbols, itemcfg, sprites, zvalues):
     obj_id = (name, number)
 
     if objtype == "item":
-        obj, action = parse_item(
+        obj = parse_item(
             name, number, initargs, itemcfg, sprites, zvalues)
 
     elif objtype == "abstract":
-        obj, action = parse_abstract(name, number, initargs, itemcfg)
+        obj = parse_abstract(name, number, initargs, itemcfg)
 
     else:
         pass  # TODO: Error
 
-    return objtype, obj_id, obj, (obj_id, action)
+    return objtype, obj_id, obj
 
 
 # TODO: Rewrite, Add configurability
-def parse_occurs_atom(symbols, actioncfg):
+def parse_occurs_atom(symbols, actioncfg, pickuplist):
     if len(symbols) != 3:
         #TODO: Error
         return
@@ -83,8 +96,8 @@ def parse_occurs_atom(symbols, actioncfg):
     index = symbols[2].number
     obj_id = (symbols[0].arguments[0].name, symbols[0].arguments[1].number)
     occargs = symbols[1].arguments
-    action = (parse_action(symbols[1].arguments[0].name, actioncfg), tuple(
-        x.number for x in occargs[1].arguments))
+    action = (parse_action(symbols[1].arguments[0].name,
+                           occargs[1].arguments, actioncfg, pickuplist))
 
     return index, (obj_id, action)
 
@@ -95,9 +108,9 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
     visualizer model.
     """
     print("Converting to VisualizerModel...")
-    
+
     objects = {"item": {}, "abstract": {}}
-    init = []
+    #init = []
     occurs = {}
 
     # Dictionary of the form objname: objtype
@@ -105,7 +118,8 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
                for obj in att[1]}
 
     sprites = SpriteContainer(atomcfg["object"]["item"])
-    zvalues = {name: atomcfg["layer"].index(name) for name in atomcfg["layer"]}
+    zvalues = {name: 2*atomcfg["layer"].index(name)
+               for name in atomcfg["layer"]}
 
     for cl_model in cl_handle:
         for symbol in cl_model.symbols(atoms=True):
@@ -113,16 +127,15 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
             if symbol.name == "occurs":
                 # Parse atom, append to states
                 index, occur = parse_occurs_atom(
-                    symbol.arguments, atomcfg["action"])
+                    symbol.arguments, atomcfg["action"], atomcfg.get("portable", []))
                 occurs.setdefault(index, []).append(occur)
 
             elif symbol.name == "init":
 
                 # Parse atom, append to items/states
-                objtype, obj_id, obj, occur = parse_init_atom(
+                objtype, obj_id, obj = parse_init_atom(
                     symbol.arguments, itemcfg, sprites, zvalues)
                 objects[objtype][obj_id] = obj
-                init.append(occur)
 
             else:
                 # TODO: Throw error "unknown atom type(occurs)"
@@ -137,7 +150,7 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
     model = Model()
     model.set_items(objects["item"])
     model.set_abstracts(objects["abstract"])
-    model.set_initial_state(init)
+    #model.set_initial_state(init)
     model.set_occurrences(occurs)
     model.set_sprites(sprites)
 

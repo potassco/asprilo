@@ -22,9 +22,9 @@ class ModelScene(QGraphicsScene):
         super().__init__()
 
         self._model = model
-        self._current_step = -1
+        self._current_step = 0
         self._import_items()
-        self.init_scene()
+        #self.init_scene()
         self.setSceneRect(self.sceneRect())
 
     def set_model(self, model):
@@ -34,8 +34,9 @@ class ModelScene(QGraphicsScene):
         """
         self.clear()
         self._model = model
+        self._current_step = 0
         self.import_items()
-        self.init_scene()
+        #self.init_scene()
 
     def get_step(self):
         return self._current_step
@@ -48,18 +49,24 @@ class ModelScene(QGraphicsScene):
             self.addItem(item)
             # print(item.renderer())
 
-    def init_scene(self):
+    def reset_scene(self):
         """
         Sets the timestep to 0 and adjusts the model state accordingly.
         """
         print("Setting Scene to t = 0")
-        objects = self._model.get_objects()
+        for item in self._model.get_items().values():
+            item.reset_to_start()
+        for abstract in self._model.get_abstracts().values():
+            abstract.reset_to_start()
+        self._current_step = 0
+        
+        #objects = self._model.get_objects()
 
         # Check actions and call used functions
-        for init in self._model.get_initial_state():
-            init[1][0](objects[init[0]], *init[1][1])
+        # for init in self._model.get_initial_state():
+        #     init[1][0](objects[init[0]], *init[1][1])
 
-        self._current_step = 0
+        # self._current_step = 0
 
     # def _group_statics(self):
     #     print("Grouping static objects...")
@@ -77,24 +84,23 @@ class ModelScene(QGraphicsScene):
     #     self._current_step = 0
 
     def next_step(self):
-        print("Next step: " + str(self._current_step + 1))
-        # Maybe in try/catch?
         if self._current_step >= len(self._model.get_occurrences()):
             # Give back Error
             print(f"Step {self._current_step} is the last one in the model!")
             return
 
+        print("Next step: " + str(self._current_step + 1))
         self._current_step += 1
         for occ in self._model.get_occurrences()[self._current_step]:
             occ[1][0](self._model.get_items()[occ[0]], *occ[1][1])
 
     def previous_step(self):
-        print("Previous Step:" + str(self._current_step - 1))
-        if self._current_step <= 0:
+        if self._current_step < 1:
             # Give back Error
             print(f"Step {self._current_step} is the first one in the model!")
             return
 
+        print("Previous Step:" + str(self._current_step - 1))
         for occ in self._model.get_occurrences()[self._current_step]:
             occ[1][0].rev(self._model.get_items()[occ[0]], *occ[1][1])
         self._current_step -= 1

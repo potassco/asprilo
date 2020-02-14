@@ -12,3 +12,6 @@ class VisualizerAbstract:
         
     def get_obj_id(self):
         return self._obj_id
+    
+    def reset_to_start(self):
+        return

@@ -1,6 +1,7 @@
 "atom":
-  "object":
-
+  # How to convert from ASP to visualizer format
+  "object": 
+    #TODO: maybe reverse keys and values for consistency with actions?
     "item": #Visually depicted objects
       "node": "sprites/asprilo/node.svg"
       "highway": "sprites/asprilo/highway.svg"
@@ -12,17 +13,22 @@
       "order": ~ #Maybe use empty space for further specification?
       "product": ~
 
+  # Marks which items are drawn on top of each other (ascending order, bottom first)
   "layer":
     - "node"
     - "highway"
     - "shelf"
     - "pickingStation"
     - "robot"
+  
+  # Marks items that can be picked up by other items. Only used in pick_up_all,
+  # overruled by explicitly picking up specific item.
+  "portable":
+    - "shelf"
 
-  "action": #Somehow alias equivalent function
+  # Maps ASP actions to visualizer actions
+  "action":
     "move": "move"
-    "pickup": "pick_up"
-    "putdown": "put_down"
-    "deliver": "satisfy"
-
-"background_color": "black"
+    "pickup": "pick_up_all"
+    "putdown": "put_down_all"
+    "deliver": "put_down_all"
