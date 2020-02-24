@@ -31,4 +31,4 @@
     "move": "move"
     "pickup": "pick_up_all"
     "putdown": "put_down_all"
-    "deliver": "put_down_all"
+    "deliver": "satisfy"

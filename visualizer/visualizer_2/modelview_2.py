@@ -45,9 +45,10 @@ class ModelScene(QGraphicsScene):
         return self._model.get_sprites()
 
     def _import_items(self):
-        for item in list(self._model.get_items().values()):
+        for item in self._model.get_items().values():
             self.addItem(item)
-            # print(item.renderer())
+        for path in self._model.get_paths().values():
+            self.addItem(path)
 
     def reset_scene(self):
         """

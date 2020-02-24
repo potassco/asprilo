@@ -153,7 +153,8 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
     #model.set_initial_state(init)
     model.set_occurrences(occurs)
     model.set_sprites(sprites)
-
+    model.calculate_item_paths()
+    
     return model
 
 

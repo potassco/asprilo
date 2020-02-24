@@ -9,7 +9,7 @@ class SpriteContainer(QPixmapCache):
     def __init__(self, spriteconfig, scale=4):
         print("Constructing new SpriteContainer")
         super().__init__()
-        self.setCacheLimit(5120 * len(spriteconfig))
+        self.setCacheLimit(200000)#2176 * (1 + len(spriteconfig)))
         print("cacheLimit: " + str(self.cacheLimit()))
         self._scale = scale
         self._scale_limit = 512
@@ -24,7 +24,12 @@ class SpriteContainer(QPixmapCache):
     def _init_renderer(self, spriteconfig):
         self._renderer = {x[0]: QSvgRenderer(
             x[1]) for x in spriteconfig.items()}
-        self._renderer["mark"] = QSvgRenderer("sprites/mark.svg")
+        self._renderer["$mrk"] = QSvgRenderer("sprites/common/mark.svg")
+        self._renderer["$p1b"] = QSvgRenderer("sprites/common/p_1b.svg")
+        self._renderer["$p2s"] = QSvgRenderer("sprites/common/p_2s.svg")
+        self._renderer["$p2c"] = QSvgRenderer("sprites/common/p_2c.svg")
+        self._renderer["$p4e"] = QSvgRenderer("sprites/common/p_1e.svg")
+
 
     def _render_sprites(self):
         rect = QRectF(0, 0, self._scale, self._scale)
