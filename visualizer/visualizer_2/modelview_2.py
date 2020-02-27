@@ -23,6 +23,7 @@ class ModelScene(QGraphicsScene):
 
         self._model = model
         self._current_step = 0
+        self._paths_visible = True
         self._import_items()
         #self.init_scene()
         self.setSceneRect(self.sceneRect())
@@ -105,6 +106,21 @@ class ModelScene(QGraphicsScene):
         for occ in self._model.get_occurrences()[self._current_step]:
             occ[1][0].rev(self._model.get_items()[occ[0]], *occ[1][1])
         self._current_step -= 1
+    
+    def toggle_paths(self):
+        for path in self._model.get_paths().values():
+            path.setVisible(not self._paths_visible)
+        self._paths_visible = not self._paths_visible
+
+    def save_to_png(self):
+        # Copied from Stackoverflow, obviously
+        # self.clearSelection()
+        # self.setSceneRect(self.itemsBoundingRect())
+        image = QImage(1920, 1080, QImage.Format_ARGB32)  #Create the image with the exact size of the shrunk scene
+        image.fill(Qt.transparent)
+        
+        self.render(QPainter(image));
+        image.save("Visualizer_Scene.png");
 
 
 class ModelView(QGraphicsView):

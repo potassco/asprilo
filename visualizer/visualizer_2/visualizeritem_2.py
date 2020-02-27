@@ -1,5 +1,5 @@
 
-from PyQt5.QtCore import QRectF, QRect
+from PyQt5.QtCore import QPointF, QRect, QRectF
 from PyQt5.QtWidgets import QGraphicsItem
 from PyQt5.QtGui import QTransform
 
@@ -120,14 +120,17 @@ class VisualizerItemPath(QGraphicsItem):
                            QTransform().rotate(90),
                            QTransform().rotate(180),
                            QTransform().rotate(270))
-        self._path = self.compute_path(movelist)
+        self.compute_path(movelist)
         self._spritekeys = tuple(spritecontainer.get_keys()[k] for k in [
                                  "$p1b", "$p2s", "$p2c", "$p4e"])
         self.setFlag(self.ItemIgnoresParentOpacity)
         self.setOpacity(0.3)
 
-    def boundingRect(cls):
-        return QRectF(0, 0, 1, 1)
+    # def shape(self):
+    #     return self._shape
+    
+    def boundingRect(self):
+        return self._shape #QRectF(0, 0, 1, 1)
 
     def paint(self, painter, option, widget):
         for step in self._path:
@@ -138,7 +141,9 @@ class VisualizerItemPath(QGraphicsItem):
     def compute_path(self, moves):
         # Cardinal directions in clockwise order, starting at up
         dirs = {(0, -1): 0, (1, 0): 1, (0, 1): 2, (-1, 0): 3}
-    
+
+        #temp: memorize used x- and y- values
+        xlist, ylist = [self._start[0],], [self._start[1],]
         # Initialize path with start segment
         x, y = self._start[0], self._start[1]
         path = [((x, y), (0, (dirs[moves[0][1]] + 2) % 4)), ]
@@ -146,13 +151,18 @@ class VisualizerItemPath(QGraphicsItem):
 
         # Append other segments
         for index in range(1, len(moves)):
+            xlist.append(x) #temp
+            ylist.append(y) #temp
             path.append(((x, y), (self._get_tile(moves[index-1][1], moves[index][1], dirs))))
             x, y = x + moves[index][1][0], y + moves[index][1][1]
 
         # End with end segment
+        xlist.append(x) #temp
+        ylist.append(y) #temp
         path.append(((x, y), (3, dirs[moves[-1][1]])))
 
-        return tuple(path)
+        self._path = tuple(path)
+        self._shape = QRectF(QPointF(min(xlist), min(ylist)), QPointF(max(xlist), max(ylist)))
 
     def _get_tile(self, enter, leave, dirs):
 
