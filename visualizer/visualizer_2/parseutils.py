@@ -45,7 +45,6 @@ def parse_action(action: str, args: list, actioncfg: Dict[str, str], pickuplist)
     if actioncfg[action] == "satisfy":
         return actions.satisfy
 
-
 def parse_item(name: str, number: int, initargs, itemcfg: Dict[str, str], sprites, zvalues):
 
     coord = tuple(x.number for x in initargs[1].arguments)
@@ -154,6 +153,7 @@ def parse_clingo_model(cl_handle, atomcfg, compress_lists=False):
     model.set_occurrences(occurs)
     model.set_sprites(sprites)
     model.calculate_item_paths()
+    model.set_colorcoding(atomcfg["colorcode"])
     
     return model
 

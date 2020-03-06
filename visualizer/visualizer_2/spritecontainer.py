@@ -9,7 +9,7 @@ class SpriteContainer(QPixmapCache):
     def __init__(self, spriteconfig, scale=4):
         print("Constructing new SpriteContainer")
         super().__init__()
-        self.setCacheLimit(200000)#2176 * (1 + len(spriteconfig)))
+        self.setCacheLimit(2200 * (5 + len(spriteconfig)))
         print("cacheLimit: " + str(self.cacheLimit()))
         self._scale = scale
         self._scale_limit = 512

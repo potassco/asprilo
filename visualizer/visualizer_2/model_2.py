@@ -3,6 +3,7 @@ from visualizeritem_2 import *
 from visualizerabstract import VisualizerAbstract
 from typing import Tuple, Dict, Iterable, Callable, Any
 import actions
+from PyQt5.QtGui import QColor
 
 Obj_id = Tuple[str, int]
 # TODO: Specify "Any"
@@ -66,3 +67,14 @@ class Model(object):
             paths[path[0]] = itempath
         
         self._paths = paths
+
+    def set_colorcoding(self, colorlist):
+        for item in self._items.items():
+            if item[0][0] in colorlist:
+                effect = QGraphicsColorizeEffect()
+                effect.setColor(QColor.fromHsl(((item[0][1] * 10) % 256), 128, 128, 255))
+                item[1].setGraphicsEffect(effect)
+
+        for item in self._paths.items():
+            if item[0][0] in colorlist:
+                item[1].setGraphicsEffect(self._items[item[0]].graphicsEffect())

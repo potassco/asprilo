@@ -1,6 +1,6 @@
 
 from PyQt5.QtCore import QPointF, QRect, QRectF
-from PyQt5.QtWidgets import QGraphicsItem
+from PyQt5.QtWidgets import QGraphicsColorizeEffect, QGraphicsItem
 from PyQt5.QtGui import QTransform
 
 
@@ -123,8 +123,7 @@ class VisualizerItemPath(QGraphicsItem):
         self.compute_path(movelist)
         self._spritekeys = tuple(spritecontainer.get_keys()[k] for k in [
                                  "$p1b", "$p2s", "$p2c", "$p4e"])
-        self.setFlag(self.ItemIgnoresParentOpacity)
-        self.setOpacity(0.3)
+        self.setOpacity(0.8)
 
     # def shape(self):
     #     return self._shape
@@ -166,7 +165,7 @@ class VisualizerItemPath(QGraphicsItem):
 
     def _get_tile(self, enter, leave, dirs):
 
-        print(f"{(enter, leave)}")
+        #print(f"{(enter, leave)}")
         # Compute angle of turn on tile
         turn = (dirs[enter] - dirs[leave]) % 4
         # Straight / no turn

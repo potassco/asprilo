@@ -26,6 +26,11 @@
   "portable":
     - "shelf"
 
+  # Marks items that will have different colors depending on their index. Paths are always colorcoded
+  # like their parent
+  "colorcode":
+    - "robot"
+
   # Maps ASP actions to visualizer actions
   "action":
     "move": "move"
