@@ -334,6 +334,8 @@ class BasicGenerator(InstanceGenerator):
         else:
             if self._args.instance_count:
                 instance_count = self._args.instance_count
+            elif self._args.instance_count_offset:
+                instance_count = self._instance_count + self._args.instance_count_offset
             else:
                 instance_count = self._instance_count
             local_name = (self._args.name_prefix +

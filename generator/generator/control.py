@@ -353,11 +353,15 @@ class Control(object):
                                 help="""additional instance dir suffix, i.e., each instance is
                                  stored in unique directory where the path is the concatenation of
                                  \'<DIRECTORY>/<INSTANCE-NAME><SUFFIX>/\'""")
-        basic_args.add_argument("--instance-count", type=str,
-                                help="""each instance gets the given value as running number instead
-                                 of using its rank in the enumeration of clasp""")
-        basic_args.add_argument("-f", "--name-prefix", type=str, default="",
-                                help="the name prefix that eyery file name will contain")
+        basic_args.add_argument("--instance-count", type=int,
+                                help="""each instance gets the given integer as running number instead
+                                of using its rank in the enumeration of clasp""")
+        instance_count = basic_args.add_mutually_exclusive_group()
+        instance_count.add_argument("--instance-count-offset", type=int,
+                                    help="""each instance gets the given integer as offset added to its
+                                    running number instead of using its rank in the enumeration of clasp""")
+        instance_count.add_argument("-f", "--name-prefix", type=str, default="",
+                                    help="the name prefix that eyery file name will contain")
         basic_args.add_argument('-v', '--version', action='version',
                                 version='%(prog)s {0}'.format(release.__version__))
         basic_args.add_argument("-t", "--threads", type=check_positive, default=1,
