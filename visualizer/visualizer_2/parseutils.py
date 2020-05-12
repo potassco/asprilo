@@ -1,6 +1,6 @@
 import sys
 import clingo
-import visualizeritem_2
+import visualizeritem
 from spritecontainer import SpriteContainer
 from PyQt5.QtSvg import QSvgRenderer
 import yaml
@@ -8,7 +8,7 @@ import logging
 import typing
 import actions
 from typing import Dict
-from model_2 import *
+from model import *
 
 
 def parse_action(action: str, args: list, actioncfg: Dict[str, str], pickuplist):

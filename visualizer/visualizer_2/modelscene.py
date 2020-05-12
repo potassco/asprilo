@@ -7,7 +7,7 @@ import parseutils as prs
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QOpenGLWidget
 from PyQt5.QtGui import *
-from model_2 import *
+from model import *
 
 
 class ModelScene(QGraphicsScene):

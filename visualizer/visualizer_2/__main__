@@ -12,7 +12,7 @@ import yaml
 from PyQt5.QtWidgets import *
 import solveutils, parseutils
 from modelscene import ModelScene
-from gui_2 import MainWindow, ModelView
+from gui import MainWindow, ModelView
 
 
 def get_args():

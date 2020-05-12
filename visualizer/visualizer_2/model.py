@@ -1,5 +1,5 @@
 from spritecontainer import SpriteContainer
-from visualizeritem_2 import *
+from visualizeritem import *
 from visualizerabstract import VisualizerAbstract
 from typing import Tuple, Dict, Iterable, Callable, Any
 import actions
