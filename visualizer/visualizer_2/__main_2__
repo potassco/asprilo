@@ -11,8 +11,8 @@ import sys
 import yaml
 from PyQt5.QtWidgets import *
 import solveutils, parseutils
-from modelview_2 import ModelScene, ModelView
-from gui_2 import MainWindow
+from modelscene import ModelScene
+from gui_2 import MainWindow, ModelView
 
 
 def get_args():
@@ -37,32 +37,18 @@ def get_args():
 
 def main(args):
     """
-    Converts specified files from .scen to .lp.
-
-    Arguments:
-    args - an argparse.Namespace object
-    param_dict - dictionary containing scenario parameters and their statements
+    Starts the application
     """
     app = QApplication(sys.argv)
 
-    print("Parsing config...")
     config = parseutils.parse_config(args.config)
 
-    print("Getting Model...")
-    with args.input as source:
-        model = solveutils.solve_from_file(source, config["atom"])
-
-    print("Constructing Scene...")
-    scene = ModelScene(model)
-
-    print("Constructing View...")
-    sceneView = ModelView(scene)
-    sceneView.setViewport(QOpenGLWidget())
-    print("Creating Window...")
-    win = MainWindow(sceneView)
-    print("Setting central View...")
-#    sceneView.show()
+    win = MainWindow()
     win.show()
+    
+    if args.input != None:
+        win.solve_and_add(args.input, config)
+    
     app.exec()
 
 

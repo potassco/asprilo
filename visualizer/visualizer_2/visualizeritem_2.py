@@ -1,7 +1,7 @@
 
 from PyQt5.QtCore import QPointF, QRect, QRectF
 from PyQt5.QtWidgets import QGraphicsColorizeEffect, QGraphicsItem
-from PyQt5.QtGui import QTransform
+from PyQt5.QtGui import QColor, QPainterPath, QTransform
 
 
 class VisualizerItem(QGraphicsItem):
@@ -11,7 +11,7 @@ class VisualizerItem(QGraphicsItem):
         self._name, self._id = obj_id[0], obj_id[1]
         self._startcoord = startcoord
         self._spritecontainer = spritecontainer
-        self._spritekey = spritecontainer.get_keys()[self._name]
+        self._spritekey = self._name  # spritecontainer.get_keys()[self._name]
         self._path = None
         self._mark = None
         self._held_items = []
@@ -86,7 +86,7 @@ class VisualizerItemMark(QGraphicsItem):
     def __init__(self, spritecontainer, parent):
         super().__init__(parent=parent)
         self._spritecontainer = spritecontainer
-        self._spritekey = spritecontainer.get_keys()["$mrk"]
+        self._spritekey = "$mrk"  # spritecontainer.get_keys()["$mrk"]
         self.setZValue(float("inf"))
 
     def get_name(self):
@@ -121,47 +121,56 @@ class VisualizerItemPath(QGraphicsItem):
                            QTransform().rotate(180),
                            QTransform().rotate(270))
         self.compute_path(movelist)
-        self._spritekeys = tuple(spritecontainer.get_keys()[k] for k in [
-                                 "$p1b", "$p2s", "$p2c", "$p4e"])
-        self.setOpacity(0.8)
+        # tuple(spritecontainer.get_keys()[k] for k in ["$p1b", "$p2s", "$p2c", "$p4e"])
+        self._spritekeys = ("$p1b", "$p2s", "$p2c", "$p4e")
+        self.setOpacity(0.9)
 
-    # def shape(self):
-    #     return self._shape
-    
+    def shape(self):
+        return self._shape
+
     def boundingRect(self):
-        return self._shape #QRectF(0, 0, 1, 1)
+        return self._brect
 
     def paint(self, painter, option, widget):
         for step in self._path:
             painter.drawPixmap(QRect(*step[0], 1, 1), self._spritecontainer.find(
                 self._spritekeys[step[1][0]]).transformed(self._rotations[step[1][1]]))
 
-    # TODO: centralize dirs
+
     def compute_path(self, moves):
         # Cardinal directions in clockwise order, starting at up
         dirs = {(0, -1): 0, (1, 0): 1, (0, 1): 2, (-1, 0): 3}
 
-        #temp: memorize used x- and y- values
-        xlist, ylist = [self._start[0],], [self._start[1],]
+        # temp: memorize used x- and y- values
+        xlist, ylist = [self._start[0], ], [self._start[1], ]
         # Initialize path with start segment
         x, y = self._start[0], self._start[1]
+
+        shape = QPainterPath()
+        shape.addRect(x,y,1,1)
+
         path = [((x, y), (0, (dirs[moves[0][1]] + 2) % 4)), ]
         x, y = x + moves[0][1][0], y + moves[0][1][1]
 
         # Append other segments
         for index in range(1, len(moves)):
-            xlist.append(x) #temp
-            ylist.append(y) #temp
-            path.append(((x, y), (self._get_tile(moves[index-1][1], moves[index][1], dirs))))
+            xlist.append(x)  # temp
+            ylist.append(y)  # temp
+            shape.addRect(x,y,1,1)
+            path.append(
+                ((x, y), (self._get_tile(moves[index-1][1], moves[index][1], dirs))))
             x, y = x + moves[index][1][0], y + moves[index][1][1]
 
         # End with end segment
-        xlist.append(x) #temp
-        ylist.append(y) #temp
+        xlist.append(x)  # temp
+        ylist.append(y)  # temp
+        shape.addRect(x,y,1,1)
         path.append(((x, y), (3, dirs[moves[-1][1]])))
 
         self._path = tuple(path)
-        self._shape = QRectF(QPointF(min(xlist), min(ylist)), QPointF(max(xlist), max(ylist)))
+        self._shape = shape.simplified() 
+        self._brect = QRectF(QPointF(min(xlist), min(ylist)),
+                            QPointF(max(xlist)+1.0, max(ylist)+1.0))
 
     def _get_tile(self, enter, leave, dirs):
 
@@ -187,7 +196,7 @@ class VisualizerItemPath(QGraphicsItem):
 
         else:
             print("Error while creating path")
-            return (0,0)
+            return (0, 0)
 
         return (tile, orientation)
 

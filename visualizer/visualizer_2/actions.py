@@ -7,6 +7,7 @@ def init(obj, x, y):
 
 def move(obj, x, y):
     obj.moveBy(x,y)
+    print(f"Moved {obj.get_obj_id()} by {x},{y}")
     for hobj in obj.get_held_items():
         move(hobj, x, y)
 

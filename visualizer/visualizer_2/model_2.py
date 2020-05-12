@@ -17,6 +17,7 @@ class Model(object):
         self._occurrences: Dict[int, Iterable[Occurence]] = None
         self._paths: Dict[Obj_id, VisualizerItemPath] = None
         self._sprites: SpriteContainer = None
+        self._atoms: Dict[int, Iterable[str]] = None
 
     # TODO: Define abstract iterable
     def set_abstracts(self, abstracts):
@@ -30,6 +31,9 @@ class Model(object):
 
     def set_sprites(self, sprites: SpriteContainer):
         self._sprites = sprites
+
+    def set_atoms(self, atoms: Dict[int, Iterable[str]]):
+        self._atoms = atoms
 
     def get_objects(self):
         return {**self._abstracts, **self._items}
@@ -48,6 +52,9 @@ class Model(object):
 
     def get_sprites(self) -> SpriteContainer:
         return self._sprites
+    
+    def get_atoms(self) -> Dict[int, Iterable[str]]:
+        return self._atoms
 
     # TODO: Probably has room for optimization
     def calculate_item_paths(self):
@@ -69,12 +76,17 @@ class Model(object):
         self._paths = paths
 
     def set_colorcoding(self, colorlist):
+        amounts = {}
+        for name in colorlist:
+            amounts[name] = max(1, sum(x[0] == name for x in self._items))
         for item in self._items.items():
             if item[0][0] in colorlist:
                 effect = QGraphicsColorizeEffect()
-                effect.setColor(QColor.fromHsl(((item[0][1] * 10) % 256), 128, 128, 255))
+                effect.setColor(QColor.fromHsl(max(0,item[0][1]-1) * 256/max(1,amounts[item[0][0]]-1), 255, 128, 255))
                 item[1].setGraphicsEffect(effect)
 
         for item in self._paths.items():
             if item[0][0] in colorlist:
-                item[1].setGraphicsEffect(self._items[item[0]].graphicsEffect())
+                effect = QGraphicsColorizeEffect()
+                effect.setColor(QColor.fromHsl(max(0,item[0][1]-1) * 256/max(1,amounts[item[0][0]]-1), 255, 128, 255))
+                item[1].setGraphicsEffect(effect)
