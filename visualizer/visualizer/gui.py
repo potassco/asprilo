@@ -32,6 +32,7 @@ class MainWindow(QMainWindow):
         cpane = QTabWidget()
         cpane.setMovable(True)
         cpane.setTabsClosable(True)
+        cpane.tabCloseRequested.connect(cpane.removeTab)
         cpane.currentChanged.connect(self._sync_active_scene)
         self.setCentralWidget(cpane)
         return cpane
