@@ -5,12 +5,15 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QStatusBar
 from PyQt5.QtWidgets import QToolBar
-from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QDockWidget, QGraphicsView, QOpenGLWidget, QTabWidget, QTextEdit, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QDockWidget, QFileDialog, QGraphicsView, QOpenGLWidget, QTabWidget, QTextEdit, QVBoxLayout, QWidget, QStyle
+from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import Qt
 from modelscene import ModelScene
 from modelview import ModelView
 from os import path
 import solveutils
+import parseutils
+from PyQt5.QtGui import QIcon
 
 
 class MainWindow(QMainWindow):
@@ -37,23 +40,43 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(cpane)
         return cpane
 
+    def add_from_file(self):
+        try:
+            filename = QFileDialog.getOpenFileName(
+                caption="Choose logic file to add as scenes", directory="./Instances")
+            
+            configname = QFileDialog.getOpenFileName(
+                caption="Choose config files to use", directory="./configs")
+
+            with open(configname[0], "r") as cfile:
+                config = parseutils.parse_config(cfile)
+
+            with open(filename[0], "r") as lfile:
+                self.solve_and_add(lfile, config)
+        except:
+            return
+
     def solve_and_add(self, file, config):
         name = path.basename(file.name)
         with file as source:
-            scene = ModelScene(solveutils.solve_from_file(source, config["atom"]))
+            scene = ModelScene(
+                solveutils.solve_from_file(source, config["atom"]))
         self.add_scene(scene, name)
 
     def add_scene(self, scene: ModelScene, name="Scene"):
         view = ModelView(scene)
         view.setViewport(QOpenGLWidget())
         self.mainpane.addTab(ViewPane(view), name)
-        self._sync_active_scene()
 
     def _sync_active_scene(self):
-        scene = self.mainpane.currentWidget().view.get_scene()
-        self.sidebar.connect_scene(scene)
-        self.scenecontrol.connect_scene(scene)
+        active_tab = self.mainpane.currentWidget()
+        if active_tab == None:
+            self.sidebar.connect_scene(None)
+            self.scenecontrol.connect_scene(None)
 
+        else:
+            self.sidebar.connect_scene(active_tab.view.get_scene())
+            self.scenecontrol.connect_scene(active_tab.view.get_scene())
 
     def _create_sidebar(self):
         sidebar = SidePanel("Step Overview")
@@ -62,7 +85,8 @@ class MainWindow(QMainWindow):
 
     def _createMenu(self):
         self.menu = self.menuBar().addMenu("&Menu")
-        self.menu.addAction('&Exit', self.close)
+        self.menu.addAction("&Exit", self.close)
+        self.menu.addAction("Load File", self.add_from_file)
 
     # def _createAnimationCheckbox(self):
     #     abox = QCheckBox("Animate")
@@ -86,17 +110,22 @@ class SceneControl(QToolBar):
         super().__init__(parent)
         self.scene = None
         self._init_buttons()
+        self.setMinimumHeight(60)
+        self.setMovable(False)
         self.connect_scene(scene)
 
     def connect_scene(self, scene):
+        print(f"Leaving scene: {self.scene}")
+        print(f"New scene: {scene}")
+
         if self.scene != None:
-            self.reset_scene.triggered.disconnect(scene.reset_scene)
-            self.step_back.triggered.disconnect(scene.previous_step)
-            self.step_forward.triggered.disconnect(scene.next_step)
-            self.step_last.triggered.disconnect(scene.last_step)
-            self.save_to_png.triggered.disconnect(scene.save_to_png)
-            self.toggle_paths.triggered.disconnect(scene.toggle_paths)
-        
+            self.reset_scene.triggered.disconnect(self.scene.reset_scene)
+            self.step_back.triggered.disconnect(self.scene.previous_step)
+            self.step_forward.triggered.disconnect(self.scene.next_step)
+            self.step_last.triggered.disconnect(self.scene.last_step)
+            self.save_to_png.triggered.disconnect(self.scene.save_to_png)
+            self.toggle_paths.triggered.disconnect(self.scene.toggle_paths)
+
         self.scene = scene
         if scene == None:
             return
@@ -107,7 +136,7 @@ class SceneControl(QToolBar):
         self.step_last.triggered.connect(scene.last_step)
         self.save_to_png.triggered.connect(scene.save_to_png)
         self.toggle_paths.triggered.connect(scene.toggle_paths)
-    
+
     def _init_buttons(self):
         self.reset_scene = QAction("Reset")
         self.step_back = QAction("Step back")
@@ -145,7 +174,7 @@ class ViewControl(QToolBar):
 
     def _init_buttons(self):
         self.reset_scale = QAction("Fit to screen")
-        
+
         self.addAction(self.reset_scale)
 
 
@@ -172,7 +201,9 @@ class SidePanel(QDockWidget):
 
         if scene == None:
             self.atoms = {0: ""}
-        
+            self._init_stepbox()
+            self.set_to_step(0)
+
         else:
             self.atoms = scene._model.get_atoms()
             self._init_stepbox()
@@ -188,8 +219,8 @@ class SidePanel(QDockWidget):
     def report(self, step):
         print(f"Sending request to go to step {step}!")
 
-    def set_to_step(self, step: int):
-        if step in self.atoms:
+    def set_to_step(self, step):
+        if int(step) in self.atoms:
             self.stepbox.blockSignals(True)
             self.stepbox.setCurrentText(str(step))
             self.stepbox.blockSignals(False)
@@ -205,11 +236,10 @@ class SidePanel(QDockWidget):
         self.stepbox.blockSignals(False)
 
 
-
 class ViewPane(QWidget):
     def __init__(self, view, parent=None):
         super().__init__(parent)
-        
+
         self.view = view
 
         layout = QVBoxLayout(self)

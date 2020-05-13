@@ -159,7 +159,7 @@ class ModelScene(QGraphicsScene):
             self.currentStepChanged.emit(self._current_step)
  
     def last_step(self, *, signal=True):
-        self.go_to_step(max(self._model.get_occurrences()),signal=signal)
+        self.go_to_step(max(self._model.get_atoms()),signal=signal)
 
     def go_to_step(self, step, signal=True):
         diff = self._current_step - int(step)
@@ -171,8 +171,12 @@ class ModelScene(QGraphicsScene):
         elif diff > 0:  # go backwards
             for x in range(diff):
                 self.previous_step(signal=False)
+        
+        else:   # Do nothing
+            print("Already at requested step!")
+            return
 
-        if signal:
+        if signal: # Emit signal if step changed
             self.currentStepChanged.emit(self._current_step)
 
     def toggle_paths(self):

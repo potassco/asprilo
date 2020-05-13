@@ -49,7 +49,7 @@ def main(args):
     if args.input != None:
         win.solve_and_add(args.input, config)
 
-    with open("Instances/asprilo.big", "r") as second:
+    with open("Instances/asprilo_big.lp", "r") as second:
         win.solve_and_add(second, config)
     
     app.exec()
