@@ -238,10 +238,12 @@ within an M-dst instance,
 we can state the same destination directly as an object of type *destination* located at (x,y).
 A plan solves an M-dst instance if every destination is occupied by a robot at the end.
 This is equivalent to the goal of M which expects that each shelf holding a requested product shares its location with a robot at the plan's end.
-Further,
-existing instances in M can be translated to M-dst format by
-augmenting the corresponding destination objects via the rule in file `./misc/augment-M-dst.lp`.
 
+Existing instances in M can be translated to M-dst format by augmenting (or replacing) the related orders, products and shelves with
+the corresponding destination objects via the rule in file `./misc/augment-mdst.lp`
+(or via the show statements in file `./misc/convert-m-to-mdst.lp`).
+
+*Limited Tools Support*: at present, the visualizer and checker only support M-dst instances that were created by augmentation of an M instance.
 
 # Input Format<a id="org46f96aa"></a>
 
