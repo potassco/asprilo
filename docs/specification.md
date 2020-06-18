@@ -242,6 +242,14 @@ This is equivalent to the goal of M which expects that each shelf holding a requ
 Existing instances in M can be translated to M-dst format by augmenting (or replacing) the related orders, products and shelves with
 the corresponding destination objects via the rule in file `./misc/augment-mdst.lp`
 (or via the show statements in file `./misc/convert-m-to-mdst.lp`).
+For convenience, there is also a bash script `./misc/convert-mdst.sh`:
+
+``` bash
+Usage: convert-mdst.sh --m2md|--md2m|--am2md INSTANCE_FILE
+  --mdst:  M to M-dst conversion
+  --m2mdst:  M-dst to M conversion
+  --am2mdst: M to M-dst augmentation
+```
 
 *Limited Tools Support*: at present, the visualizer and checker only support M-dst instances that were created by augmentation of an M instance.
 
