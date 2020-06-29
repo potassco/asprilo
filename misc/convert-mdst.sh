@@ -13,14 +13,18 @@ if [ -v CONVENC ]; then
      case "$1" in
          --m2mdst)
              ENC_BASENAME="convert-m-to-mdst.lp"
-             INFO="M-domain instance converted to M-dst"
+             INFO="M-domain instance converted to domain M-dst"
              ;;
          --mdst2m)
-             ENC_BASENAME="conv-m-to-mdst.lp"
-             INFO="M-domain instance converted to M"
+             ENC_BASENAME="convert-mdst-to-m.lp"
+             INFO="M-dst-domain instance converted to domain M"
              ;;
          --am2mdst)
-             ENC_BASENAME="augment-mdst.lp"
+             ENC_BASENAME="augment-m-to-mdst.lp"
+             INFO="M-domain instance augmented for domain M-dst"
+             ;;
+         --am2mdst)
+             ENC_BASENAME="augment-mdst-to-m.lp"
              INFO="M-domain instance augmented for domain M-dst"
              ;;
          *)
@@ -29,6 +33,7 @@ if [ -v CONVENC ]; then
 		  --mdst:  M to M-dst conversion
 		  --m2mdst:  M-dst to M conversion
 		  --am2mdst: M to M-dst augmentation
+		  --amdst2m: M-dst to M augmentation
 		EOF
              exit
              ;;

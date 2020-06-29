@@ -240,15 +240,18 @@ A plan solves an M-dst instance if every destination is occupied by a robot at t
 This is equivalent to the goal of M which expects that each shelf holding a requested product shares its location with a robot at the plan's end.
 
 Existing instances in M can be translated to M-dst format by augmenting (or replacing) the related orders, products and shelves with
-the corresponding destination objects via the rule in file `./misc/augment-mdst.lp`
-(or via the show statements in file `./misc/convert-m-to-mdst.lp`).
-For convenience, there is also a bash script `./misc/convert-mdst.sh`:
+the corresponding destination objects by applying the rule in encoding `./misc/augment-m-to-mdst.lp`
+(or via the show statements in encoding `./misc/convert-m-to-mdst.lp`).
+Analogously, for the opposite augmentation (conversion) from M-dst to M,
+use encoding `./misc/augment-mdst-to-m.lp` (`./misc/convert-mdst-to-m.lp`).
+For convenience, there is also a augmentation/conversion bash script `./misc/convert-mdst.sh`:
 
 ``` bash
 Usage: convert-mdst.sh --m2md|--md2m|--am2md INSTANCE_FILE
   --mdst:  M to M-dst conversion
   --m2mdst:  M-dst to M conversion
   --am2mdst: M to M-dst augmentation
+  --amdst2m: M-dst to M augmentation
 ```
 
 *Limited Tools Support*: at present, the visualizer and checker only support M-dst instances that were created by augmentation of an M instance.
