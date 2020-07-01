@@ -23,15 +23,15 @@ if [ -v CONVENC ]; then
              ENC_BASENAME="augment-m-to-mdst.lp"
              INFO="M-domain instance augmented for domain M-dst"
              ;;
-         --am2mdst)
+         --amdst2m)
              ENC_BASENAME="augment-mdst-to-m.lp"
              INFO="M-domain instance augmented for domain M-dst"
              ;;
          *)
              cat <<-EOF
 		Usage: convert-mdst.sh --m2md|--md2m|--am2md INSTANCE_FILE
-		  --mdst:  M to M-dst conversion
-		  --m2mdst:  M-dst to M conversion
+		  --m2mdst:  M to M-dst conversion
+		  --mdst2m:  M-dst to M conversion
 		  --am2mdst: M to M-dst augmentation
 		  --amdst2m: M-dst to M augmentation
 		EOF
