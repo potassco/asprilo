@@ -1,11 +1,11 @@
-% - Rewrite an M domain instance to an equivlant M-dst instance ------------------------------------
+% - Rewrite an M domain instance to an equivlant Md instance ------------------------------------
 %
 %  - replaces related orders, products and shelves with corresponding dest(ination) objects
 %  - run as
 %
-%       $ clingo convert-m-to-mdst.lp your-instance.lp --out-ifs='\n' -V0 --out-atomf='%s.' | head -n -1
+%       $ clingo convert-m-to-md.lp your-instance.lp --out-ifs='\n' -V0 --out-atomf='%s.' | head -n -1
 %
-%    to get an equivalent instance in M-dst format
+%    to get an equivalent instance in Md format
 
 #show.
 #show init(object(dest,D), value(at,C)) : init(object(order,D),  value(line,(A,_))),

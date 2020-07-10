@@ -1,39 +1,39 @@
 #!/usr/bin/env bash
-# = Converts M domain instance to M-dst domain format ==============================================
+# = Converts M domain instance to Md domain format ==============================================
 
 CLINGO=${CLINGO:-'clingo'}
-MODE=M2MDST
+MODE=M2MD
 ENCSPDIR="$(dirname "$(realpath "$0")")"
 
 if [ -v CONVENC ]; then
     INSTANCE=$1
-    INFO="M/M-dst Instance converted via custom encoding $CONVENC"
+    INFO="M/Md Instance converted via custom encoding $CONVENC"
  else
      INSTANCE=$2
      case "$1" in
-         --m2mdst)
-             ENC_BASENAME="convert-m-to-mdst.lp"
-             INFO="M-domain instance converted to domain M-dst"
+         --m2md)
+             ENC_BASENAME="convert-m-to-md.lp"
+             INFO="M-domain instance converted to domain Md"
              ;;
-         --mdst2m)
-             ENC_BASENAME="convert-mdst-to-m.lp"
-             INFO="M-dst-domain instance converted to domain M"
+         --md2m)
+             ENC_BASENAME="convert-md-to-m.lp"
+             INFO="Md-domain instance converted to domain M"
              ;;
-         --am2mdst)
-             ENC_BASENAME="augment-m-to-mdst.lp"
-             INFO="M-domain instance augmented for domain M-dst"
+         --am2md)
+             ENC_BASENAME="augment-m-to-md.lp"
+             INFO="M-domain instance augmented for domain Md"
              ;;
-         --amdst2m)
-             ENC_BASENAME="augment-mdst-to-m.lp"
-             INFO="M-domain instance augmented for domain M-dst"
+         --amd2m)
+             ENC_BASENAME="augment-md-to-m.lp"
+             INFO="M-domain instance augmented for domain Md"
              ;;
          *)
              cat <<-EOF
-		Usage: convert-mdst.sh --m2md|--md2m|--am2md INSTANCE_FILE
-		  --m2mdst:  M to M-dst conversion
-		  --mdst2m:  M-dst to M conversion
-		  --am2mdst: M to M-dst augmentation
-		  --amdst2m: M-dst to M augmentation
+		Usage: convert-md.sh --m2md|--md2m|--am2md|--amd2m INSTANCE_FILE
+		  --m2md:  M to Md conversion
+		  --md2m:  Md to M conversion
+		  --am2md: M to Md augmentation
+		  --amd2m: Md to M augmentation
 		EOF
              exit
              ;;
