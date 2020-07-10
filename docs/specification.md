@@ -247,8 +247,8 @@ use encoding `./misc/augment-md-to-m.lp` (`./misc/convert-md-to-m.lp`).
 For convenience, there is also a augmentation/conversion bash script `./misc/convert-md.sh`:
 
 ``` bash
-Usage: convert-md.sh --m2md|--md2m|--am2md INSTANCE_FILE
-  --md:  M to Md conversion
+Usage: convert-md.sh --m2md|--md2m|--am2md|--amd2m INSTANCE_FILE
+  --m2md:  M to Md conversion
   --m2md:  Md to M conversion
   --am2md: M to Md augmentation
   --amd2m: Md to M augmentation
