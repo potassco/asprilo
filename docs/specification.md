@@ -432,7 +432,7 @@ on the problem domain scope as follows:
 -   Exclusive to doman [Md](#md):
     -   The grid position of a destination is indicated by attribute `at`, e.g.
 
-            init(object(dest,d), value(at,(x,y))).
+            init(object(destination,d), value(at,(x,y))).
 
         states that destination `d` is located at coordinates `(x,y)`
 
