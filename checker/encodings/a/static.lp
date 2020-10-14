@@ -15,7 +15,7 @@ err(static, collNode, (OT, X, Y, T))      :- { holds(object(OT, _),     value(at
 err(static, collSwap, (OT, R1, R2, T))    :- holds(object(OT, R1), value(at, (X1, Y1)), T);
                                              holds(object(OT, R2), value(at, (X2, Y2)), T);
                                              holds(object(OT, R1), value(at, (X2, Y2)), T-1);
-                                             holds(object(OT, R1), value(at, (X1, Y1)), T-1);
+                                             holds(object(OT, R2), value(at, (X1, Y1)), T-1);
                                              R1<R2, |X2-X1|+|Y2-Y1|==1.
 
 % An object can only be at one postion at the same time.
