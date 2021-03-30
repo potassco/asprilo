@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Ground program observation for instance generator."""
 
-from clingo import Function, Tuple_
+from clingo import Function, Tuple
 
 class Observer(object):
     """Ground program observer for instance generator.

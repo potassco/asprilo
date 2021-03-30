@@ -4,7 +4,7 @@
 
 from sys import getsizeof
 from itertools import chain
-from clingo import Function, Tuple_
+from clingo import Function, Tuple
 
 class AspifObserver(object):
     """Ground program observer for ASPIF output of instance generator.
