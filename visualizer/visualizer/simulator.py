@@ -6,7 +6,9 @@
 import argparse
 import select
 import socket
-import clingo
+
+from clingo.control import Control
+from clingo.symbol import parse_term
 
 VERSION = '0.2.1'
 
@@ -143,7 +145,7 @@ class Simulator(object):
                 if not (len(atom) == 1 and atom[0] == '\n'):    #the split function returns the string "\n" as last string which should not be processed
                     if atom[0] == '%' and atom[1] == '$':       #strings that begin with '%$' are control symbols and are handles by the on_control_symbol function
                         atom = atom[2 :].lower()
-                        self.on_control_symbol(clingo.parse_term(atom))
+                        self.on_control_symbol(parse_term(atom))
                     else:
                         self._data.append(atom)
         self._raw_data = ''
@@ -159,7 +161,7 @@ class Simulator(object):
             #the visualizer will send this symbol when it is loading a new instance
             self._to_send = {}
             self._data = []
-            self._control = clingo.Control()
+            self._control = Control()
             self._sended = - 1
         elif symbol.name == 'done' and len(symbol.arguments) == 1:
             try:
@@ -221,7 +223,7 @@ class Simulator(object):
         self._port = self._args.port
 
         #load all instance files
-        self._control = clingo.Control()
+        self._control = Control()
         for file_name in self._args.templates:
             self._control.load(file_name)
 

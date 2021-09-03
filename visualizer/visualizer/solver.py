@@ -1,15 +1,17 @@
-#! /usr/bin/env python
-#This script is an example for a solver for the asprilo visualizer.
-#It contains 3 different ways to solve instances and delivers plans for visualization.
-#All solvers use a given encoding to solve the problems. The solvers use the networking
-#interface from the visualizer and are written to work along with it. 
-#This script provides an one shot varaint, an incremental and an interactive solver variant.
+#!/usr/bin/env python
+# This script is an example for a solver for the asprilo visualizer.
+# It contains 3 different ways to solve instances and delivers plans for visualization.
+# All solvers use a given encoding to solve the problems. The solvers use the networking
+# interface from the visualizer and are written to work along with it.
+# This script provides an one shot varaint, an incremental and an interactive solver variant.
 
 import argparse
 import select
 import socket
-import clingo
 import time
+
+from clingo.control import Control
+from clingo.symbol import Function, parse_term
 
 VERSION = '0.2.1'
 #default one shot solver
@@ -40,7 +42,7 @@ class Solver(object):
         self._name = 'solver'
 
         #clingo interface
-        self._control = clingo.Control()
+        self._control = Control()
         #time for timeout
         self._solve_start = time.clock()
 
@@ -157,7 +159,7 @@ class Solver(object):
                 if not (len(atom) == 1 and atom[0] == '\n'):    #the split function returns the string "\n" as last string which should not be processed
                     if atom[0] == '%' and atom[1] == '$':       #strings that begin with '%$' are control symbols and are handles by the on_control_symbol function
                         atom = atom[2 :].lower()
-                        self.on_control_symbol(clingo.parse_term(atom))
+                        self.on_control_symbol(parse_term(atom))
                     else:
                         self._data.append(atom)
         self._raw_data = ''
@@ -173,7 +175,7 @@ class Solver(object):
             #the visualizer will send this symbol when it is sending a new instance afterwards
             self._to_send = {}
             self._data = []
-            self._control = clingo.Control()
+            self._control = Control()
             self._sended = - 1
         elif symbol.name == 'done' and len(symbol.arguments) == 1:
             try:
@@ -273,7 +275,7 @@ class SolverInc(Solver):
                                       ('step', [step]),('check', [step])])
             else:
                 self._control.ground([('step', [step]),('check', [step])])                
-            self._control.assign_external(clingo.Function('query', [step]), True)
+            self._control.assign_external(Function('query', [step]), True)
 
             print('solve: ' + str(step))
             solve_future = self._control.solve(on_model = self.on_model, async_ = True)
@@ -293,7 +295,7 @@ class SolverInc(Solver):
                     print('solver timeout after ' , time.clock() - self._solve_start, 'secounds')
                     return solve_future.get()
 
-            self._control.assign_external(clingo.Function('query', [step]), False)
+            self._control.assign_external(Function('query', [step]), False)
             step += 1
             if not result.unsatisfiable:
                 return result
@@ -313,7 +315,7 @@ class SolverInt(SolverInc):
         for atom in data:
             self._inits.append(atom)
         #reset clingo
-        self._control = clingo.Control()
+        self._control = Control()
 
         #add inits to clingo
         for atom in self._inits:

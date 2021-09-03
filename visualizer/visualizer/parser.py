@@ -1,5 +1,7 @@
 import os.path
-import clingo
+from clingo.control import Control
+from clingo.ast import ProgramBuilder, parse_string
+
 from . import configuration
 import traceback
 from .model import *
@@ -7,7 +9,7 @@ from .model import *
 class AspParser(object):
     def __init__(self):
         self._model = Model()
-        self._control = clingo.Control()
+        self._control = Control()
         self._model_view = None
         self._solver = None
         self._programs = {}
@@ -177,7 +179,7 @@ class AspParser(object):
 
     def reset_grounder(self):
         self._str_model = ''
-        self._control = clingo.Control()
+        self._control = Control()
         if self._parser_widget is not None:
             self._parser_widget.update()
 
@@ -203,9 +205,9 @@ class AspParser(object):
         if self._control is None:        
             return
         try:
-            with self._control.builder() as bb:
+            with ProgramBuilder(self._control) as bb:
                 for key in self._programs:
-                    clingo.parse_program(self._programs[key], lambda stm: bb.add(stm))
+                    parse_string(self._programs[key], lambda stm: bb.add(stm))
             self._control.ground([('base', [])])
             result = self._control.solve(on_model=self.on_model)
             print(result)
