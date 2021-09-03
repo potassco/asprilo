@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='visualizer',
-      version='0.2.2',
+      version='0.2.4',
       description='Asprilo visualizer package',
       author='Thomas Otto, Philipp Obermeier',
       url='https://github.com/potassco/asprilo/tree/develop/visualizer',

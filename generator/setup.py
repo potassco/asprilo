@@ -2,8 +2,10 @@
 
 from setuptools import setup, find_packages
 
+from generator import release
+
 setup(name='generator',
-      version='0.2.1',
+      version=release.__version__,
       description='Asprilo generator package',
       author='Philipp Obermeier, Thomas Otto',
       url='https://github.com/potassco/asprilo/tree/develop/generator',
