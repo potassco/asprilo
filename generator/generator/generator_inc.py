@@ -117,6 +117,7 @@ class IncrementalGenerator(InstanceGenerator):
             else:
                 inc_products = 1
                 inc_product_units = ratio_untits_vs_products
+            args_dict['order_all_products'] = False
             for select in range(self._args.num):
                 LOG.info("\n** INC MODE: Adding products and product units to previous template %s",
                          str(select + 1))
@@ -127,6 +128,7 @@ class IncrementalGenerator(InstanceGenerator):
                     args, select, select + 1)
                 templates.append(template + prev_templates[select])
                 dest_dirs.extend(_dest_dirs)
+            args_dict['order_all_products'] = self._args.order_all_products
 
         # Incrementally add orders
         if self._args.orders:
