@@ -8,7 +8,8 @@ import signal
 import logging
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-import clingo
+from clingo.control import Control
+from clingo.symbol import Number
 from .observer import Observer
 from .aspif import AspifObserver
 
@@ -144,7 +145,7 @@ class BasicGenerator(InstanceGenerator):
             if sig_handled[0]:
                 pass
             else:
-                LOG.error("%s: %s", type(exc).__name__, exc)
+                logging.exception(exc)
         finally:
             self.interrupt()
 
@@ -152,7 +153,7 @@ class BasicGenerator(InstanceGenerator):
         """Grounds and solves the relevant programs for instance generation."""
         LOG.debug("Used args for grounding & solving: %s", str(self._args))
 
-        self._prg = clingo.Control(self._solve_opts)
+        self._prg = Control(self._solve_opts)
 
         # Register ground program observer to analyze grounding size impact per program parts
         self._prg.register_observer(self._observer)
@@ -413,10 +414,11 @@ class BasicGenerator(InstanceGenerator):
         self._prg.interrupt()
 
     def _ground(self, parts, context=None):
-        """For grounding self._prg, wrapper of clingo.Control.ground to include optional statistics.
+        """For grounding self._prg, wrapper of Control.ground to include optional statistics.
 
         """
-        self._prg.ground(parts, context)
+        self._prg.ground([(name, [Number(par) for par in pars] or []) for (name, pars) in parts],
+                         context)
         if self._args.grounding_stats:
             description = 'parts: ' + str(parts)
             if context:
@@ -428,7 +430,7 @@ class BasicGenerator(InstanceGenerator):
         self._prg.ground([("project_all", [])])
         self._prg.solve()
         ctx = self._observer.finalize()
-        prg = clingo.Control()
+        prg = Control()
         prg.load(os.path.join(self._args.enc_dir, 'grnd_stats.lp'))
         if show == 'stats':
             prg.add('base', [], '#show stats/2. #show stats_total/1.')
@@ -446,7 +448,7 @@ class BasicGenerator(InstanceGenerator):
         prg.solve(on_model=__on_model)
 
     def _print_aspif(self, description=None, output='print', dump_dir='./_aspif'):
-        """Prints the aspif program of the current clingo.Control object stored in self._prg."""
+        """Prints the aspif program of the current Control object stored in self._prg."""
         self._prg.solve()
         ctx = self._aspif_obs.finalize()
         aspif = 'asp 1 0 0\n'

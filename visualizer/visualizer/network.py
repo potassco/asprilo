@@ -3,9 +3,10 @@ import socket
 import select
 import time
 import os
-import clingo
 import argparse
 from PyQt5.QtCore import *
+
+from clingo.symbol import parse_term
 
 class VisualizerSocket(object):
     def __init__(self, default_host = '127.0.0.1', default_port = 5000, socket_name = 'socket'):
@@ -171,7 +172,7 @@ class SolverSocket(VisualizerSocket):
                 if str_atom == '%$RESET':
                     self._parser.clear_model_actions(True)
                 else:
-                    self._parser.on_atom(clingo.parse_term(str_atom))
+                    self._parser.on_atom(parse_term(str_atom))
         self._model.update_windows()
 
     def solve(self):
@@ -212,7 +213,7 @@ class SimulatorSocket(VisualizerSocket):
                     reset = True
                     empty = False
                 else:
-                    self._parser.on_atom(clingo.parse_term(str_atom))
+                    self._parser.on_atom(parse_term(str_atom))
                     empty = False
         if not empty:
             self._parser.done_instance(reset)

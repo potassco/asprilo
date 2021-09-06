@@ -90,7 +90,7 @@ class VisualizerItem(object):
         Parameters:
         name: str
             This is the name of the value.
-        value: clingo.Symbol
+        value: clingo.symbol.Symbol
             This is the actual value. It contains the [value]
             part of the phrase.
         """
@@ -243,7 +243,7 @@ class Order(VisualizerItem):
         Parameters:
         name: str
             This is the name of the value.
-        value: clingo.Symbol
+        value: clingo.symbol.Symbol
             This is the actual value. It contains the [value]
             part of the phrase.
         """
@@ -598,7 +598,7 @@ class Task(VisualizerItem):
         Parameters:
         name: str
             This is the name of the value.
-        value: clingo.Symbol
+        value: clingo.symbol.Symbol
             This is the actual value. It contains the [value]
             part of the phrase.
         """

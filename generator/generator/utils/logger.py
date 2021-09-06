@@ -28,7 +28,7 @@ def setup_logger(level=logging.INFO):
     info_sh.addFilter(SingleLevelFilter(logging.INFO, False))
     info_sh.setLevel(logging.INFO)
     #formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    formatter = logging.Formatter('%(levelname)s: - %(message)s')
+    formatter = logging.Formatter('%(levelname)s: %(relativeCreated)s - %(message)s')
     info_sh.setFormatter(formatter)
     logger.addHandler(info_sh)
 
@@ -36,7 +36,7 @@ def setup_logger(level=logging.INFO):
     warn_sh = logging.StreamHandler(sys.stdout)
     warn_sh.addFilter(SingleLevelFilter(logging.WARNING, False))
     warn_sh.setLevel(logging.WARN)
-    formatter = logging.Formatter('%(levelname)s: %(filename)s - %(message)s')
+    formatter = logging.Formatter('%(levelname)s: %(relativeCreated)s %(filename)s:%(funcName)s:%(lineno)d  - %(message)s')
     warn_sh.setFormatter(formatter)
     logger.addHandler(warn_sh)
 
@@ -52,6 +52,6 @@ def setup_logger(level=logging.INFO):
     error_sh = logging.StreamHandler(sys.stdout)
     error_sh.addFilter(SingleLevelFilter(logging.ERROR, False))
     error_sh.setLevel(logging.ERROR)
-    formatter = logging.Formatter('%(levelname)s: %(relativeCreated)s  %(filename)s - %(message)s')
+    formatter = logging.Formatter('%(levelname)s: %(relativeCreated)s %(filename)s:%(funcName)s:%(lineno)d - %(message)s')
     error_sh.setFormatter(formatter)
     logger.addHandler(error_sh)

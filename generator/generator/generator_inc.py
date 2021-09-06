@@ -6,7 +6,7 @@
 import os
 import logging
 import math
-import clingo
+from clingo.control import Control
 from generator.utils.auxiliary import clone_args
 from generator.generator import BasicGenerator, InstanceGenerator
 
@@ -223,7 +223,7 @@ class FactFilter(object):
 
     def apply(self):
         "Returns filtered facts."
-        prg = clingo.Control()
+        prg = Control()
         prg.add('base', [], self._instance)
         prg.load(os.path.join(self._args.enc_dir, 'inc_filter.lp'))
         prg.ground([('base', [])])
