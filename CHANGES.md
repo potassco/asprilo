@@ -1,13 +1,28 @@
 # Changelog
 
-## Ongoing
+## 0.4.0
 
 ### Added
 
+-   Docs:
+    - Add specification for new domain Md
+
+-   Misc:
+    - Add script to convert instance between M-domain and Md-domain
+
 ### Changed
+
+-   Generator:
+    - Revise for clingo 5.5 compatibility
+-   Visualizer:
+    - Revise for clingo 5.5 compatibility
 
 ### Fixed
 
+-   Checker:
+    - Fix checker to detect swapping conflicts
+-   Generator:
+    - Fix incompatibility between incremental mode (`-I`) and cli option `--oap`
 
 ## 0.3.0
 
