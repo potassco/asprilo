@@ -429,7 +429,7 @@ on the problem domain scope as follows:
 
 [Destinations](#md) use object-type `dest` for their specification.
 
--   Exclusive to doman [Md](#md):
+-   Exclusive to domain [Md](#md):
     -   The grid position of a destination is indicated by attribute `at`, e.g.
 
             init(object(destination,d), value(at,(x,y))).

@@ -10,7 +10,7 @@ output:
 
 # What is *asprilo*?
 
-**asprilo** is an benchmarking framework to study typical scenarios in intra-logistics and warehouse
+**asprilo** is a benchmarking framework to study typical scenarios in intra-logistics and warehouse
 automation with multiple mobile robots. It offers a concise specification of this problem domain
 accompanied by a set of tools to generate benchmark instances, verify plans, as well as visualize
 both instances and plans. Due to the diverse and complex nature of this domain, asprilo offers an
