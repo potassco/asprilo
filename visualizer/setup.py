@@ -9,7 +9,7 @@ setup(name='visualizer',
       url='https://github.com/potassco/asprilo/tree/develop/visualizer',
       python_requires='>=3.9',
       install_requires=['clingo>=5.5.0',
-                        'PyQt5>=5.15.4'],
+                        'PyQt5>=5.9'],
       packages=['visualizer'],
       entry_points={'console_scripts': [
                            'viz = visualizer.__main__:main',
