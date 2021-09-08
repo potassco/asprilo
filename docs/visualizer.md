@@ -27,10 +27,10 @@ You can install the visualizer manually by downloading its source code from [htt
 ## Requirements
 The visualizer requires the following software installed on your system:
 
-1. [clingo5](http://github.com/potassco/clingo), version 5.4.0 or later
-2. [Python interpreter version 3.x](http://www.python.org)
+1. [clingo5](http://github.com/potassco/clingo)>=5.5.0
+2. [Python](http://www.python.org)>=3.9
 3. [Qt5](http://qt-project.org/qt5)
-4. [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/installation.html), version 5.6 or later
+4. [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/installation.html)>=5.9
 
 # Uninstallation
 To remove the visualizer from your system run the command:  

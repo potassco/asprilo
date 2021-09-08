@@ -50,9 +50,9 @@ Please note that this method is **not supported**!
 For manual installation, the generator requires the following software installed on
 your system:
 
-1. [clingo5](http://github.com/potassco/clingo)>=5.3.0
-2. [Python interpreter version >=3.6.x](http://www.python.org)
-3. [PyYAML](https://github.com/yaml/pyyaml)>=3.12
+1. [clingo5](http://github.com/potassco/clingo)>=5.5.0
+2. [Python](http://www.python.org)>=3.9
+3. [PyYAML](https://github.com/yaml/pyyaml)>=5.4.1
 
 # Usage
 
