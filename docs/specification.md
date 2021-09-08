@@ -209,7 +209,7 @@ for a robot at a picking station, all deliveries can be processed in parallel an
 time step.
 
 
-## Domain M: Movements Only <a id="cid-8dcd778b-8504-449d-9811-39ec61c50cbb"></a>
+## Domain M: Movements Only<a id="cid-8dcd778b-8504-449d-9811-39ec61c50cbb"></a>
 
 This is a exhaustive simplification of [domain A](#cid-b0f981f8-3202-42c0-a46e-aa6f1a52629b) in
 the sense the only action that robots can perform is move, i.e., there are no pickup, putdown or
@@ -224,7 +224,37 @@ delivery actions in plans. Further, the following constraints apply:
 An order line is fulfilled if a robot is located under the shelf that contains the order
 line's requested product at the end of the plan execution.
 
+### Domain Md: Destinations for Domain M<a id="md"></a>
 
+The domain Md provides an alternative view on the [domain M](#cid-8dcd778b-8504-449d-9811-39ec61c50cbb)
+to more naturally state [*Multi-Agent Path Finding* (*MAPF*)](http://mapf.info/) instances within the asprilo framework.
+That is, although semantically equivalent to [M](#cid-8dcd778b-8504-449d-9811-39ec61c50cbb), domain Md
+allows to explicitly state robot *destinations* as objects of an instance, in contrast.
+Moreover, in M,
+a destination at the coordinates (x,y) is implicitly represented by a singleton order requesting a product.
+The latter is additionally expected to be exclusively stored (in single quantity) on a shelf which is located at the same coordinates (x,y).
+In comparison,
+within an Md instance,
+we can state the same destination directly as an object of type *destination* located at (x,y).
+A plan solves an Md instance if every destination is occupied by a robot at the end.
+This is equivalent to the goal of M which expects that each shelf holding a requested product shares its location with a robot at the plan's end.
+
+Existing instances in M can be translated to Md format by augmenting (or replacing) the related orders, products and shelves with
+the corresponding destination objects by applying the rule in encoding `./misc/augment-m-to-md.lp`
+(or via the show statements in encoding `./misc/convert-m-to-md.lp`).
+Analogously, for the opposite augmentation (conversion) from Md to M,
+use encoding `./misc/augment-md-to-m.lp` (`./misc/convert-md-to-m.lp`).
+For convenience, there is also a augmentation/conversion bash script `./misc/convert-md.sh`:
+
+``` bash
+Usage: convert-md.sh --m2md|--md2m|--am2md|--amd2m INSTANCE_FILE
+  --m2md:  M to Md conversion
+  --m2md:  Md to M conversion
+  --am2md: M to Md augmentation
+  --amd2m: Md to M augmentation
+```
+
+*Limited Tools Support*: at present, the visualizer and checker only support Md instances that were created by augmentation of an M instance.
 
 # Input Format<a id="org46f96aa"></a>
 
@@ -395,6 +425,16 @@ on the problem domain scope as follows:
 
         states that pickingStation 1 is at location (2,3).
 
+### Destinations (for [domain Md](#md) only!)<a id="type-dest"></a>
+
+[Destinations](#md) use object-type `dest` for their specification.
+
+-   Exclusive to domain [Md](#md):
+    -   The grid position of a destination is indicated by attribute `at`, e.g.
+
+            init(object(destination,d), value(at,(x,y))).
+
+        states that destination `d` is located at coordinates `(x,y)`
 
 
 # Output Format<a id="org544aa9b"></a>

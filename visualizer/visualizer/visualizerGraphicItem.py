@@ -190,7 +190,7 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         a warning since this should never happen.
 
         Parameters:
-        action: clingo.Symbol
+        action: clingo.symbol.Symbol
             This is the action that will be performed.
         time_step: int
             This is the time step at which the action
@@ -241,7 +241,7 @@ class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
         Parameters:
         name: str
             This is the name of the value.
-        value: clingo.Symbol
+        value: clingo.symbol.Symbol
             This is the actual value. It contains the [value]
             part of the phrase.        
 
@@ -1157,7 +1157,7 @@ class Robot(VisualizerGraphicItem):
         actions simultaneously to other actions.
 
         Parameters:
-        action: clingo.Symbol
+        action: clingo.symbol.Symbol
             This is the action that will be performed.
         time_step: int
             This is the time step at which the action
@@ -1265,7 +1265,7 @@ class Robot(VisualizerGraphicItem):
         Parameters:
         name: str
             This is the name of the value.
-        value: clingo.Symbol
+        value: clingo.symbol.Symbol
             This is the actual value. It contains the [value]
             part of the phrase.        
 
@@ -1388,9 +1388,9 @@ class Robot(VisualizerGraphicItem):
         Performs the given deliver action.
 
         Parameters:
-        action: clingo.Symbol
+        action: clingo.symbol.Symbol
             This symbol contains the name of the action.
-        value: clingo.Symbol
+        value: clingo.symbol.Symbol
             This symbol contains the values of the
             deliver action.
         """
@@ -1432,9 +1432,9 @@ class Robot(VisualizerGraphicItem):
         Performs the given deliver action backwards.
 
         Parameters:
-        action: clingo.Symbol
+        action: clingo.symbol.Symbol
             This symbol contains the name of the action.
-        value: clingo.Symbol
+        value: clingo.symbol.Symbol
             This symbol contains the values of the
             deliver action.
         """
@@ -1905,7 +1905,7 @@ class Checkpoint(VisualizerGraphicItem):
         Parameters:
         name: str
             This is the name of the value.
-        value: clingo.Symbol
+        value: clingo.symbol.Symbol
             This is the actual value. It contains the [value]
             part of the phrase.
 

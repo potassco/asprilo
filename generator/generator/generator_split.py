@@ -10,8 +10,6 @@ import glob
 from generator.utils.auxiliary import clone_args
 from generator.generator import BasicGenerator, InstanceGenerator
 
-import clingo
-
 LOG = logging.getLogger('custom')
 
 class SplitGenerator(InstanceGenerator):

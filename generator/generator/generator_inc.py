@@ -6,7 +6,7 @@
 import os
 import logging
 import math
-import clingo
+from clingo.control import Control
 from generator.utils.auxiliary import clone_args
 from generator.generator import BasicGenerator, InstanceGenerator
 
@@ -117,6 +117,7 @@ class IncrementalGenerator(InstanceGenerator):
             else:
                 inc_products = 1
                 inc_product_units = ratio_untits_vs_products
+            args_dict['order_all_products'] = False
             for select in range(self._args.num):
                 LOG.info("\n** INC MODE: Adding products and product units to previous template %s",
                          str(select + 1))
@@ -127,6 +128,7 @@ class IncrementalGenerator(InstanceGenerator):
                     args, select, select + 1)
                 templates.append(template + prev_templates[select])
                 dest_dirs.extend(_dest_dirs)
+            args_dict['order_all_products'] = self._args.order_all_products
 
         # Incrementally add orders
         if self._args.orders:
@@ -223,7 +225,7 @@ class FactFilter(object):
 
     def apply(self):
         "Returns filtered facts."
-        prg = clingo.Control()
+        prg = Control()
         prg.add('base', [], self._instance)
         prg.load(os.path.join(self._args.enc_dir, 'inc_filter.lp'))
         prg.ground([('base', [])])

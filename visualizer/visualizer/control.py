@@ -11,7 +11,7 @@ from .network import *
 from .gui import *
 from .configuration import *
 
-VERSION = '0.2.3'
+VERSION = '0.2.4'
 
 class VisualizerWindow(QMainWindow):
     def __init__(self):
