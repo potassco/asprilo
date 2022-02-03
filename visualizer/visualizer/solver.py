@@ -56,7 +56,10 @@ class Solver(object):
         #clingo interface
         self._control = Control()
         #time for timeout
-        self._solve_start = time.clock()
+        try:
+            self._solve_start = time.clock()
+        except:
+            self._solve_start = time.time()
 
         #saves the raw sended data
         self._raw_data = ''
