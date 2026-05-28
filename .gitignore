@@ -1,0 +1,40 @@
+generator/generatedInstances/
+
+# Editors
+.vscode/
+*~
+\#*\#
+.\#*
+
+# Mac/OSX
+.DS_Store
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.pytest_cache/
+
+# pyenv
+.python-version
+.venv
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+*egg-info*
+
+# unclassified
+dist
+build
+.coverage
+_build
+_autosummary
+site
