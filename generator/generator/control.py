@@ -12,7 +12,6 @@ import glob
 import signal
 from collections import OrderedDict
 import yaml
-from pkg_resources import resource_filename
 
 from generator.generator import BasicGenerator
 from generator.generator_inc import IncrementalGenerator
@@ -35,7 +34,7 @@ class Control(object):
             namespace = argparse.Namespace(**nsdict)
         self._cl_parser, self._args = Control._parse_cl_args(args, namespace)
         self._args_dict = vars(self._args)
-        self._args_dict['enc_dir'] = resource_filename('generator', 'encodings')
+        self._args_dict['enc_dir'] = os.path.join(os.path.dirname(__file__), 'encodings')
         self._args_dict['template_str'] = None
         if self._args.template == ['-']:
             self._args_dict['template'] = []
