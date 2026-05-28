@@ -248,7 +248,7 @@ class ModelView(QGraphicsView):
         if timeout < 10:
             timeout = 10
         if self._timer is not None:
-            self._timer.start(timeout)
+            self._timer.start(int(round(timeout)))
 
     def switch_timer(self):
         if self._timer is None:
@@ -427,9 +427,9 @@ class ModelView(QGraphicsView):
                         y_pos = float(y_pos + float(action_y * float(self._timer_count * 0.1)))
                 x_pos = x_pos*self._w_distance*self._scaling + self._border_size/2
                 y_pos = y_pos*self._h_distance*self._scaling + self._border_size/2
-                item.set_rect(QRect(x_pos, y_pos,
-                                self._w_distance*self._scaling - self._border_size*self._scaling,
-                                self._h_distance*self._scaling - self._border_size*self._scaling))
+                item.set_rect(QRectF(x_pos, y_pos,
+                                 self._w_distance*self._scaling - self._border_size*self._scaling,
+                                 self._h_distance*self._scaling - self._border_size*self._scaling))
                 item.determine_color(number, count)
 
                 #draw path
