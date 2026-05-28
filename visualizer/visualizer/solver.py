@@ -6,6 +6,7 @@
 # This script provides an one shot varaint, an incremental and an interactive solver variant.
 
 import argparse
+import os
 import select
 import socket
 import time
@@ -14,9 +15,11 @@ from clingo.control import Control
 from clingo.symbol import Function, parse_term
 
 VERSION = '0.2.2'
+DEFAULT_ENCODING = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'scripts', 'encodings', 'encoding.lp'))
 #default one shot solver
 class Solver(object):
     def __init__(self):
+        print("x")
         self._parser = argparse.ArgumentParser()
         self._parser.add_argument('-p', '--port', help='the port the solver will send the anwsers to',
                             type=int, default = 5000)
@@ -25,7 +28,7 @@ class Solver(object):
                             version=VERSION)
         self._parser.add_argument('-e', '--encoding',
                             help='the name of the encoding the solver shall use to solve instances',
-                            type = str, default = './encoding.lp')
+                            type = str, default = DEFAULT_ENCODING)
         self._parser.add_argument('-m', '--mode',
                             help='the mode that the solver should use to solve instances',
                             type = str, choices=['default', 'incremental', 'interactive', 'online'], default = 'default')
