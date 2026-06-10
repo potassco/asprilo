@@ -477,6 +477,6 @@ class VizControl(object):
     def run(self):
         app = QApplication(sys.argv)
         wnd = VisualizerWindow()
-        value = app.exec_()
+        value = app.exec()
         wnd.exit()
         sys.exit(value)

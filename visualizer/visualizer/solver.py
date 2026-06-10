@@ -6,6 +6,7 @@
 # This script provides an one shot varaint, an incremental and an interactive solver variant.
 
 import argparse
+import os
 import select
 import socket
 import time
@@ -14,9 +15,11 @@ from clingo.control import Control
 from clingo.symbol import Function, parse_term
 
 VERSION = '0.2.2'
+DEFAULT_ENCODING = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'scripts', 'encodings', 'encoding.lp'))
 #default one shot solver
 class Solver(object):
     def __init__(self):
+        print("x")
         self._parser = argparse.ArgumentParser()
         self._parser.add_argument('-p', '--port', help='the port the solver will send the anwsers to',
                             type=int, default = 5000)
@@ -25,7 +28,7 @@ class Solver(object):
                             version=VERSION)
         self._parser.add_argument('-e', '--encoding',
                             help='the name of the encoding the solver shall use to solve instances',
-                            type = str, default = './encoding.lp')
+                            type = str, default = DEFAULT_ENCODING)
         self._parser.add_argument('-m', '--mode',
                             help='the mode that the solver should use to solve instances',
                             type = str, choices=['default', 'incremental', 'interactive', 'online'], default = 'default')
@@ -56,7 +59,7 @@ class Solver(object):
         #clingo interface
         self._control = Control()
         #time for timeout
-        self._solve_start = time.clock()
+        self._solve_start = time.time()
 
         #saves the raw sended data
         self._raw_data = ''
@@ -228,7 +231,7 @@ class Solver(object):
         self._control.load(self._args.encoding)
         self._control.ground([('base', [])])
         solve_future = self._control.solve(on_model = self.on_model, async_ = True)
-        self._solve_start = time.clock()
+        self._solve_start = time.time()
         #check if data was sended to the solver while solving to interrupt solving if needed
         while(True):
             if self.is_ready_to_read():
@@ -238,8 +241,8 @@ class Solver(object):
             if finished:
                 return solve_future.get()
             #check timeout
-            elif self._args.timeout > 0 and (time.clock() - self._solve_start) > self._args.timeout:
-                print('solver timeout after ' , time.clock() - self._solve_start, 'secounds')
+            elif self._args.timeout > 0 and (time.time() - self._solve_start) > self._args.timeout:
+                print('solver timeout after ' , time.time() - self._solve_start, 'secounds')
                 return solve_future.get()
 
     #model callback for self._control.solve in self.solve
@@ -288,7 +291,7 @@ class SolverInc(Solver):
         step = 0
 
         #solve incremental
-        self._solve_start = time.clock()
+        self._solve_start = time.time()
         while True:
             if step > self._args.steps and self._args.steps > 0:
                 print("maximum number of steps exceeded")
@@ -315,8 +318,8 @@ class SolverInc(Solver):
                     print(result)
                     break
                 #check timeout
-                elif self._args.timeout > 0 and (time.clock() - self._solve_start) > self._args.timeout:
-                    print('solver timeout after ' , time.clock() - self._solve_start, 'secounds')
+                elif self._args.timeout > 0 and (time.time() - self._solve_start) > self._args.timeout:
+                    print('solver timeout after ' , time.time() - self._solve_start, 'secounds')
                     return solve_future.get()
 
             self._control.assign_external(Function('query', [step]), False)

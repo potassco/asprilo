@@ -10,9 +10,7 @@ import logging
 import copy
 import glob
 import signal
-from collections import OrderedDict
 import yaml
-from pkg_resources import resource_filename
 
 from generator.generator import BasicGenerator
 from generator.generator_inc import IncrementalGenerator
@@ -35,7 +33,7 @@ class Control(object):
             namespace = argparse.Namespace(**nsdict)
         self._cl_parser, self._args = Control._parse_cl_args(args, namespace)
         self._args_dict = vars(self._args)
-        self._args_dict['enc_dir'] = resource_filename('generator', 'encodings')
+        self._args_dict['enc_dir'] = os.path.join(os.path.dirname(__file__), 'encodings')
         self._args_dict['template_str'] = None
         if self._args.template == ['-']:
             self._args_dict['template'] = []
@@ -117,12 +115,7 @@ class Control(object):
         :rtype: list of lists of strings
 
         """
-        def odict_constructor(loader, node):
-            """OrderedDict constructor for yaml parser."""
-            return OrderedDict(loader.construct_pairs(node))
-
-        yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, odict_constructor)
-        content = yaml.load(batch)
+        content = yaml.safe_load(batch)
         LOG.debug("Content parsed from YAML batch file: %s", str(content))
         invocations, global_settings = self._getinvocs(content, parent_path)
         LOG.debug("Global settings: %s", str(global_settings))
@@ -133,7 +126,7 @@ class Control(object):
     def _getinvocs(self, content, parent_path):
         global_settings = []
         invocations = []
-        if isinstance(content, OrderedDict):
+        if isinstance(content, dict):
             for key, val in list(content.items()):
                 if key == 'global_settings':
                     LOG.debug("Global settings found: %s", str(val))
@@ -150,7 +143,7 @@ class Control(object):
     def _walk_runs_config(self, content, parent_path, invocations=None):
         LOG.debug("Input invocations:\n%s", '\n'.join(str(inv) for inv in invocations or [None]))
         invocations = invocations or [['-d', parent_path]]
-        if isinstance(content, OrderedDict):
+        if isinstance(content, dict):
             output_invocs = []
             found_args_list = []
             nested = False
@@ -161,7 +154,7 @@ class Control(object):
                     for args in val:
                         found_args_list.extend(
                             self._get_extended_invocations(invocations, parent_path, None, args))
-                elif isinstance(val, OrderedDict):
+                elif isinstance(val, dict):
                     found_args_list = self._get_extended_invocations(invocations, parent_path,
                                                                      None, val)
                 else:
@@ -214,7 +207,7 @@ class Control(object):
         return args
 
     def _get_extended_invocations(self, invocations, parent_path, rel_path=None, args=None):
-        args = args or OrderedDict()
+        args = args or {}
         rel_path = rel_path or ''
         _invocations = copy.deepcopy(invocations)
         for inv in _invocations:

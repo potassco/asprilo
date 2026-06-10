@@ -50,10 +50,13 @@ def calculate_color(first_color, second_color, multiplier):
             max(first_color.green(), second_color.green()))
     blue = (min(first_color.blue(), second_color.blue()), 
             max(first_color.blue(), second_color.blue()))
+    red_value = int(round(red[0] + (red[1] - red[0]) * multiplier))
+    green_value = int(round(green[0] + (green[1] - green[0]) * multiplier))
+    blue_value = int(round(blue[0] + (blue[1] - blue[0]) * multiplier))
     return QColor(
-                red[0] + (red[1] - red[0]) * multiplier,
-                green[0] + (green[1] - green[0]) * multiplier,
-                blue[0] + (blue[1] - blue[0]) * multiplier)
+                max(0, min(255, red_value)),
+                max(0, min(255, green_value)),
+                max(0, min(255, blue_value)))
 
 
 class VisualizerGraphicItem(QGraphicsItem, visualizerItem.VisualizerItem):
@@ -542,7 +545,9 @@ class PickingStation(VisualizerGraphicItem):
 
         scale = config.get('display', 'id_font_scale')
         bold = config.get('display', 'id_font_bold')
-        self._text.setFont(QFont('', rect.width()*0.08*scale))
+        font = QFont('')
+        font.setPointSizeF(rect.width()*0.08*scale)
+        self._text.setFont(font)
         self._text.setPos(rect.x(), rect.y() + 0.6*rect.height())
         self._text.setDefaultTextColor(
             QColor(config.get('display', 'id_font_color')))
@@ -690,7 +695,9 @@ class Shelf(VisualizerGraphicItem):
 
         scale = config.get('display', 'id_font_scale')
         bold = config.get('display', 'id_font_bold')
-        self._text.setFont(QFont('', rect.width()*0.08*scale))
+        font = QFont('')
+        font.setPointSizeF(rect.width()*0.08*scale)
+        self._text.setFont(font)
         self._text.setPos(rect.x(), rect.y() + 0.4*rect.height())
         self._text.setDefaultTextColor(
             QColor(config.get('display', 'id_font_color')))
@@ -1088,7 +1095,9 @@ class Robot(VisualizerGraphicItem):
 
         scale = config.get('display', 'id_font_scale')
         bold = config.get('display', 'id_font_bold')
-        self._text.setFont(QFont('', rect.width()*0.08*scale))
+        font = QFont('')
+        font.setPointSizeF(rect.width()*0.08*scale)
+        self._text.setFont(font)
         self._text.setPos(rect.x(), rect.y() + 0.2*rect.height())
         self._text.setDefaultTextColor(QColor(config.get('display', 'id_font_color')))
         rect2 = QRectF()
@@ -1824,7 +1833,8 @@ class Checkpoint(VisualizerGraphicItem):
 
         scale = config.get('display', 'id_font_scale')
         bold = config.get('display', 'id_font_bold')
-        font = QFont('', rect.width()*0.08*scale)
+        font = QFont('')
+        font.setPointSizeF(rect.width()*0.08*scale)
         self._text.setFont(font)
         self._text.setPos(rect.x(), rect.y() + 0.6*rect.height())
         self._text.setDefaultTextColor(QColor(config.get('display', 'id_font_color')))

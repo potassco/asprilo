@@ -249,12 +249,12 @@ class AspParser(object):
             and (configuration.config.get('visualizer', 'create_pngs') or create_png)):
 
             rect = self._model_view.sceneRect()
-            position  = self._model_view.mapFromScene(QPoint(rect.x(), rect.y()))
-            position2 = self._model_view.mapFromScene(QPoint(rect.x() + rect.width(), 
-                                                            rect.y() + rect.height()))
-            pixmap = self._model_view.grab(QRect(position.x(), position.y(), 
-                                                position2.x() - position.x(), 
-                                                position2.y() - position.y()))
+            position  = self._model_view.mapFromScene(QPointF(rect.x(), rect.y()))
+            position2 = self._model_view.mapFromScene(QPointF(rect.x() + rect.width(), 
+                                                              rect.y() + rect.height()))
+            pixmap = self._model_view.grab(QRect(int(position.x()), int(position.y()), 
+                                                int(position2.x() - position.x()), 
+                                                int(position2.y() - position.y())))
             pixmap.save(file_name[0 : file_name.rfind('.')] + '.png')
         self._model.update_windows()
         return 0
