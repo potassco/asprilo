@@ -1,0 +1,25 @@
+---
+title: asprilo
+theme: minima
+
+header_pages:
+  - checker.md
+  - generator.md
+  - visualizer.md
+  - specification.md
+  - experiments.md
+
+plugins:
+  - jekyll-relative-links
+
+permalink: pretty
+
+# URL of asprilo source code repo on github.com
+asprilo_src_url: "https://github.com/potassco/asprilo/"
+
+asprilo_web_url: "https://docs.potassco.org/asprilo/"
+
+# Custom URLs for Uni Potsdam webspace
+uniurl: "https://www.cs.uni-potsdam.de/wv"
+resourceurl: "https://www.cs.uni-potsdam.de/wv/projects"
+publicationurl: "https://www.cs.uni-potsdam.de/wv/publications"
