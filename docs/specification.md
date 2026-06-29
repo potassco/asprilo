@@ -95,7 +95,7 @@ order is fulfilled if all its order lines are fulfilled.
 
 Here, we present the characteristics (without any claim of completeness) that we consider relevant
 to distinguish problem instances. This is a preliminary step for our subsequent problem
-classification which is, in turn, implemented by our [instance generator](manual.md). Instance characteristics
+classification which is, in turn, implemented by our [instance generator](generator.md). Instance characteristics
 can be further divided up into aspects related to the instance's warehouse and set of orders,
 respectively. Moreover, instance characteristics depend on the scope of the problem domain, and
 the order set properties also depend on the warehouse characteristics.  In the following, we list
